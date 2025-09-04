@@ -148,17 +148,20 @@ body {
     flex-shrink: 0;
 }
 
-.profile-placeholder {
+.profile-image {
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 4rem;
-    color: rgba(255, 255, 255, 0.8);
+    overflow: hidden;
     border: 4px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .scroll-indicator {
@@ -175,13 +178,15 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.scroll-indicator a:hover {
-    opacity: 1;
-}
-
 /* Sections */
 .section {
     padding: 5rem 0;
+}
+
+/* Ensure anchor jumps account for fixed navbar height */
+.section,
+#home {
+    scroll-margin-top: 90px;
 }
 
 .section-title {
@@ -216,7 +221,7 @@ body {
 }
 
 .about-text h4 {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 600;
     margin: 1.5rem 0 1rem 0;
     color: #2c3e50;
@@ -347,29 +352,33 @@ body {
 .timeline::before {
     content: '';
     position: absolute;
-    left: 20px;
+    left: 50%;
     top: 0;
     bottom: 0;
     width: 2px;
     background: #e9ecef;
+    transform: translateX(-50%);
 }
 
 .timeline-item {
     position: relative;
     margin-bottom: 2rem;
-    padding-left: 60px;
+    padding-left: 50%;
+    padding-left: calc(50% + 2rem);
 }
 
 .timeline-marker {
     position: absolute;
-    left: 11px;
+    left: 50%;
     top: 0;
+    transform: translateX(-50%);
     width: 20px;
     height: 20px;
     background: #3498db;
     border-radius: 50%;
     border: 4px solid white;
     box-shadow: 0 0 0 3px #e9ecef;
+    z-index: 2;
 }
 
 .timeline-content h5 {
@@ -391,6 +400,8 @@ body {
     margin-bottom: 0.5rem;
 }
 
+
+
 .timeline-content p {
     color: #555;
     line-height: 1.6;
@@ -399,23 +410,28 @@ body {
 /* Projects Section */
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
-}
-
-.project-card {
-    background: white;
-    border-radius: 12px;
+  }
+  
+  .project-card {
+    background: #fff;
+    border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #f1f3f4;
+    border: 1px solid #eaecef;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    transition: transform 0.35s ease, box-shadow 0.35s ease, background-color 0.35s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
-
-.project-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
+  
+  .project-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    background-color: #fafafa;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  }
 
 .project-image {
     width: 80px;
@@ -574,8 +590,8 @@ body {
 
 .contact-item {
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+    align-items: center;
+    gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
@@ -595,23 +611,26 @@ body {
 .contact-details h4 {
     font-size: 1.2rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin: 0;
     color: #2c3e50;
+    line-height: 1.4;
 }
 
 .contact-details p {
     color: #555;
     line-height: 1.6;
+    margin: 0;
 }
 
 .social-links {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    justify-content: center;
+    flex-direction: row;
+    gap: 3rem;
 }
 
 .social-link {
-    color: #3498db;
+    color: #ffffff;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -620,7 +639,7 @@ body {
 }
 
 .social-link:hover {
-    color: #2980b9;
+    color: #40464a;
 }
 
 /* Contact Form */
@@ -766,3 +785,123 @@ body {
         scroll-behavior: smooth;
     }
 }
+
+
+/* === Split Timeline (Left: heading+dates | Center line | Right: details) === */
+.timeline-2col {
+    display: grid;
+    grid-template-columns: 0.8fr 40px 1.2fr; /* left | center | right */
+    row-gap: 3rem;
+    position: relative;
+  }
+  
+  /* vertical line in the center column */
+  .timeline-2col::before {
+    content: "";
+    position: absolute;
+    width: 2px;
+    background: #e9ecef; /* default color */
+}
+
+/* Specific styles for style-1 */
+.timeline-style-1::before {
+    left: 40.2%;
+    top: -40px;
+    bottom: 160px;
+    background: #e9ecef;
+}
+
+/* Specific styles for style-2 */
+.timeline-style-2::before {
+    left: 40.2%;
+    top: -60px;
+    bottom: 110px;
+    background: #e9ecef;
+}
+  
+  /* each row contains left cell, center dot, right cell */
+  .timeline-row {
+    display: contents; /* so children occupy the 3 columns */
+  }
+  
+  /* left panel: big heading + date */
+  .timeline-left {
+    grid-column: 1;
+    text-align: right;
+    padding-right: 1.5rem;
+  }
+  .timeline-left .tl-heading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.8;
+    margin-bottom: .4rem;
+  }
+  .timeline-left .tl-dates {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+  
+  /* center marker */
+  .timeline-center {
+    grid-column: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .timeline-dot {
+    width: 30px;
+    height: 30px;
+    background: #3498db;
+    border-radius: 999px;
+    border: 4px solid #fff;
+    position: relative;
+    z-index: 10;
+    margin-top: .4rem; /* aligns with headings nicely */
+  }
+  
+  /* right panel: title + paragraph list */
+  .timeline-right {
+    grid-column: 3;
+    padding-left: 1.5rem;
+  }
+  .timeline-right .tl-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+    margin-bottom: .6rem;
+  }
+  .timeline-right .tl-sub {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    font-weight: 500;
+    margin-bottom: .75rem;
+  }
+  .timeline-right p {
+    color: #555;
+    line-height: 1.8;
+    max-width: 650px;
+}
+  
+  /* mobile tweaks */
+  @media (max-width: 768px) {
+    .timeline-2col {
+      grid-template-columns: 1fr; /* stack */
+    }
+    .timeline-2col::before {
+      display: none;
+    }
+    .timeline-left,
+    .timeline-center,
+    .timeline-right {
+      grid-column: 1;
+      text-align: left;
+      padding: 0;
+    }
+    .timeline-left { margin-bottom: .5rem; }
+    .timeline-center { display: none; }
+    .timeline-right .tl-title { font-size: 1.4rem; }
+    .timeline-left .tl-heading { font-size: 1.5rem; }
+  }

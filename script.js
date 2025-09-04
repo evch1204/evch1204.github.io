@@ -109,7 +109,7 @@ const statsObserver = new IntersectionObserver((entries) => {
         if (entry.isIntersecting) {
             const target = entry.target;
             const finalNumber = parseInt(target.textContent);
-            const duration = 2000; // 2 seconds
+            const duration = 1000; // 1 seconds
             const increment = finalNumber / (duration / 16); // 60fps
             let currentNumber = 0;
             

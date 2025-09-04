@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Name - Portfolio</title>
+    <title>Evan's Personal Website - Portfolio</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,7 +13,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <a href="#home">Your Name</a>
+                <a href="#home">Tei(Evan) Chang</a> <!--change fonrt-->
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -50,13 +50,27 @@
     <section id="home" class="hero">
         <div class="hero-content">
             <div class="hero-text">
-                <h1>Your Name</h1>
-                <h2>Your Title | Your Role | Your Passion</h2>
-                <p class="hero-subtitle">Welcome to my portfolio website</p>
+                <h1>Tei(Evan) Chang</h1>
+                <h2>Computer Science | Mathematics | Computer Engineering</h2>
+                <p class="hero-subtitle">I would love to connect!</p>
+                <h2></h2>
+
+
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/evan-chang1/" class="social-link" target="_blank">
+                        <i class="fab fa-linkedin fa-2x"></i>
+                    </a>
+                    <a href="https://github.com/evch1204" class="social-link" target="_blank">
+                        <i class="fab fa-github fa-2x"></i>
+                    </a>
+                    <a href="changtei1204@gmail.com" class="social-link">
+                        <i class="fas fa-envelope fa-2x"></i>
+                    </a>
+                </div>
             </div>
             <div class="hero-image">
-                <div class="profile-placeholder">
-                    <i class="fas fa-user"></i>
+                <div class="profile-image">
+                    <img src="your-photo.jpg" alt="Evan Chang" class="profile-img">
                 </div>
             </div>
         </div>
@@ -72,37 +86,47 @@
         <div class="container">
             <h2 class="section-title">About</h2>
             <h3 class="section-subtitle">Let me introduce myself.</h3>
+            <br>
             
             <div class="about-content">
                 <div class="about-text">
-                    <p>I'm a passionate professional seeking opportunities in [your field]. I'm also [your education background]. My primary interests have been [your interests], and the list is still growing.</p>
+                    <p>I'm a Computer Science New Graduate is seeking to learn and grow along with AI. I'm also Santa Clara University class of 2025 B.S. in Computer Science in Data Science specialization. </p>
                     
                     <h4>Profile</h4>
-                    <p>Currently I have a job, but am open to new opportunities. If you think I'm a good fit, please contact me via [your-email@example.com].</p>
+                    <p>Currently, I am working as a Java Developer Trainee, but am open to new opportunities. If you think I'm a good fit, please contact me via changtei1204@gmail.com.</p>
                     
                     <div class="profile-details">
                         <div class="detail-item">
-                            <strong>Fullname:</strong> Your Full Name
+                            <strong>Full name:</strong> Tei Chang
                         </div>
                         <div class="detail-item">
-                            <strong>Email:</strong> your-email@example.com
+                            <strong>Pronouns:</strong> He/Him
+                        </div>
+                        <div class="detail-item">
+                            <strong>School:</strong> Santa Clara University
+                        </div>
+                        <div class="detail-item">
+                            <strong>Age:</strong> 22
+                        </div>
+                        <div class="detail-item">
+                            <strong>Hometown:</strong> Hshinchu, Taiwan
                         </div>
                     </div>
                     
                     <div class="cta-buttons">
                         <a href="#contact" class="btn btn-primary">Hire Me</a>
-                        <a href="#" class="btn btn-secondary">Download CV</a>
+                        <a href="Resume.pdf" class="btn btn-secondary" target="_blank">Download Resume</a>
                     </div>
                 </div>
                 
                 <div class="skills-section">
                     <h4>Skills</h4>
-                    <p>I'm a dedicated professional, strong in [your strengths]. My areas of expertise are [your expertise]. Below are highlights of my technical skills:</p>
+                    <p>I'm a dedicated professional, strong in reserach and coding. My areas of expertise are Backend Development, Data Analytics, and Machine Learning. Below are highlights of my technical skills:</p>
                     
                     <div class="skill-bars">
                         <div class="skill-item">
                             <div class="skill-info">
-                                <span>Skill 1</span>
+                                <span>MS Suite</span>
                                 <span>90%</span>
                             </div>
                             <div class="skill-bar">
@@ -112,7 +136,17 @@
                         
                         <div class="skill-item">
                             <div class="skill-info">
-                                <span>Skill 2</span>
+                                <span>Java</span>
+                                <span>90%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span>Python</span>
                                 <span>85%</span>
                             </div>
                             <div class="skill-bar">
@@ -122,17 +156,7 @@
                         
                         <div class="skill-item">
                             <div class="skill-info">
-                                <span>Skill 3</span>
-                                <span>80%</span>
-                            </div>
-                            <div class="skill-bar">
-                                <div class="skill-progress" style="width: 80%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-item">
-                            <div class="skill-info">
-                                <span>Skill 4</span>
+                                <span>C/C++</span>
                                 <span>75%</span>
                             </div>
                             <div class="skill-bar">
@@ -147,55 +171,124 @@
 
     <!-- Resume Section -->
     <section id="resume" class="section">
-        <div class="container">
-            <h2 class="section-title">Resume</h2>
-            <h3 class="section-subtitle">More of my credentials.</h3>
-            <p class="section-description">Here are my work experiences and education.</p>
-            
-            <div class="resume-content">
-                <div class="resume-section">
-                    <h4>Work Experience</h4>
-                    
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h5>Job Title</h5>
-                                <div class="timeline-date">Month Year - Present</div>
-                                <div class="company">Company Name</div>
-                                <p>Description of your role and achievements. Include specific projects, technologies used, and impact made.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h5>Previous Job Title</h5>
-                                <div class="timeline-date">Month Year - Month Year</div>
-                                <div class="company">Previous Company</div>
-                                <p>Description of your previous role and accomplishments.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="resume-section">
-                    <h4>Education</h4>
-                    
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h5>Degree Name</h5>
-                                <div class="timeline-date">Month Year - Month Year</div>
-                                <div class="company">University Name</div>
-                                <p>Description of your studies, major, and any notable achievements.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="resume-section">
+        <h3 class="section-subtitle">Resume</h3>
+        <h2 class="section-title">Work Experience</h2>
+        <h3 class="section-subtitle">Here are my work experience and education.</h3>
+        <br>
+        <br>
+
+      
+        <div class="timeline-2col timeline-style-1">
+          <!-- Row 1 -->
+          <div class="timeline-row">
+            <div class="timeline-left">
+              <div class="tl-heading">Java Developer Trainee</div>
+              <div class="tl-dates">June 2025 - Present · Milpitas, CA</div>
             </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="tl-title">Silicon, Inc.</div>
+              <div class="tl-sub">Backend · Spring Boot · Rest APIs</div>
+              <p>At Silicon, I contributed to backend development by implementing secure authentication and authorization features in Spring Boot using JWT, ensuring reliability and protection of sensitive data. I also designed and integrated an API Gateway to streamline routing, improve scalability, and enable seamless communication across microservices, while collaborating with cross-functional teams to deliver solutions that enhanced both workflow efficiency and client experience.</p>
+            </div>
+          </div>
+      
+          <!-- Row 2 -->
+          <div class="timeline-row">
+            <div class="timeline-left">
+              <div class="tl-heading">Technical Service Student Assistant</div>
+              <div class="tl-dates">May 2024 - June 2025 · Santa Clara, CA</div>
+            </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="tl-title">Santa Clara University</div>
+              <div class="tl-sub">MySql · Excel · Customer Service</div>
+              <p>At SCU’s library, I maintained and updated a database of 50,000+ records with SQL, ensuring organized and accessible resources for users. I supported staff by integrating government documents into collections in compliance with archival standards, reducing cataloging errors, and provided direct technical assistance to patrons to resolve database access issues and improve usability.</p>
+            </div>
+          </div>
+      
+          <!-- Row 3 -->
+          <div class="timeline-row">
+            <div class="timeline-left">
+              <div class="tl-heading">Technical Support Engineer (Intern)</div>
+              <div class="tl-dates">June 2023 - Aug 2023 · Hsinchu, Taiwan</div>
+            </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="tl-title">DuPont</div>
+              <div class="tl-sub">Technical Support · Python · Excel · VBA</div>
+              <p>During my internship, I developed an AI-powered camera bot that automatically checked lab workers’ safety gear, cutting inspection time by 70% and enhancing compliance monitoring. I also supported over 1,000 employees by leading training initiatives, earning first place in the internship competition, and streamlined team operations for 20 employees by optimizing Excel processes for analysis and reporting.</p>
+            </div>
+          </div>
+      
+          <!-- Row 4 -->
+          <div class="timeline-row">
+            <div class="timeline-left">
+              <div class="tl-heading">Client Support Intern</div>
+              <div class="tl-dates">June 2022 - Sept 2022</div>
+            </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="tl-title">GuoQing, Inc.</div>
+              <div class="tl-sub">Intern · Customer Success · Excel</div>
+              <p>At Guoqing, I developed automated Excel tools using VBA to streamline repetitive production and data-editing tasks, reducing manual work and increasing efficiency. These solutions improved accuracy, accelerated turnaround times, and allowed the team to focus on higher-value analysis and decision-making.</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+
+      <div class="resume-section">
+        <br>
+        <h2 class="section-title">Education</h2>
+      
+        <div class="timeline-2col timeline-style-2">
+            
+          <!-- Row 1 -->
+          <div class="timeline-row">
+            <div class="timeline-left">
+              <div class="tl-heading">Bachelor Degree</div>
+              <div class="tl-dates">Sep 2021 - June 2025</div>
+            </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="tl-title">Santa Clara University</div>
+              <div class="tl-sub">B.S. Computer Science (Data Science specialization)</div>
+              <p><strong>Minor:</strong> Mathematics, Computer Engineering.<br>
+                 <strong>Relevant Coursework:</strong> Artificial Intelligence, Applied Machine Learning, Algorithms, Data Structures, OOP, Data Science.<br>
+                 <strong>Activities:</strong> Alpha Phi Omega (VP), Technical Service Student Assistant, AI Collaborate SCU.</p>
+            </div>
+          </div>
+      
+          <!-- Row 2 -->
+          <div class="timeline-row">
+            <div class="timeline-left">
+              <div class="tl-heading">High School Degree</div>
+              <div class="tl-dates"> Sep 2017- June 2021</div>
+            </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="tl-title">SMIC-International School</div>
+              <div class="tl-sub">Honors & Leadership</div>
+              <p><strong>Awards/Activities:</strong> Honor Roll, Student Athletic Council President, Student Council Historian, Varsity Basketball, Varsity Volleyball.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
     </section>
 
     <!-- Projects Section -->
@@ -205,47 +298,125 @@
             <h3 class="section-subtitle">Check out my creations.</h3>
             
             <div class="projects-grid">
-                <div class="project-card">
+                <a href="https://github.com/11andyxz/OnlineOrder-backend" class="project-card" target="_blank">
                     <div class="project-image">
                         <i class="fas fa-mobile-alt"></i>
                     </div>
                     <div class="project-content">
-                        <h4>Project Name 1</h4>
+                        <h4>Full Stack Online Ordering System</h4>
                         <p>Description of your first project. What it does, technologies used, and what you learned.</p>
                         <div class="project-tags">
-                            <span class="tag">Technology 1</span>
-                            <span class="tag">Technology 2</span>
+                            <span class="tag">Java</span>
+                            <span class="tag">Spring Boot</span>
+                            <span class="tag">JWT</span>
                         </div>
                     </div>
-                </div>
+                </a>
                 
-                <div class="project-card">
+                <a href="https://github.com/evch1204/EMGT311-ENGR184-Final-Project" class="project-card" target="_blank">
                     <div class="project-image">
                         <i class="fas fa-code"></i>
                     </div>
                     <div class="project-content">
-                        <h4>Project Name 2</h4>
+                        <h4>Erogonomic Risk Detection Research</h4>
                         <p>Description of your second project. Include details about the problem it solves and your approach.</p>
                         <div class="project-tags">
-                            <span class="tag">Technology 1</span>
-                            <span class="tag">Technology 2</span>
+                            <span class="tag">Python</span>
+                            <span class="tag">Jyupter</span>
                         </div>
                     </div>
-                </div>
+                </a>
                 
-                <div class="project-card">
+                <a href="https://github.com/evch1204/AI-Motivation-Web-Application" class="project-card" target="_blank">
                     <div class="project-image">
                         <i class="fas fa-globe"></i>
                     </div>
                     <div class="project-content">
-                        <h4>Project Name 3</h4>
+                        <h4>AI Motivational Web Application</h4>
                         <p>Description of your third project. Highlight any unique features or challenges overcome.</p>
                         <div class="project-tags">
-                            <span class="tag">Technology 1</span>
-                            <span class="tag">Technology 2</span>
+                            <span class="tag">Python</span>
+                            <span class="tag">OpenAI-GPT4</span>
+                            <span class="tag">HTML</span>
                         </div>
                     </div>
-                </div>
+                </a>
+
+                <a href="https://github.com/evch1204/AI-Camera-Safety-Bot" class="project-card" target="_blank">
+                    <div class="project-image">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="project-content">
+                        <h4>AI Camera Safety Bot</h4>
+                        <p>Description of your second project. Include details about the problem it solves and your approach.</p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">TensorFlow</span>
+                            <span class="tag">Pytorch</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="https://github.com/evch1204/evch1204.github.io" class="project-card" target="_blank">
+                    <div class="project-image">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="project-content">
+                        <h4>Personal Website</h4>
+                        <p>Description of your third project. Highlight any unique features or challenges overcome.</p>
+                        <div class="project-tags">
+                            <span class="tag">HTML</span>
+                            <span class="tag">CSS</span>
+                            <span class="tag">JavaScript</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="https://github.com/evch1204/NBA-Statistic-Analysis---184-Proj" class="project-card" target="_blank">
+                    <div class="project-image">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="project-content">
+                        <h4>NBA Statistic Analysis</h4>
+                        <p>Description of your second project. Include details about the problem it solves and your approach.</p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">Data Analysis</span>
+                            <span class="tag">MatplotLib</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="https://github.com/evch1204/Gaming-Statistic-Web-Scrapping-Analysis" class="project-card" target="_blank">
+                    <div class="project-image">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="project-content">
+                        <h4>Gaming Statistic/Web Scraping Analysis</h4>
+                        <p>Description of your second project. Include details about the problem it solves and your approach.</p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">Web Scraping</span>
+                            <span class="tag">Data Analysis</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="https://github.com/evch1204/valley-verde-climate-control" class="project-card" target="_blank">
+                    <div class="project-image">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="project-content">
+                        <h4>Valley Verde Climate Control Device</h4>
+                        <p>Description of your second project. Include details about the problem it solves and your approach.</p>
+                        <div class="project-tags">
+                            <span class="tag">C++</span>
+                            <span class="tag">Arduino</span>
+                        </div>
+                    </div>
+                </a>
+
+            
             </div>
         </div>
     </section>
@@ -263,13 +434,13 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="activity-content">
-                        <h4>Role Title</h4>
-                        <div class="activity-org">Organization Name</div>
-                        <div class="activity-date">Month Year - Present</div>
+                        <h4>Vice President of Membership</h4>
+                        <div class="activity-org">Alpha Phi Omega</div>
+                        <div class="activity-date">March 2023 - June 2025</div>
                         <ul class="activity-details">
-                            <li>Responsibility or achievement 1</li>
-                            <li>Responsibility or achievement 2</li>
-                            <li>Responsibility or achievement 3</li>
+                            <li>Execution of membership recruitment and pledge program.</li>
+                            <li>Managed a comprehensive member database.</li>
+                            <li>Overseeing the execution of the pledge education program.</li>
                         </ul>
                     </div>
                 </div>
@@ -279,12 +450,13 @@
                         <i class="fas fa-laptop-code"></i>
                     </div>
                     <div class="activity-content">
-                        <h4>Another Role</h4>
-                        <div class="activity-org">Another Organization</div>
-                        <div class="activity-date">Month Year - Month Year</div>
+                        <h4>Treasurer/Fundraiser Chair</h4>
+                        <div class="activity-org">Shanghai Roots and Shoots</div>
+                        <div class="activity-date">July 2020 - Aug 2020</div>
                         <ul class="activity-details">
-                            <li>Responsibility or achievement 1</li>
-                            <li>Responsibility or achievement 2</li>
+                            <li>Overseeing fundraiser and financial management.</li>
+                            <li>Accumulate over 200+ volunteer hours.</li>
+                            <li>Organizing a community service volunteer trip.</li>
                         </ul>
                     </div>
                 </div>
@@ -297,13 +469,8 @@
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-number">200+</div>
+                    <div class="stat-number">100+</div>
                     <div class="stat-label">Projects Completed</div>
-                </div>
-                
-                <div class="stat-item">
-                    <div class="stat-number">10</div>
-                    <div class="stat-label">Awards Received</div>
                 </div>
                 
                 <div class="stat-item">
@@ -317,7 +484,7 @@
                 </div>
                 
                 <div class="stat-item">
-                    <div class="stat-number">930+</div>
+                    <div class="stat-number">550+</div>
                     <div class="stat-label">Network</div>
                 </div>
                 
@@ -343,8 +510,7 @@
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <div class="contact-details">
-                            <h4>Where to find me</h4>
-                            <p>Your Address<br>City, State<br>ZIP Code</p>
+                            <h4>1261 Normandy Way Santa Clara, CA 95050</h4>
                         </div>
                     </div>
                     
@@ -353,8 +519,7 @@
                             <i class="fas fa-envelope"></i>
                         </div>
                         <div class="contact-details">
-                            <h4>Email Me At</h4>
-                            <p>your-email@example.com</p>
+                            <h4>Changtei1204@gmail.com</h4>
                         </div>
                     </div>
                     
@@ -363,15 +528,14 @@
                             <i class="fas fa-link"></i>
                         </div>
                         <div class="contact-details">
-                            <h4>Let's Connect</h4>
                             <div class="social-links">
-                                <a href="#" class="social-link">
-                                    <i class="fab fa-linkedin"></i>
-                                    LinkedIn Profile
+                                <a href="https://www.linkedin.com/in/evan-chang1/" class="social-link" target="_blank">
+                                    <i class="fab fa-linkedin fa-2x"></i>
+                                    Linkedin Profile
                                 </a>
-                                <a href="#" class="social-link">
-                                    <i class="fab fa-github"></i>
-                                    GitHub Profile
+                                <a href="https://github.com/evch1204" class="social-link" target="_blank">
+                                    <i class="fab fa-github fa-2x"></i>
+                                    Github Profile
                                 </a>
                             </div>
                         </div>
@@ -381,10 +545,10 @@
                 <div class="contact-form">
                     <form>
                         <div class="form-group">
-                            <input type="text" placeholder="Your Name" required>
+                            <input type="text" placeholder="Name" required>
                         </div>
                         <div class="form-group">
-                            <input type="email" placeholder="Your Email" required>
+                            <input type="email" placeholder="Email" required>
                         </div>
                         <div class="form-group">
                             <input type="text" placeholder="Subject">
@@ -402,10 +566,11 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Your Name. All rights reserved.</p>
+            <p>&copy; 2025 Tei Chang. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="script.js"></script>
 </body>
 </html>
+
