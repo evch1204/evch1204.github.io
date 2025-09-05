@@ -131,36 +131,22 @@ statNumbers.forEach(stat => {
     statsObserver.observe(stat);
 });
 
-// Contact form handling
+// Contact form handling - Formspree will handle the submission
 const contactForm = document.querySelector('.contact-form form');
 if (contactForm) {
     contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+        // Let Formspree handle the form submission
+        // You can add a loading state here if desired
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Sending...';
+        submitBtn.disabled = true;
         
-        // Get form data
-        const formData = new FormData(contactForm);
-        const name = formData.get('name') || contactForm.querySelector('input[type="text"]').value;
-        const email = formData.get('email') || contactForm.querySelector('input[type="email"]').value;
-        const subject = formData.get('subject') || contactForm.querySelector('input[placeholder="Subject"]').value;
-        const message = formData.get('message') || contactForm.querySelector('textarea').value;
-        
-        // Simple validation
-        if (!name || !email || !message) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert('Please enter a valid email address.');
-            return;
-        }
-        
-        // Here you would typically send the form data to a server
-        // For now, we'll just show a success message
-        alert('Thank you for your message! I\'ll get back to you soon.');
-        contactForm.reset();
+        // Reset button after a delay (Formspree will redirect)
+        setTimeout(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }, 3000);
     });
 }
 
@@ -243,6 +229,75 @@ document.querySelectorAll('.btn, .project-card, .activity-card').forEach(element
     
     element.addEventListener('mouseleave', function() {
         this.style.transform = this.style.transform.replace('scale(1.02)', 'scale(1)');
+    });
+});
+
+// Modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all project cards
+    const projectCards = document.querySelectorAll('.project-card[data-modal]');
+    
+    // Get all modals
+    const modals = document.querySelectorAll('.modal');
+    
+    // Get all close buttons
+    const closeButtons = document.querySelectorAll('.close, .close-modal');
+    
+    // Resume modal button
+    const resumeModalBtn = document.getElementById('resume-modal-btn');
+    const resumeModal = document.getElementById('resume-modal');
+    
+    // Open modal when project card is clicked
+    projectCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const modalId = this.getAttribute('data-modal');
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            }
+        });
+    });
+    
+    // Open resume modal when resume button is clicked
+    if (resumeModalBtn && resumeModal) {
+        resumeModalBtn.addEventListener('click', function() {
+            resumeModal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        });
+    }
+    
+    // Close modal when close button is clicked
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Restore scrolling
+            }
+        });
+    });
+    
+    // Close modal when clicking outside of it
+    modals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Restore scrolling
+            }
+        });
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            modals.forEach(modal => {
+                if (modal.style.display === 'block') {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto'; // Restore scrolling
+                }
+            });
+        }
     });
 });
 
