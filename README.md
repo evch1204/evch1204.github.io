@@ -56,7 +56,7 @@ The workflow **Deploy GitHub Pages** (`.github/workflows/pages.yml`) runs on pus
 
 In the repo: **Settings → Pages** — source should be **GitHub Actions** for this workflow to deploy.
 
-`vite.config.ts` uses `base: './'` so asset paths work on GitHub Pages.
+`vite.config.ts` uses `base: '/'` for a **user** site (`username.github.io`). Project sites under a subpath need `base: '/repo-name/'` instead.
 
 ## Customization
 
