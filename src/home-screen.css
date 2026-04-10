@@ -1,0 +1,377 @@
+.home-screen {
+  --home-fg: #0a0a0a;
+  --home-muted: #555550;
+  --home-hint: #aaa9a0;
+  background: transparent;
+  color: var(--home-fg);
+  font-family: 'Space Mono', monospace;
+  overflow: hidden;
+  height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  cursor: default;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.home-screen .grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+.home-screen #intro {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(5.25rem, 9vh, 8rem) clamp(16px, 6vw, 64px) clamp(6rem, 14vh, 10.5rem);
+  z-index: 5;
+  pointer-events: none;
+  text-align: center;
+  gap: 0;
+  box-sizing: border-box;
+}
+
+.home-screen .line {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  overflow: visible;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: min(100%, 56rem);
+}
+
+.home-screen .typed-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  color: var(--home-fg);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.home-screen .typed-text.small {
+  font-size: clamp(1.2rem, 3vw, 2.8rem);
+  color: var(--home-muted);
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+}
+
+.home-screen .word-block {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 2.5px solid var(--home-fg);
+  opacity: 0;
+  position: relative;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  pointer-events: none;
+  background: #ffffff;
+  color: var(--home-fg);
+}
+
+.home-screen #intro.intro-launchable .word-block {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.home-screen .word-block.specialty {
+  font-size: clamp(1.2rem, 3vw, 2.8rem);
+  border-width: 2px;
+}
+
+.home-screen #line3 {
+  margin-top: clamp(8px, 1.5vw, 16px);
+}
+
+.home-screen .line.line-actions {
+  margin-top: clamp(12px, 2vw, 20px);
+  gap: clamp(10px, 2vw, 18px);
+}
+
+.home-screen .word-block.cta {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--home-fg);
+  background: #ffffff;
+}
+
+/* Hand: icon only */
+.home-screen .word-block.hand-wave-block {
+  padding: 0 4px;
+  line-height: 1.15;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  vertical-align: middle;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-screen .home-hand-svg {
+  display: block;
+  width: 0.65em;
+  height: 0.65em;
+  transform-origin: 70% 85%;
+  animation: home-hand-wave 1.15s ease-in-out infinite;
+}
+
+@keyframes home-hand-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(18deg);
+  }
+  75% {
+    transform: rotate(-12deg);
+  }
+}
+
+/* Floating row: layout from Tailwind in HomeScreen (matches App header: top-8 px-6 flex + nav spacer) */
+
+.home-screen .word-block.home-social-fall {
+  font-family: 'Space Mono', monospace;
+  padding: 4px;
+  border-radius: 999px;
+  font-size: 1rem;
+  line-height: 0;
+  border: none;
+  background: transparent;
+  transition: transform 0.2s;
+}
+
+.home-screen .home-social-icon {
+  display: block;
+  color: #000000;
+  transition: opacity 0.2s;
+}
+
+.home-screen .word-block.home-social-fall:hover .home-social-icon {
+  opacity: 0.75;
+}
+
+.home-screen .word-block.home-social-fall:hover {
+  transform: scale(1.1);
+}
+
+.home-screen .home-floating-socials .word-block.home-social-fall {
+  pointer-events: none;
+}
+
+.home-screen.home-fall-ready .home-floating-socials .word-block.home-social-fall {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.home-screen .cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  background: var(--home-fg);
+  margin-left: 2px;
+  vertical-align: baseline;
+  animation: home-blink 0.8s infinite;
+}
+
+@keyframes home-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.home-screen #physics-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.home-screen .phys-block {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 2.5px solid var(--home-fg);
+  background: #ffffff;
+  color: var(--home-fg);
+  cursor: grab;
+  user-select: none;
+  pointer-events: all;
+  transform-origin: center;
+  transition: box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.home-screen .phys-block:active {
+  cursor: grabbing;
+}
+
+.home-screen .phys-block.specialty {
+  font-size: clamp(1.2rem, 3vw, 2.8rem);
+  border-width: 2px;
+}
+
+.home-screen .phys-block.cta {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--home-fg);
+  background: #ffffff;
+}
+
+.home-screen .phys-block.name {
+  font-size: clamp(1.75rem, 4.2vw, 3.6rem);
+}
+
+.home-screen .phys-block.hand-wave {
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  padding: 0 4px;
+  line-height: 1.15;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-screen .phys-block.hand-wave:hover {
+  box-shadow: none;
+}
+
+/* Social phys: same 22px icon + 4px padding as header — ignore base .phys-block font-size */
+.home-screen .phys-block.social-github,
+.home-screen .phys-block.social-linkedin,
+.home-screen .phys-block.social-mail {
+  font-family: 'Space Mono', monospace;
+  font-size: 0;
+  line-height: 0;
+  letter-spacing: normal;
+  padding: 4px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  min-width: 0;
+  min-height: 0;
+  width: auto;
+  height: auto;
+  box-sizing: content-box;
+}
+
+.home-screen .phys-block--rich svg {
+  display: block;
+  color: var(--home-fg);
+}
+
+.home-screen .phys-block--rich.social-github svg,
+.home-screen .phys-block--rich.social-linkedin svg,
+.home-screen .phys-block--rich.social-mail svg {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  flex-shrink: 0;
+  color: #000000;
+}
+
+.home-screen .phys-block:hover {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.home-screen .phys-block.hand-wave:hover,
+.home-screen .phys-block.social-github:hover,
+.home-screen .phys-block.social-linkedin:hover,
+.home-screen .phys-block.social-mail:hover {
+  box-shadow: none;
+}
+
+.home-screen #hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--home-hint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s;
+  max-width: min(90vw, 28rem);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.home-screen .home-reset-btn {
+  position: absolute;
+  bottom: 28px;
+  left: clamp(16px, 4vw, 32px);
+  z-index: 35;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--home-muted);
+  background: #ffffff;
+  border: 1.5px solid var(--home-fg);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.home-screen .home-reset-btn:hover:not(:disabled) {
+  color: var(--home-fg);
+  background: #fafafa;
+}
+
+.home-screen .home-reset-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

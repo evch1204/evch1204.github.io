@@ -1,162 +1,75 @@
-# Personal Portfolio Website Template
+# Tei (Evan) Chang — Portfolio
 
-A modern, responsive personal portfolio website template inspired by the CeeVee template from Styleshout. This template provides a professional and clean design that's perfect for showcasing your skills, projects, and experience.
+Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page features an interactive physics-style experience; other sections cover profile, experience, projects, and contact.
 
-## 🚀 Features
+**Live site:** [evch1204.github.io](https://evch1204.github.io/)
 
-- **Responsive Design**: Works perfectly on all devices (desktop, tablet, mobile)
-- **Modern UI/UX**: Clean, professional design with smooth animations
-- **Interactive Elements**: Smooth scrolling, hover effects, and animations
-- **Mobile-First**: Optimized for mobile devices with hamburger navigation
-- **SEO Friendly**: Semantic HTML structure and meta tags
-- **Fast Loading**: Optimized CSS and JavaScript for performance
-- **Cross-Browser Compatible**: Works on all modern browsers
+## Tech stack
 
-## 📁 File Structure
+| Layer | Choice |
+|--------|--------|
+| UI | React 19, TypeScript |
+| Styling | Tailwind CSS v4 |
+| Motion | Motion (`motion/react`) |
+| Icons | Lucide React, react-icons, Simple Icons |
+| Build | Vite 6 |
+| Hosting | GitHub Pages (GitHub Actions) |
+
+## Project structure
 
 ```
-your-portfolio/
-├── index.html          # Main HTML file
-├── styles.css          # CSS styles and responsive design
-├── script.js           # JavaScript functionality
-└── README.md           # This file
+├── .github/workflows/   # CI: build + deploy Pages
+├── public/              # Static assets served as-is (e.g. resume.pdf)
+├── images/              # Project and profile images
+├── src/
+│   ├── App.tsx          # Layout, tabs, sections
+│   ├── HomeScreen.tsx   # Home hero + physics blocks
+│   ├── TechIWorkWith.tsx
+│   ├── projectsData.ts
+│   ├── main.tsx
+│   └── index.css
+├── index.html
+├── vite.config.ts
+├── tsconfig.json
+└── package.json
 ```
 
-## 🎨 Customization Guide
+## Scripts
 
-### 1. Personal Information
-
-Edit `index.html` to replace placeholder content with your information:
-
-- **Name and Title**: Update the hero section with your name and professional title
-- **About Section**: Customize your bio, skills, and contact information
-- **Resume**: Add your work experience and education
-- **Projects**: Showcase your portfolio projects
-- **Activities**: List your extracurricular activities and leadership roles
-- **Statistics**: Update the numbers to reflect your achievements
-- **Contact**: Add your actual contact details and social media links
-
-### 2. Styling
-
-Modify `styles.css` to customize the appearance:
-
-- **Colors**: Change the color scheme by updating CSS variables
-- **Fonts**: Replace the Inter font with your preferred typography
-- **Layout**: Adjust spacing, margins, and grid layouts
-- **Animations**: Modify transition effects and animations
-
-### 3. Functionality
-
-Enhance `script.js` to add more interactive features:
-
-- **Form Handling**: Connect the contact form to a backend service
-- **Analytics**: Add Google Analytics or other tracking tools
-- **Additional Animations**: Create custom scroll effects or interactions
-- **API Integration**: Connect to external services for dynamic content
-
-## 🛠️ Quick Start
-
-1. **Download/Clone** the template files to your local machine
-2. **Customize** the content in `index.html` with your information
-3. **Modify** the styling in `styles.css` to match your preferences
-4. **Test** the website locally by opening `index.html` in a browser
-5. **Deploy** to your preferred hosting service (GitHub Pages, Netlify, Vercel, etc.)
-
-## 🌐 Deployment Options
-
-### GitHub Pages
-1. Create a new repository on GitHub
-2. Upload your website files
-3. Go to Settings > Pages
-4. Select source branch and save
-
-### Netlify
-1. Drag and drop your website folder to Netlify
-2. Your site will be live instantly
-3. Customize the domain if needed
-
-### Vercel
-1. Connect your GitHub repository
-2. Vercel will automatically deploy and update
-3. Get a custom domain and SSL certificate
-
-## 📱 Responsive Breakpoints
-
-- **Desktop**: 1200px and above
-- **Tablet**: 768px - 1199px
-- **Mobile**: Below 768px
-
-## 🎯 Sections Included
-
-1. **Hero Section**: Eye-catching introduction with your name and title
-2. **About**: Personal introduction and skills with progress bars
-3. **Resume**: Work experience and education timeline
-4. **Projects**: Portfolio showcase with project cards
-5. **Activities**: Leadership and extracurricular activities
-6. **Statistics**: Achievement counters and metrics
-7. **Contact**: Contact form and information
-
-## 🔧 Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-- Internet Explorer 11+
-
-## 📝 Customization Examples
-
-### Changing Colors
-```css
-/* Update the primary color */
-.btn-primary {
-    background: #your-color-here;
-}
+```bash
+npm ci          # install dependencies (CI-friendly)
+npm run dev     # local dev server (port 3000)
+npm run build   # production build → dist/
+npm run preview # preview the production build locally
+npm run lint    # TypeScript check (tsc --noEmit)
 ```
 
-### Adding New Sections
-```html
-<section id="new-section" class="section">
-    <div class="container">
-        <h2 class="section-title">New Section</h2>
-        <!-- Your content here -->
-    </div>
-</section>
-```
+## Local development
 
-### Modifying Animations
-```css
-/* Adjust animation speed */
-.fade-in {
-    transition: all 0.8s ease; /* Change from 0.6s to 0.8s */
-}
-```
+1. Clone the repository.
+2. `npm ci` (or `npm install`).
+3. `npm run dev` and open the URL shown in the terminal (e.g. `http://localhost:3000`).
 
-## 🚀 Performance Tips
+## Deployment (GitHub Pages)
 
-1. **Optimize Images**: Use WebP format and compress images
-2. **Minify CSS/JS**: Compress files for production
-3. **Lazy Loading**: Implement lazy loading for images
-4. **CDN**: Use CDN for external resources
-5. **Caching**: Implement proper caching headers
+The workflow **Deploy GitHub Pages** (`.github/workflows/pages.yml`) runs on pushes to **`main`** or **`master`**: it installs dependencies, runs `npm run build`, and publishes the **`dist`** folder.
 
-## 🤝 Contributing
+In the repo: **Settings → Pages** — source should be **GitHub Actions** for this workflow to deploy.
 
-Feel free to submit issues, feature requests, or pull requests to improve this template.
+`vite.config.ts` uses `base: './'` so asset paths work on GitHub Pages.
 
-## 📄 License
+## Customization
 
-This template is free to use for personal and commercial projects. Attribution is appreciated but not required.
+- **Copy & meta:** `index.html`
+- **Routes / tabs / sections:** `src/App.tsx`
+- **Home interaction:** `src/HomeScreen.tsx`, `src/home-screen.css`
+- **Projects & featured content:** `src/projectsData.ts`
+- **Resume file:** add or replace `public/resume.pdf` (linked from the app)
 
-## 🙏 Acknowledgments
+## Environment & secrets
 
-- Inspired by the CeeVee template from Styleshout
-- Icons from Font Awesome
-- Fonts from Google Fonts
-- Modern CSS techniques and best practices
+No API keys are required for the static site. Optional `.env` files are listed in `.gitignore`. Client-side code is public after deploy — do not put secrets in the repo or in `VITE_*` variables.
 
----
+## License
 
-**Happy coding! 🎉**
-
-If you have any questions or need help customizing your portfolio, feel free to reach out!
+Personal project; adapt for your own portfolio if you fork it.
