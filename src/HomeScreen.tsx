@@ -36,6 +36,18 @@ const SLEEP_VEL = 0.4;
 const SLEEP_ROT = 0.08;
 const SLOP = 0.5;
 const CTA_CLICK_MAX_PX = 18;
+const RESUME_DOWNLOAD_FILENAME = 'CV_Tei_Chang.pdf';
+
+/** Drag: gravity torque about grab point (dangle; heavily damped so it settles). */
+const DRAG_PENDULUM_GRAVITY = 0.055;
+const DRAG_PENDULUM_DAMP = 0.78;
+const DRAG_POINTER_SWING = 0.028;
+const DRAG_ROT_RESTORE = 0.022;
+const DRAG_POINTER_DEAD = 0.55;
+const DRAG_ROT_MAX = 3.2;
+/** On floor: extra spin decay + gentle straighten toward level (not instant snap). */
+const FLOOR_SPIN_DAMP = 0.68;
+const FLOOR_ROT_STRAIGHTEN = 0.91;
 
 export type HomeScreenProps = {
   onViewProjects?: () => void;
@@ -173,14 +185,18 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
     }
 
     let dragging: PhysBody | null = null;
-    let dragOffX = 0;
-    let dragOffY = 0;
     let lastMX = 0;
     let lastMY = 0;
     let velDragX = 0;
     let velDragY = 0;
     let dragPointerStartX = 0;
     let dragPointerStartY = 0;
+    /** Grab offset from COM in unrotated body space (fixed at pointer-down). */
+    let dragGrabLX = 0;
+    let dragGrabLY = 0;
+    /** Pointer in physics-container space while dragging (updated every move). */
+    let dragPointerCX = 0;
+    let dragPointerCY = 0;
     let physicsStarted = false;
     let rafId = 0;
 
@@ -189,7 +205,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
       if (!href) return;
       const a = document.createElement('a');
       a.href = href;
-      a.download = '';
+      a.download = RESUME_DOWNLOAD_FILENAME;
       a.rel = 'noopener';
       document.body.appendChild(a);
       a.click();
@@ -251,16 +267,25 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
           body.sleepTimer = 0;
         }
         dragging = body;
-        const rect = body.el.getBoundingClientRect();
-        dragOffX = clientX - rect.left;
-        dragOffY = clientY - rect.top;
+        const p = containerOffset(clientX, clientY);
+        dragPointerCX = p.x;
+        dragPointerCY = p.y;
+        const cx = body.x + body.w / 2;
+        const cy = body.y + body.h / 2;
+        const r = (body.rot * Math.PI) / 180;
+        const cos = Math.cos(r);
+        const sin = Math.sin(r);
+        const wx = p.x - cx;
+        const wy = p.y - cy;
+        dragGrabLX = wx * cos + wy * sin;
+        dragGrabLY = -wx * sin + wy * cos;
         lastMX = clientX;
         lastMY = clientY;
         dragPointerStartX = clientX;
         dragPointerStartY = clientY;
         velDragX = 0;
         velDragY = 0;
-        body.rotV = 0;
+        body.rotV *= 0.35;
       }
 
       el.addEventListener('mousedown', (e) => {
@@ -426,6 +451,39 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
       }
     }
 
+    /** Grab point fixed at pointer; COM swings under it — damped + biased toward level so it won’t run away. */
+    function applyDragPendulum(b: PhysBody) {
+      const px = dragPointerCX;
+      const py = dragPointerCY;
+      const vx = dragGrabLX;
+      const vy = dragGrabLY;
+      let rad = (b.rot * Math.PI) / 180;
+      let cos = Math.cos(rad);
+      let sin = Math.sin(rad);
+      const rvx = vx * cos - vy * sin;
+      const comX = px - rvx;
+      const rx = comX - px;
+      const tauG = rx * DRAG_PENDULUM_GRAVITY;
+      const tauP =
+        Math.abs(velDragX) > DRAG_POINTER_DEAD ? velDragX * DRAG_POINTER_SWING : 0;
+      const inertia = Math.max(520, (b.w * b.w + b.h * b.h) * 0.55);
+      b.rotV += (tauG + tauP) / inertia;
+      b.rotV -= b.rot * DRAG_ROT_RESTORE;
+      b.rotV *= DRAG_PENDULUM_DAMP;
+      b.rotV = Math.max(-DRAG_ROT_MAX, Math.min(DRAG_ROT_MAX, b.rotV));
+      if (Math.abs(b.rotV) < 0.02) b.rotV = 0;
+      b.rot += b.rotV;
+      rad = (b.rot * Math.PI) / 180;
+      cos = Math.cos(rad);
+      sin = Math.sin(rad);
+      const rvx2 = vx * cos - vy * sin;
+      const rvy2 = vx * sin + vy * cos;
+      const cx = px - rvx2;
+      const cy = py - rvy2;
+      b.x = cx - b.w / 2;
+      b.y = cy - b.h / 2;
+    }
+
     function syncBodyDom(b: PhysBody) {
       b.el.style.left = `${b.x}px`;
       b.el.style.top = `${b.y}px`;
@@ -450,6 +508,8 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
         }
 
         if (b === dragging) {
+          applyDragPendulum(dragging);
+          clampDragAgainstStatics();
           b.vx = 0;
           b.vy = 0;
           continue;
@@ -482,11 +542,18 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
           b.y = H - b.h;
           b.vy = -Math.abs(b.vy) * RESTITUTION;
           b.vx *= FRICTION_GROUND;
-          b.rotV *= 0.4;
+          b.rotV *= 0.35;
+        }
+
+        const onFloor = b.y + b.h >= H - 1;
+        if (onFloor) {
+          b.rotV *= FLOOR_SPIN_DAMP;
+          b.rot *= FLOOR_ROT_STRAIGHTEN;
+          if (Math.abs(b.rotV) < 0.12) b.rotV = 0;
+          if (Math.abs(b.rot) < 0.4) b.rot = 0;
         }
 
         const speed = Math.abs(b.vx) + Math.abs(b.vy);
-        const onFloor = b.y + b.h >= H - 1;
         if (speed < SLEEP_VEL && Math.abs(b.rotV) < SLEEP_ROT && onFloor) {
           b.sleepTimer = (b.sleepTimer || 0) + 1;
           if (b.sleepTimer > 30) {
@@ -539,12 +606,11 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
       if (!dragging) return;
       velDragX = velDragX * 0.6 + (e.clientX - lastMX) * 0.4;
       velDragY = velDragY * 0.6 + (e.clientY - lastMY) * 0.4;
-      const p = containerOffset(e.clientX - dragOffX, e.clientY - dragOffY);
-      dragging.x = p.x;
-      dragging.y = p.y;
+      const p = containerOffset(e.clientX, e.clientY);
+      dragPointerCX = p.x;
+      dragPointerCY = p.y;
       lastMX = e.clientX;
       lastMY = e.clientY;
-      clampDragAgainstStatics();
     }
 
     function onTouchMove(e: TouchEvent) {
@@ -552,12 +618,11 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
       const t = e.touches[0];
       velDragX = velDragX * 0.6 + (t.clientX - lastMX) * 0.4;
       velDragY = velDragY * 0.6 + (t.clientY - lastMY) * 0.4;
-      const p = containerOffset(t.clientX - dragOffX, t.clientY - dragOffY);
-      dragging.x = p.x;
-      dragging.y = p.y;
+      const p = containerOffset(t.clientX, t.clientY);
+      dragPointerCX = p.x;
+      dragPointerCY = p.y;
       lastMX = t.clientX;
       lastMY = t.clientY;
-      clampDragAgainstStatics();
     }
 
     function endDrag() {
@@ -580,7 +645,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
 
         b.vx = velDragX * 1.8;
         b.vy = velDragY * 1.8;
-        b.rotV = velDragX * 0.2;
+        b.rotV = b.rotV * 0.82 + velDragX * 0.26;
         b.sleeping = false;
         dragging = null;
       }
@@ -724,7 +789,10 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
     }
 
     async function runResetHoming() {
-      if (bodies.length === 0) return;
+      if (bodies.length === 0) {
+        if (!cancelled) attachBlockLaunchers();
+        return;
+      }
 
       if (dragging) {
         dragging.vx = 0;
@@ -733,22 +801,30 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
         dragging = null;
       }
 
-      hint.style.opacity = '0';
-      detachBlockLaunchers();
+      try {
+        hint.style.opacity = '0';
+        detachBlockLaunchers();
 
-      const configs = getBlockLaunchConfigs();
-      for (const cfg of configs) {
-        if (cancelled) return;
-        const body = bodies.find((b) => b.sourceSpan === cfg.el);
-        if (!body) continue;
-        await animateBodyHome(body);
-        if (cancelled) return;
-        await sleep(48);
+        const configs = getBlockLaunchConfigs();
+        for (const cfg of configs) {
+          if (cancelled) return;
+          const body = bodies.find((b) => b.sourceSpan === cfg.el);
+          if (!body) continue;
+          await animateBodyHome(body);
+          if (cancelled) return;
+          await sleep(48);
+        }
+
+        hint.textContent = 'Tap a block to drop it — physics starts when you do';
+        hint.style.opacity = '1';
+      } finally {
+        if (!cancelled) {
+          for (const cfg of getBlockLaunchConfigs()) {
+            cfg.el.removeAttribute('data-phys-launched');
+          }
+          attachBlockLaunchers();
+        }
       }
-
-      hint.textContent = 'Tap a block to drop it — physics starts when you do';
-      hint.style.opacity = '1';
-      attachBlockLaunchers();
     }
 
     resetHomingRef.current = async () => {
