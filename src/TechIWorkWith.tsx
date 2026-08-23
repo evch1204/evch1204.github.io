@@ -1,7 +1,37 @@
-import { SiAnthropic, SiMysql, SiOpenai, SiOpenjdk, SiPython, SiTypescript } from 'react-icons/si';
+import type { ComponentType } from 'react';
+import {
+  SiAnthropic,
+  SiCloudflare,
+  SiCloudflareworkers,
+  SiCss,
+  SiDocker,
+  SiGit,
+  SiHtml5,
+  SiJavascript,
+  SiMarkdown,
+  SiMediapipe,
+  SiNextdotjs,
+  SiNodedotjs,
+  SiNumpy,
+  SiOpenai,
+  SiOpencv,
+  SiPandas,
+  SiPython,
+  SiReact,
+  SiTailwindcss,
+  SiTensorflow,
+  SiThreedotjs,
+  SiTypescript,
+  SiVite,
+} from 'react-icons/si';
+// Simple Icons dropped the Java mark (trademark), so the Java cup and the
+// generic SQL database glyph come from Font Awesome instead.
+import { FaDatabase, FaJava } from 'react-icons/fa';
 import { siCursor } from 'simple-icons';
 
-function CursorBrandIcon({ className }: { className?: string }) {
+type IconProps = { className?: string };
+
+function CursorBrandIcon({ className }: IconProps) {
   return (
     <svg role="img" viewBox="0 0 24 24" className={className} aria-hidden>
       <title>{siCursor.title}</title>
@@ -10,64 +40,60 @@ function CursorBrandIcon({ className }: { className?: string }) {
   );
 }
 
-const tech = [
+type Tech = { name: string; Icon: ComponentType<IconProps> };
+
+/**
+ * One flat list, ordered languages → frontend → infra → data → AI tooling so it
+ * still reads in a sensible run without headings. 27 items lands as three full
+ * rows of nine at desktop width.
+ */
+const TECH: Tech[] = [
+  { name: 'TypeScript', Icon: SiTypescript },
+  { name: 'JavaScript', Icon: SiJavascript },
+  { name: 'Python', Icon: SiPython },
+  { name: 'Java', Icon: FaJava },
+  { name: 'SQL', Icon: FaDatabase },
+  { name: 'HTML', Icon: SiHtml5 },
+  { name: 'CSS', Icon: SiCss },
+  { name: 'React', Icon: SiReact },
+  // React Native has no distinct mark — it ships under the React logo.
+  { name: 'React Native', Icon: SiReact },
+  { name: 'Next.js', Icon: SiNextdotjs },
+  { name: 'Tailwind', Icon: SiTailwindcss },
+  { name: 'Three.js', Icon: SiThreedotjs },
+  { name: 'Vite', Icon: SiVite },
+  { name: 'Node.js', Icon: SiNodedotjs },
+  { name: 'Cloudflare', Icon: SiCloudflare },
+  { name: 'CF Workers', Icon: SiCloudflareworkers },
+  { name: 'Docker', Icon: SiDocker },
+  { name: 'Git', Icon: SiGit },
+  { name: 'Markdown', Icon: SiMarkdown },
+  { name: 'TensorFlow', Icon: SiTensorflow },
+  { name: 'Pandas', Icon: SiPandas },
+  { name: 'NumPy', Icon: SiNumpy },
+  { name: 'OpenCV', Icon: SiOpencv },
+  { name: 'MediaPipe', Icon: SiMediapipe },
+  { name: 'Cursor', Icon: CursorBrandIcon },
   { name: 'OpenAI', Icon: SiOpenai },
   { name: 'Claude', Icon: SiAnthropic },
-  { name: 'Cursor', Icon: CursorBrandIcon },
-  { name: 'TypeScript', Icon: SiTypescript },
-  { name: 'Python', Icon: SiPython },
-  { name: 'Java', Icon: SiOpenjdk },
-  { name: 'MySQL', Icon: SiMysql },
-] as const;
+];
 
-type TechIWorkWithProps = {
-  className?: string;
-  /** Below bio + image: heading + icons centered on page, single row */
-  pageRow?: boolean;
-};
-
-export default function TechIWorkWith({ className = '', pageRow = false }: TechIWorkWithProps) {
+export default function TechIWorkWith({ className = '' }: { className?: string }) {
   return (
-    <div className={`${className} ${pageRow ? 'flex flex-col items-center' : ''}`}>
-      {pageRow ? (
-        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-6 text-center w-full">
-          Tech I work with
-        </h3>
-      ) : (
-        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
-          <span className="w-12 h-px bg-zinc-200" />
-          Tech I work with
-        </h3>
-      )}
-      <ul
-        className={
-          pageRow
-            ? 'flex w-full flex-row flex-nowrap items-stretch justify-between gap-2 sm:gap-3 md:gap-4 overflow-x-auto pb-1 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]'
-            : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4'
-        }
-      >
-        {tech.map(({ name, Icon }) => (
+    <div className={className}>
+      <h3 className="mb-6 flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">
+        <span className="h-px w-12 bg-zinc-200" />
+        Tech I work with
+      </h3>
+
+      <ul className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-9">
+        {TECH.map(({ name, Icon }) => (
           <li
             key={name}
-            className={`flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-white text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] transition-colors hover:border-zinc-200 ${
-              pageRow
-                ? 'min-w-[5.25rem] flex-1 basis-0 gap-2 px-3 py-4 sm:min-w-0 sm:px-4 sm:py-5'
-                : 'gap-2 px-2 py-4 shrink-0'
-            }`}
+            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-zinc-100 bg-white px-1.5 py-2.5 text-center shadow-[0_6px_20px_rgba(0,0,0,0.03)] transition-colors hover:border-zinc-300"
           >
-            <Icon
-              className={`${pageRow ? 'h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11' : 'h-9 w-9'} shrink-0 text-zinc-800`}
-              aria-hidden
-            />
-            <span
-              className={`font-semibold text-zinc-600 tracking-tight leading-snug ${
-                pageRow
-                  ? 'text-[11px] sm:text-xs md:text-sm max-w-[7rem] sm:max-w-none'
-                  : 'text-[10px] sm:text-xs'
-              }`}
-            >
-              {name}
-            </span>
+            <Icon className="h-[22px] w-[22px] shrink-0 text-zinc-800" />
+            <span className="text-[9px] font-semibold leading-tight tracking-tight text-zinc-600">{name}</span>
           </li>
         ))}
       </ul>

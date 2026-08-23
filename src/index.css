@@ -3,6 +3,8 @@
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Space Mono is already loaded in index.html for the home screen. */
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @layer base {
