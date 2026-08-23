@@ -2,15 +2,30 @@ import { ReactNode, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import HomeScreen from './HomeScreen';
 import TechIWorkWith from './TechIWorkWith';
-import { FEATURED_PROJECT, GRID_PROJECTS, type Project } from './projectsData';
+import {
+  FEATURED_PROJECT,
+  PROJECT_GROUPS,
+  projectsInGroup,
+  hostLabel,
+  repoLabel,
+  type Project,
+} from './projectsData';
+import ProjectGlyph from './ProjectGlyph';
+import ExperienceList from './ExperienceList';
+import GithubActivity from './GithubActivity';
+import { EXPERIENCE, EDUCATION } from './experienceData';
 import profilePhoto from '../images/your-photo.jpg';
 import musclePhoto from '../images/muscle.jpg';
+import resumePreview from '../images/resume-preview-page1.jpg';
 import {
   Github,
   Linkedin,
   Mail,
   MapPin,
   ArrowRight,
+  ExternalLink,
+  Maximize2,
+  Download,
   X,
 } from 'lucide-react';
 
@@ -37,7 +52,7 @@ function companyInitials(company: string) {
  * LinkedIn does not provide stable, hotlinkable logo URLs to third parties.
  * Pass logoDomain="" for initials-only (no network).
  */
-function CompanyLogo({ domain, company }: { domain?: string; company: string }) {
+function CompanyLogo({ domain, company, size = 40 }: { domain?: string; company: string; size?: number }) {
   const [failed, setFailed] = useState(false);
 
   if (domain === undefined) return null;
@@ -45,7 +60,8 @@ function CompanyLogo({ domain, company }: { domain?: string; company: string }) 
   const initials = companyInitials(company);
   const box = (
     <div
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-[10px] font-bold tracking-tight text-zinc-600"
+      className="flex shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-[10px] font-bold tracking-tight text-zinc-600"
+      style={{ width: size, height: size }}
       aria-hidden
     >
       {initials}
@@ -60,9 +76,10 @@ function CompanyLogo({ domain, company }: { domain?: string; company: string }) 
     <img
       src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`}
       alt=""
-      width={40}
-      height={40}
-      className="h-10 w-10 shrink-0 rounded-lg border border-zinc-100 bg-white object-contain p-1"
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className="shrink-0 rounded-lg border border-zinc-100 bg-white object-contain p-1"
       loading="lazy"
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
@@ -111,17 +128,59 @@ const Section = ({
   </motion.section>
 );
 
+/**
+ * Card panel: a screenshot when the project has a live page to show, and a
+ * line-art mark when it does not (research, embedded and CLI work).
+ */
+const ProjectPanel = ({ project }: { project: Project }) => (
+  <div className="mb-6 h-[200px] overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 flex items-center justify-center">
+    {project.screenshot ? (
+      <img
+        src={project.screenshot}
+        alt={`Screenshot of ${project.cardTitle}`}
+        loading="lazy"
+        className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
+      />
+    ) : (
+      <ProjectGlyph name={project.glyph} />
+    )}
+  </div>
+);
+
+/** The project's real address, in mono — the card's "go use it" affordance. */
+const ProjectLink = ({ project }: { project: Project }) => {
+  if (project.liveUrl) {
+    return (
+      <span className="flex min-w-0 max-w-full items-center gap-[7px] font-mono text-xs font-bold text-zinc-600">
+        <ExternalLink size={14} className="shrink-0" />
+        <span className="truncate">{hostLabel(project.liveUrl)}</span>
+      </span>
+    );
+  }
+  if (project.githubUrl) {
+    return (
+      <span className="flex min-w-0 max-w-full items-center gap-[7px] font-mono text-xs font-bold text-zinc-600">
+        <Github size={14} className="shrink-0" />
+        <span className="truncate">{repoLabel(project.githubUrl)}</span>
+      </span>
+    );
+  }
+  return null;
+};
+
 const ProjectCardButton = ({ project, onOpen }: { project: Project; onOpen: () => void }) => (
   <button
     type="button"
     onClick={onOpen}
-    className="group relative w-full text-left p-8 rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+    className="group relative flex w-full flex-col text-left p-8 rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
   >
-    <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-black transition-colors tracking-tight mb-4 pr-8">
+    <ProjectPanel project={project} />
+    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2.5">{project.kind}</p>
+    <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-black transition-colors tracking-tight mb-3">
       {project.cardTitle}
     </h3>
-    <p className="text-sm text-zinc-500 mb-8 leading-relaxed font-medium">{project.cardDescription}</p>
-    <div className="flex flex-wrap gap-2">
+    <p className="text-sm text-zinc-500 mb-5 leading-relaxed font-medium text-pretty">{project.cardDescription}</p>
+    <div className="mt-auto flex flex-wrap gap-2 mb-[22px]">
       {project.cardTags.map((tag) => (
         <span
           key={tag}
@@ -131,7 +190,229 @@ const ProjectCardButton = ({ project, onOpen }: { project: Project; onOpen: () =
         </span>
       ))}
     </div>
+    {/* Wraps rather than clips: a long repo path takes its own row on narrow cards. */}
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-[18px] border-t border-zinc-100">
+      <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-zinc-900">
+        View details <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+      </span>
+      <span className="ml-auto min-w-0 max-w-full">
+        <ProjectLink project={project} />
+      </span>
+    </div>
   </button>
+);
+
+const CONTACT_LINKS = [
+  { label: 'changtei1204@gmail.com', href: 'mailto:changtei1204@gmail.com', Icon: Mail },
+  { label: 'github.com/evch1204', href: 'https://github.com/evch1204', Icon: Github },
+  { label: 'linkedin.com/in/evan-chang1', href: 'https://www.linkedin.com/in/evan-chang1/', Icon: Linkedin },
+  { label: 'Santa Clara, CA', href: undefined, Icon: MapPin },
+] as const;
+
+/** Skills as they are grouped on the resume, so the two never drift apart. */
+const RESUME_SKILLS = [
+  {
+    heading: 'Languages',
+    items: ['Python', 'Java', 'C++', 'TypeScript', 'JavaScript', 'SQL'],
+  },
+  {
+    heading: 'Frameworks & tools',
+    items: ['React', 'Next.js', 'Node.js', 'TensorFlow', 'OpenCV', 'Cloudflare Workers', 'Docker', 'Git', 'REST APIs'],
+  },
+  {
+    heading: 'Certifications',
+    items: [
+      'Advanced AI Essentials (Google)',
+      'Developing Applications in Python (AWS)',
+      'Deploying AI in Your Enterprise (IBM)',
+      'Introduction to LLMs (Google)',
+      'Generative AI (Google)',
+    ],
+  },
+] as const;
+
+/** Enlarged, scrollable resume. Same close behaviour as the project modal. */
+function ResumeModal({
+  open,
+  onClose,
+  resumeUrl,
+}: {
+  open: boolean;
+  onClose: () => void;
+  resumeUrl: string;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+        >
+          <button
+            type="button"
+            className="fixed inset-0 z-[101] bg-black/50 backdrop-blur-[1px]"
+            aria-label="Close resume"
+            onClick={onClose}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Resume"
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+            className="relative z-[102] flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
+          >
+            <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-5 py-4 sm:px-6">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">Resume</h2>
+              <div className="ml-auto flex items-center gap-2">
+                <a
+                  href={resumeUrl}
+                  download="Tei-Chang-Resume.pdf"
+                  className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-black"
+                >
+                  <Download size={14} /> <span className="hidden sm:inline">Download PDF</span>
+                </a>
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
+                >
+                  <ExternalLink size={14} /> <span className="hidden sm:inline">Open PDF</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+                  aria-label="Close"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            {/* The page is taller than the viewport, so this is the scroll area. */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-zinc-100 p-3 sm:p-6">
+              <img
+                src={resumePreview}
+                alt="Tei Chang's resume"
+                className="mx-auto block w-full max-w-3xl rounded-lg border border-zinc-200 bg-white shadow-sm"
+              />
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+/**
+ * Resume preview: page one rendered to an image so it shows on every browser
+ * (an embedded PDF viewer does not render reliably on mobile), alongside the
+ * skills breakdown and the download / open actions.
+ */
+function ResumePanel({ resumeUrl, onExpand }: { resumeUrl: string; onExpand: () => void }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
+        <span className="w-12 h-px bg-zinc-200" />
+        Resume
+      </h3>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-14 lg:items-start">
+        <button
+          type="button"
+          onClick={onExpand}
+          aria-haspopup="dialog"
+          className="group relative block w-full cursor-pointer overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.06)] transition-shadow duration-500 hover:shadow-[0_28px_60px_rgba(0,0,0,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+        >
+          <img
+            src={resumePreview}
+            alt="First page of Tei Chang's resume"
+            loading="lazy"
+            className="block w-full transition-transform duration-700 group-hover:scale-[1.01]"
+          />
+          {/* Fades the page into the card instead of cutting it off mid-line. */}
+          <span
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent"
+            aria-hidden
+          />
+          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center pb-5">
+            <span className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-5 py-2.5 text-xs font-bold text-white shadow-lg transition-transform duration-300 group-hover:scale-105">
+              <Maximize2 size={14} /> View full resume
+            </span>
+          </span>
+        </button>
+
+        <div className="min-w-0 space-y-7">
+          {RESUME_SKILLS.map(({ heading, items }) => (
+            <div key={heading}>
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">{heading}</h4>
+              <ul className="flex flex-wrap gap-2">
+                {items.map((item) => (
+                  <li key={item}>
+                    <span className="inline-block rounded-full bg-zinc-100 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div className="flex flex-col gap-3 pt-1 sm:flex-row">
+            <a
+              href={resumeUrl}
+              download="Tei-Chang-Resume.pdf"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-black"
+            >
+              <Download size={18} /> Download PDF
+            </a>
+            <a
+              href={resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 px-6 py-3 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
+            >
+              <ExternalLink size={18} /> Open in new tab
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Rule + label that separates the two runs of project cards. */
+const GroupHeading = ({ label, count }: { label: string; count: number }) => (
+  <div className="mt-14 mb-6 flex items-baseline gap-4">
+    <h3 className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">{label}</h3>
+    <span className="h-px flex-1 bg-zinc-200" aria-hidden />
+    <span className="text-[11px] font-bold tracking-wider text-zinc-400">
+      {String(count).padStart(2, '0')}
+    </span>
+  </div>
 );
 
 function ProjectDetailModal({ project, onClose }: { project: Project | null; onClose: () => void }) {
@@ -233,10 +514,25 @@ function ProjectDetailModal({ project, onClose }: { project: Project | null; onC
                   href={project.githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-sm hover:bg-black transition-colors"
+                  className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-colors ${
+                    project.liveUrl
+                      ? 'border border-zinc-200 text-zinc-900 hover:bg-zinc-50'
+                      : 'bg-zinc-900 text-white hover:bg-black'
+                  }`}
                 >
                   <Github size={18} />
                   View on GitHub
+                </a>
+              ) : null}
+              {project.liveUrl ? (
+                <a
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-sm hover:bg-black transition-colors"
+                >
+                  <ExternalLink size={18} />
+                  {hostLabel(project.liveUrl)}
                 </a>
               ) : null}
             </div>
@@ -247,55 +543,10 @@ function ProjectDetailModal({ project, onClose }: { project: Project | null; onC
   );
 }
 
-const ExperienceItem = ({
-  role,
-  company,
-  period,
-  description,
-  location,
-  logoDomain,
-}: {
-  role: string;
-  company: string;
-  period: string;
-  description: ReactNode;
-  location?: string;
-  /**
-   * Company / school website domain for favicon (e.g. scu.edu).
-   * Omit for no logo. Pass empty string for initials-only when there is no reliable domain.
-   */
-  logoDomain?: string;
-}) => (
-  <div className="relative pl-10 pb-16 last:pb-0 group">
-    <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-zinc-100 group-last:bg-transparent" />
-    <div className="absolute left-[-4px] top-1.5 w-2 h-2 rounded-full bg-zinc-200 ring-4 ring-white transition-all duration-300 group-hover:bg-zinc-900 group-hover:scale-125" />
-    <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3 gap-2">
-      <div>
-        <h3 className="text-lg font-bold text-zinc-900 tracking-tight">{role}</h3>
-        <div className="mt-1 flex items-center gap-3 min-w-0">
-          <CompanyLogo domain={logoDomain} company={company} />
-          <p className="text-base font-bold text-zinc-900 tracking-tight leading-snug">{company}</p>
-        </div>
-      </div>
-      <div className="flex flex-col md:items-end gap-1 shrink-0">
-        <span className="text-[11px] font-bold text-zinc-400 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-100 uppercase tracking-wider">
-          {period}
-        </span>
-        {location ? (
-          <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
-            <MapPin size={10} /> {location}
-          </p>
-        ) : null}
-      </div>
-    </div>
-    <div className="text-sm text-zinc-500 leading-relaxed font-medium max-w-2xl space-y-3 [&_strong]:text-zinc-800 [&_strong]:font-semibold">
-      {description}
-    </div>
-  </div>
-);
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const resumeUrl = `${import.meta.env.BASE_URL}resume.pdf`;
+  const [resumeOpen, setResumeOpen] = useState(false);
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const tabButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -425,7 +676,7 @@ export default function App() {
         <HomeScreen
           isPaused={activeTab !== 'home'}
           onViewProjects={() => setActiveTab('projects')}
-          resumeUrl={`${import.meta.env.BASE_URL}resume.pdf`}
+          resumeUrl={resumeUrl}
         />
       </div>
 
@@ -451,15 +702,35 @@ export default function App() {
                     </div>
                     <div className="text-base leading-relaxed text-zinc-600 sm:text-lg">
                       <p>
-                        I&apos;m a Computer Science new graduate and I&apos;m seeking to learn and grow along with AI. I studied at{' '}
+                        I&apos;m a Computer Science graduate and I&apos;m seeking to learn and grow along with AI. I studied at{' '}
                         <span className="font-semibold text-zinc-900">Santa Clara University</span> with a Data Science
                         specialization. I&apos;m currently a{' '}
-                        <span className="font-semibold text-zinc-900">Software Engineer Intern at DeepSpace</span>, where I
-                        build full-stack products and ship features for{' '}
-                        <span className="font-semibold text-zinc-900">DeepSpace AI</span>
-                        —work where I use AI to help improve AI.
+                        <span className="font-semibold text-zinc-900">Software Engineer at DeepSpace</span>, where I
+                        build full-stack products end-to-end—from system design through production deployment.
                       </p>
                     </div>
+                    <ul className="flex flex-wrap gap-2.5 pt-1">
+                      {CONTACT_LINKS.map(({ label, href, Icon }) => (
+                        <li key={label}>
+                          {href ? (
+                            <a
+                              href={href}
+                              target={href.startsWith('mailto:') ? undefined : '_blank'}
+                              rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                              className="group inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900"
+                            >
+                              <Icon size={14} className="shrink-0" />
+                              {label}
+                            </a>
+                          ) : (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 font-mono text-xs font-bold text-zinc-500">
+                              <Icon size={14} className="shrink-0" />
+                              {label}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                   <div className="flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[260px] sm:max-w-[300px] lg:max-w-none lg:w-full">
@@ -483,7 +754,15 @@ export default function App() {
                 </div>
 
                 <div className="border-t border-zinc-100 pt-10">
-                  <TechIWorkWith className="w-full [&_h3]:mb-5" />
+                  <TechIWorkWith className="w-full" />
+                </div>
+
+                <div className="border-t border-zinc-100 pt-10">
+                  <GithubActivity />
+                </div>
+
+                <div className="border-t border-zinc-100 pt-10">
+                  <ResumePanel resumeUrl={resumeUrl} onExpand={() => setResumeOpen(true)} />
                 </div>
               </div>
             </Section>
@@ -493,88 +772,18 @@ export default function App() {
             <div key="experience" className="space-y-20 w-full">
               <Section title="Journey">
                 <div className="max-w-3xl mx-auto">
-                  <ExperienceItem
-                    role="Software Engineer Intern"
-                    company="DeepSpace"
-                    logoDomain="deep.space"
-                    period="Jan 2026 – Present"
-                    location="New York, NY & Remote"
-                    description="Building full-stack websites and shipping features for DeepSpace AI—tools and surfaces where AI helps improve AI."
-                  />
-                  <ExperienceItem
-                    role="AI/Machine Learning Intern"
-                    company="Paidwork, LLC."
-                    logoDomain="paidwork.com"
-                    period="Sept 2025 – Jan 2026"
-                    location="Sacramento, CA & Remote"
-                    description="Architecting AI chatbot features with multi-language support and microservices integration. Spearheading the development of an API Gateway for high-performance routing."
-                  />
-                  <ExperienceItem
-                    role="Technical Service Student Assistant"
-                    company="Santa Clara University"
-                    logoDomain="scu.edu"
-                    period="May 2024 - June 2025"
-                    location="Santa Clara, CA"
-                    description="Optimized library database systems managing 50k+ records. Leveraged SQL for data integrity and archival compliance."
-                  />
-                  <ExperienceItem
-                    role="Technical Support Engineer (Intern)"
-                    company="DuPont"
-                    logoDomain="dupont.com"
-                    period="June 2023 - Aug 2023"
-                    location="Hsinchu, Taiwan"
-                    description="Engineered a computer vision safety bot that automated compliance checks. Reduced operational inspection time by 70% using PyTorch."
-                  />
-                  <ExperienceItem
-                    role="Client Support Intern"
-                    company="GuoQing, Inc."
-                    logoDomain=""
-                    period="June 2022 - Sept 2022"
-                    location="Taipei, Taiwan"
-                    description="Automated complex data workflows using VBA, significantly increasing team throughput and data accuracy."
+                  <ExperienceList
+                    orgs={EXPERIENCE}
+                    renderLogo={(org) => <CompanyLogo domain={org.logoDomain} company={org.name} size={34} />}
                   />
                 </div>
               </Section>
 
               <Section title="Education">
                 <div className="max-w-3xl mx-auto">
-                  <ExperienceItem
-                    role="Bachelor Degree"
-                    company="Santa Clara University"
-                    logoDomain="scu.edu"
-                    period="Sep 2021 – June 2025"
-                    location="Santa Clara, CA"
-                    description={
-                      <>
-                        <p>B.S. Computer Science (Data Science specialization)</p>
-                        <p>
-                          <strong>Minor:</strong> Mathematics, Computer Engineering.
-                        </p>
-                        <p>
-                          <strong>Relevant Coursework:</strong> Artificial Intelligence, Applied Machine Learning,
-                          Algorithms, Data Structures, OOP, Data Science.
-                        </p>
-                        <p>
-                          <strong>Activities:</strong> Alpha Phi Omega (VP), Technical Service Student Assistant, AI
-                          Collaborate SCU.
-                        </p>
-                      </>
-                    }
-                  />
-                  <ExperienceItem
-                    role="High School Degree"
-                    company="SMIC-International School"
-                    logoDomain="smicschool.com"
-                    period="Sep 2017 – June 2021"
-                    description={
-                      <>
-                        <p className="text-zinc-700 font-semibold">Honors & Leadership</p>
-                        <p>
-                          <strong>Awards/Activities:</strong> Honor Roll, Student Athletic Council President, Student
-                          Council Historian, Varsity Basketball, Varsity Volleyball.
-                        </p>
-                      </>
-                    }
+                  <ExperienceList
+                    orgs={EDUCATION}
+                    renderLogo={(org) => <CompanyLogo domain={org.logoDomain} company={org.name} size={34} />}
                   />
                 </div>
               </Section>
@@ -629,15 +838,24 @@ export default function App() {
                 </div>
               </button>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-                {GRID_PROJECTS.map((project) => (
-                  <ProjectCardButton
-                    key={project.id}
-                    project={project}
-                    onOpen={() => setDetailProject(project)}
-                  />
-                ))}
-              </div>
+              {PROJECT_GROUPS.map((group) => {
+                const items = projectsInGroup(group.id);
+                if (items.length === 0) return null;
+                return (
+                  <div key={group.id}>
+                    <GroupHeading label={group.label} count={items.length} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {items.map((project) => (
+                        <ProjectCardButton
+                          key={project.id}
+                          project={project}
+                          onOpen={() => setDetailProject(project)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
               <div className="mt-16 flex justify-center">
                 <a
                   href="https://github.com/evch1204"
@@ -718,6 +936,7 @@ export default function App() {
       )}
 
       <ProjectDetailModal project={detailProject} onClose={() => setDetailProject(null)} />
+      <ResumeModal open={resumeOpen} onClose={() => setResumeOpen(false)} resumeUrl={resumeUrl} />
     </div>
   );
 }
