@@ -2,6 +2,11 @@
   --home-fg: #0a0a0a;
   --home-muted: #555550;
   --home-hint: #aaa9a0;
+  --home-rule: #e4e4e7;
+  --home-dim: #a1a1aa;
+  /* Height of the footer strip (pt-10 + content + pb-8). Doubles as the physics
+     floor, so a dropped pile rests on the footer rule instead of burying it. */
+  --home-floor-gap: 122px;
   background: transparent;
   color: var(--home-fg);
   font-family: 'Space Mono', monospace;
@@ -33,111 +38,125 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: clamp(5.25rem, 9vh, 8rem) clamp(16px, 6vw, 64px) clamp(6rem, 14vh, 10.5rem);
+  /* Bottom padding exceeds top, so the block sits above centre and clears the footer. */
+  padding: clamp(5.5rem, 10vh, 8.5rem) clamp(16px, 6vw, 64px) clamp(9.5rem, 17vh, 13.5rem);
   z-index: 5;
   pointer-events: none;
-  text-align: center;
-  gap: 0;
   box-sizing: border-box;
 }
 
-.home-screen .line {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 12px;
-  overflow: visible;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
+/*
+ * One column holds the whole page. The greeting, the details and the buttons
+ * share this width so they read as a single block rather than three stacked
+ * things — there is no rule or card doing that job for them.
+ */
+.home-screen .home-block {
   width: 100%;
-  max-width: min(100%, 56rem);
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.home-screen .typed-text {
+.home-screen .home-greeting {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-size: clamp(2.1rem, 5.4vw, 3.875rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
   color: var(--home-fg);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  white-space: nowrap;
 }
 
-.home-screen .typed-text.small {
-  font-size: clamp(1.2rem, 3vw, 2.8rem);
-  color: var(--home-muted);
+.home-screen .home-lede {
+  margin: clamp(12px, 2vw, 18px) 0 0;
+  max-width: 560px;
   font-family: 'DM Serif Display', serif;
   font-style: italic;
+  font-size: clamp(1.05rem, 2.3vw, 1.5625rem);
+  line-height: 1.42;
+  letter-spacing: -0.02em;
+  color: var(--home-muted);
 }
 
+.home-screen .home-facts {
+  margin-top: clamp(24px, 4vw, 40px);
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(24px, 5vw, 80px);
+  row-gap: 15px;
+  justify-items: start;
+  text-align: left;
+}
+
+.home-screen .home-actions {
+  margin-top: clamp(26px, 4.5vw, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/*
+ * Blocks are plain text at rest. The outline is the physics state: it appears
+ * only once the playground is on, so a bordered word is a word you can grab.
+ *
+ * The border and padding are always present — only their colour changes. The
+ * geometry has to stay fixed because a falling clone is sized from its source's
+ * rect, and a box that grew on arming would clip its own text.
+ */
 .home-screen .word-block {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(2rem, 5vw, 4.5rem);
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  padding: 0 10px;
-  border-radius: 4px;
-  border: 2.5px solid var(--home-fg);
-  opacity: 0;
   position: relative;
+  border: 2.5px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--home-fg);
   white-space: nowrap;
-  cursor: default;
   user-select: none;
   pointer-events: none;
-  background: #ffffff;
-  color: var(--home-fg);
+  cursor: default;
+  transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.home-screen #intro.intro-launchable .word-block {
+.home-screen.home-armed .word-block {
+  border-color: var(--home-fg);
+  background: #ffffff;
   pointer-events: auto;
-  cursor: pointer;
+  cursor: grab;
 }
 
-.home-screen .word-block.specialty {
-  font-size: clamp(1.2rem, 3vw, 2.8rem);
-  border-width: 2px;
+.home-screen .word-block.greet {
+  font-family: 'DM Serif Display', serif;
+  font-size: inherit;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  /* Stands in for the word space the flex gap would otherwise provide. */
+  padding: 0 6px;
 }
 
-.home-screen #line3 {
-  margin-top: clamp(8px, 1.5vw, 16px);
-}
-
-.home-screen .line.line-actions {
-  margin-top: clamp(12px, 2vw, 20px);
-  gap: clamp(10px, 2vw, 18px);
-}
-
-.home-screen .word-block.cta {
-  font-family: 'Space Mono', monospace;
-  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.55rem 1rem;
-  border-radius: 999px;
-  border: 2px solid var(--home-fg);
-  background: #ffffff;
-}
-
-/* Hand: icon only */
-.home-screen .word-block.hand-wave-block {
-  padding: 0 4px;
-  line-height: 1.15;
-  font-size: clamp(2rem, 5vw, 4.5rem);
-  vertical-align: middle;
-  box-sizing: border-box;
-  border: none;
+/* Icon only: no frame, ever — a boxed hand reads as a button. */
+.home-screen .word-block.hand-wave-block,
+.home-screen.home-armed .word-block.hand-wave-block {
+  border-color: transparent;
   background: transparent;
+  padding: 0 4px;
   box-shadow: none;
 }
 
 .home-screen .home-hand-svg {
   display: block;
-  width: 0.65em;
-  height: 0.65em;
+  width: 0.7em;
+  height: 0.7em;
   transform-origin: 70% 85%;
   animation: home-hand-wave 1.15s ease-in-out infinite;
 }
@@ -155,16 +174,97 @@
   }
 }
 
-/* Floating row: layout from Tailwind in HomeScreen (matches App header: top-8 px-6 flex + nav spacer) */
+/* ---- Details list: icon, monospace value, muted // suffix. No container. ---- */
 
-.home-screen .word-block.home-social-fall {
+.home-screen .word-block.fact {
+  gap: 11px;
   font-family: 'Space Mono', monospace;
+  font-size: clamp(0.75rem, 1.35vw, 0.875rem);
+  line-height: 1.5;
+  border-width: 1.5px;
+  border-radius: 6px;
+  padding: 6px 11px;
+  max-width: 100%;
+}
+
+.home-screen .word-block.fact.fact-wide {
+  grid-column: 1 / -1;
+}
+
+.home-screen .word-block.fact svg {
+  flex-shrink: 0;
+  color: var(--home-dim);
+}
+
+.home-screen .fact-v {
+  color: var(--home-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-screen .fact-m {
+  color: var(--home-dim);
+}
+
+/* ---- Buttons ---- */
+
+.home-screen .word-block.action {
+  gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: 1.5px solid #d4d4d8;
+  background: #ffffff;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.home-screen .word-block.action:hover {
+  border-color: var(--home-fg);
+  transform: translateY(-1px);
+}
+
+.home-screen .word-block.action.action-primary {
+  border-color: var(--home-fg);
+  background: var(--home-fg);
+  color: #ffffff;
+}
+
+.home-screen .word-block.action.action-primary:hover {
+  background: #000000;
+}
+
+/* Buttons already look like buttons, so arming only changes what a press does. */
+.home-screen.home-armed .word-block.action {
+  border-color: var(--home-fg);
+  background: #ffffff;
+  cursor: grab;
+}
+
+.home-screen.home-armed .word-block.action.action-primary {
+  background: var(--home-fg);
+  color: #ffffff;
+}
+
+.home-screen.home-armed .word-block.action:hover {
+  transform: none;
+}
+
+/* ---- Header social icons (rendered here so they can fall with the rest) ---- */
+
+.home-screen .word-block.home-social-fall,
+.home-screen.home-armed .word-block.home-social-fall {
   padding: 4px;
   border-radius: 999px;
-  font-size: 1rem;
-  line-height: 0;
   border: none;
   background: transparent;
+  line-height: 0;
   transition: transform 0.2s;
 }
 
@@ -182,111 +282,217 @@
   transform: scale(1.1);
 }
 
+/* Clickable links at rest, draggable once armed. */
 .home-screen .home-floating-socials .word-block.home-social-fall {
-  pointer-events: none;
-}
-
-.home-screen.home-fall-ready .home-floating-socials .word-block.home-social-fall {
   pointer-events: auto;
   cursor: pointer;
 }
 
-.home-screen .cursor {
-  display: inline-block;
-  width: 3px;
-  height: 1em;
+.home-screen.home-armed .home-floating-socials .word-block.home-social-fall {
+  cursor: grab;
+}
+
+/* ---- The playground button, top right ---- */
+
+.home-screen .home-playground {
+  position: absolute;
+  top: clamp(76px, 9vh, 96px);
+  right: clamp(16px, 4vw, 24px);
+  z-index: 46;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-screen .home-playground-nudge {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--home-dim);
+  white-space: nowrap;
+}
+
+.home-screen .home-playground-arrow {
+  color: #d4d4d8;
+  flex-shrink: 0;
+}
+
+.home-screen .home-playground-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--home-fg);
+  background: #ffffff;
+  border: 1.5px solid var(--home-fg);
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 0 var(--home-fg);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
+  animation: home-btn-idle 3.6s ease-in-out infinite;
+}
+
+.home-screen .home-playground-btn svg {
+  flex-shrink: 0;
+}
+
+.home-screen .home-playground-btn:hover:not(:disabled) {
+  animation: none;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 0 var(--home-fg);
+}
+
+/* Presses in, like a real key. */
+.home-screen .home-playground-btn:active:not(:disabled) {
+  animation: none;
+  transform: translateY(4px);
+  box-shadow: 0 0 0 0 var(--home-fg);
+}
+
+.home-screen .home-playground-btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+  animation: none;
+}
+
+.home-screen.home-armed .home-playground-btn {
+  color: #ffffff;
   background: var(--home-fg);
-  margin-left: 2px;
-  vertical-align: baseline;
-  animation: home-blink 0.8s infinite;
+  animation: none;
 }
 
-@keyframes home-blink {
+/* A small tick every few seconds so the button asks to be pressed. */
+@keyframes home-btn-idle {
   0%,
+  84%,
   100% {
-    opacity: 1;
+    transform: translateY(0);
   }
-  50% {
-    opacity: 0;
+  88% {
+    transform: translateY(-3px) rotate(-1.5deg);
+  }
+  92% {
+    transform: translateY(0) rotate(1deg);
+  }
+  96% {
+    transform: translateY(-1px) rotate(0deg);
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .home-screen .home-playground-btn,
+  .home-screen .home-hand-svg {
+    animation: none;
+  }
+}
+
+/* ---- Physics clones ---- */
+
+/* Stops short of the footer — its bottom edge is the floor blocks land on. */
 .home-screen #physics-container {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: var(--home-floor-gap);
   z-index: 20;
   pointer-events: none;
 }
 
+/* left/top stay at 0 — all motion rides on `transform`, so a frame is a
+   compositor job instead of a layout pass for every block. */
 .home-screen .phys-block {
   position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(2rem, 5vw, 4.5rem);
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  padding: 0 10px;
-  border-radius: 4px;
+  gap: 11px;
+  font-family: 'Space Mono', monospace;
   border: 2.5px solid var(--home-fg);
+  border-radius: 4px;
   background: #ffffff;
   color: var(--home-fg);
+  padding: 0 10px;
   cursor: grab;
   user-select: none;
   pointer-events: all;
   transform-origin: center;
   transition: box-shadow 0.15s;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .home-screen .phys-block:active {
   cursor: grabbing;
 }
 
-.home-screen .phys-block.specialty {
-  font-size: clamp(1.2rem, 3vw, 2.8rem);
-  border-width: 2px;
+/* Padding must match `.word-block.greet` exactly — the clone is locked to the
+   source's rect, so a wider box here would clip the word. */
+.home-screen .phys-block.greet {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.1rem, 5.4vw, 3.875rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  padding: 0 6px;
+}
+
+.home-screen .phys-block.fact {
+  font-size: clamp(0.75rem, 1.35vw, 0.875rem);
+  line-height: 1.5;
+  border-width: 1.5px;
+  border-radius: 6px;
+  padding: 6px 11px;
+  justify-content: flex-start;
+}
+
+.home-screen .phys-block.fact svg {
+  flex-shrink: 0;
+  color: var(--home-dim);
 }
 
 .home-screen .phys-block.cta {
-  font-family: 'Space Mono', monospace;
-  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  gap: 8px;
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.55rem 1rem;
+  padding: 12px 24px;
   border-radius: 999px;
-  border: 2px solid var(--home-fg);
+  border-width: 1.5px;
   background: #ffffff;
 }
 
-.home-screen .phys-block.name {
-  font-size: clamp(1.75rem, 4.2vw, 3.6rem);
+.home-screen .phys-block.cta.cta-primary {
+  background: var(--home-fg);
+  color: #ffffff;
+}
+
+.home-screen .phys-block.cta.cta-primary svg {
+  color: #ffffff;
 }
 
 .home-screen .phys-block.hand-wave {
-  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-size: clamp(2.1rem, 5.4vw, 3.875rem);
   padding: 0 4px;
-  line-height: 1.15;
+  line-height: 1.12;
   border: none;
   background: transparent;
   box-shadow: none;
 }
 
-.home-screen .phys-block.hand-wave:hover {
-  box-shadow: none;
-}
-
-/* Social phys: same 22px icon + 4px padding as header — ignore base .phys-block font-size */
+/* Social phys: same 22px icon + 4px padding as the header. */
 .home-screen .phys-block.social-github,
 .home-screen .phys-block.social-linkedin,
 .home-screen .phys-block.social-mail {
-  font-family: 'Space Mono', monospace;
   font-size: 0;
   line-height: 0;
   letter-spacing: normal;
@@ -296,14 +502,11 @@
   background: transparent;
   min-width: 0;
   min-height: 0;
-  width: auto;
-  height: auto;
-  box-sizing: content-box;
+  box-sizing: border-box;
 }
 
 .home-screen .phys-block--rich svg {
   display: block;
-  color: var(--home-fg);
 }
 
 .home-screen .phys-block--rich.social-github svg,
@@ -328,9 +531,19 @@
   box-shadow: none;
 }
 
+/* ---- Footer slot: holds the shared SiteFooter at the bottom of the screen ---- */
+
+.home-screen .home-footer-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+}
+
 .home-screen #hint {
   position: absolute;
-  bottom: 28px;
+  bottom: calc(var(--home-floor-gap) + 14px);
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Space Mono', monospace;
@@ -342,36 +555,22 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 1s;
-  max-width: min(90vw, 28rem);
+  max-width: min(90vw, 30rem);
   text-align: center;
   line-height: 1.4;
 }
 
-.home-screen .home-reset-btn {
-  position: absolute;
-  bottom: 28px;
-  left: clamp(16px, 4vw, 32px);
-  z-index: 35;
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--home-muted);
-  background: #ffffff;
-  border: 1.5px solid var(--home-fg);
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  transition: color 0.2s, background 0.2s, border-color 0.2s;
-}
+/* Stack the details on narrow screens; the nudge has no room there either. */
+@media (max-width: 720px) {
+  .home-screen .home-facts {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 12px;
+    justify-items: center;
+    text-align: center;
+  }
 
-.home-screen .home-reset-btn:hover:not(:disabled) {
-  color: var(--home-fg);
-  background: #fafafa;
-}
-
-.home-screen .home-reset-btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+  .home-screen .home-playground-nudge,
+  .home-screen .home-playground-arrow {
+    display: none;
+  }
 }
