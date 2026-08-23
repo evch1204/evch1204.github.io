@@ -12,6 +12,7 @@ import {
 } from './projectsData';
 import ProjectGlyph from './ProjectGlyph';
 import ExperienceList from './ExperienceList';
+import SiteFooter from './SiteFooter';
 import GithubActivity from './GithubActivity';
 import { EXPERIENCE, EDUCATION } from './experienceData';
 import profilePhoto from '../images/your-photo.jpg';
@@ -904,34 +905,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Footer */}
-        <footer className="mt-40 pt-12 border-t border-zinc-100 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex flex-col gap-1.5 items-center md:items-start text-center md:text-left">
-            <div className="text-sm font-bold tracking-tighter text-zinc-900">TEI CHANG.</div>
-            <a
-              href="mailto:changtei1204@gmail.com"
-              className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
-            >
-              ChangTei1204@gmail.com
-            </a>
-          </div>
-          <p className="text-[11px] text-zinc-400 tracking-wide font-medium">
-            © 2026 Tei Chang. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            <a href="https://github.com/evch1204" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-black transition-colors">
-              <Github size={18} />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/evan-chang1/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-black transition-colors"
-            >
-              <Linkedin size={18} />
-            </a>
-          </div>
-        </footer>
+        <SiteFooter className="mt-40 pt-12" />
       </main>
       )}
 
