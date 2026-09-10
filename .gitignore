@@ -20,8 +20,13 @@ pnpm-debug.log*
 
 # Editor / IDE (local settings)
 .idea
+.vscode/
 *.swp
 *.swo
+
+# Tooling caches
+*.tsbuildinfo
+.claude/
 
 # Certificates / keys (if ever created locally)
 *.pem

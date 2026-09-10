@@ -109,7 +109,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
     <div className={`home-screen${armed ? ' home-armed' : ''}`} ref={rootRef}>
       <div className="grain" aria-hidden />
 
-      <div id="intro">
+      <div className="home-intro">
         <div className="home-block">
           <h1 className="home-greeting">
             <span className="word-block greet" data-phys="1" data-phys-cls="greet">
@@ -185,7 +185,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             <span
               className="word-block action action-primary"
               data-phys="1"
-              data-phys-cls="cta cta-primary"
+              data-phys-cls="action action-primary"
               data-phys-cta="projects"
               role="button"
               tabIndex={0}
@@ -197,7 +197,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             <span
               className="word-block action"
               data-phys="1"
-              data-phys-cls="cta"
+              data-phys-cls="action"
               data-phys-cta="resume"
               data-phys-html="1"
               role="button"
@@ -212,7 +212,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
         </div>
       </div>
 
-      <div id="physics-container" ref={containerRef} />
+      <div className="home-physics" ref={containerRef} />
 
       {/* Right-anchored on the header's own line: same top, side padding and row
           height, so these fallable icons sit exactly where the header's would. */}
@@ -284,7 +284,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
         </div>
       </div>
 
-      <div id="hint" ref={hintRef} />
+      <div className="home-hint" ref={hintRef} />
     </div>
   );
 }

@@ -2,8 +2,13 @@
   --home-fg: #0a0a0a;
   --home-muted: #555550;
   --home-hint: #aaa9a0;
-  --home-rule: #e4e4e7;
   --home-dim: #a1a1aa;
+  /* The three type scales the greeting, the details and the buttons are drawn
+     at. A source span and its falling clone read the same token, so the two can
+     never be sized apart. */
+  --home-greet-size: clamp(2.1rem, 5.4vw, 3.875rem);
+  --home-fact-size: clamp(0.75rem, 1.35vw, 0.875rem);
+  --home-action-size: clamp(0.75rem, 1.5vw, 0.875rem);
   /* Height of the footer strip (pt-10 + content + pb-8). Doubles as the physics
      floor, so a dropped pile rests on the footer rule instead of burying it. */
   --home-floor-gap: 122px;
@@ -29,7 +34,7 @@
   background-size: 200px 200px;
 }
 
-.home-screen #intro {
+.home-screen .home-intro {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -67,7 +72,7 @@
   justify-content: center;
   gap: 0;
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(2.1rem, 5.4vw, 3.875rem);
+  font-size: var(--home-greet-size);
   font-weight: 400;
   line-height: 1.12;
   letter-spacing: -0.025em;
@@ -135,9 +140,17 @@
   cursor: grab;
 }
 
-.home-screen .word-block.greet {
+/*
+ * Source and clone share one rule per kind, which is what keeps the invariant
+ * the clone depends on: it is locked to its source's rect, so identical padding
+ * and type here is the only reason it cannot clip its own text. Below each
+ * shared rule sit the genuine differences — the clone always draws its frame,
+ * the source only animates into one.
+ */
+.home-screen :is(.word-block, .phys-block).greet {
   font-family: 'DM Serif Display', serif;
-  font-size: inherit;
+  font-size: var(--home-greet-size);
+  font-weight: 400;
   line-height: 1.12;
   letter-spacing: -0.025em;
   /* Stands in for the word space the flex gap would otherwise provide. */
@@ -176,10 +189,10 @@
 
 /* ---- Details list: icon, monospace value, muted // suffix. No container. ---- */
 
-.home-screen .word-block.fact {
+.home-screen :is(.word-block, .phys-block).fact {
   gap: 11px;
   font-family: 'Space Mono', monospace;
-  font-size: clamp(0.75rem, 1.35vw, 0.875rem);
+  font-size: var(--home-fact-size);
   line-height: 1.5;
   border-width: 1.5px;
   border-radius: 6px;
@@ -187,13 +200,17 @@
   max-width: 100%;
 }
 
-.home-screen .word-block.fact.fact-wide {
-  grid-column: 1 / -1;
-}
-
-.home-screen .word-block.fact svg {
+.home-screen :is(.word-block, .phys-block).fact svg {
   flex-shrink: 0;
   color: var(--home-dim);
+}
+
+.home-screen .phys-block.fact {
+  justify-content: flex-start;
+}
+
+.home-screen .word-block.fact.fact-wide {
+  grid-column: 1 / -1;
 }
 
 .home-screen .fact-v {
@@ -208,16 +225,26 @@
 
 /* ---- Buttons ---- */
 
-.home-screen .word-block.action {
+.home-screen :is(.word-block, .phys-block).action {
   gap: 8px;
   font-family: 'Space Mono', monospace;
-  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  font-size: var(--home-action-size);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 12px 24px;
   border-radius: 999px;
-  border: 1.5px solid #d4d4d8;
+  border-width: 1.5px;
+}
+
+.home-screen :is(.word-block, .phys-block).action.action-primary {
+  background: var(--home-fg);
+  color: #ffffff;
+}
+
+/* A button already looks like a button at rest, so it carries its own frame. */
+.home-screen .word-block.action {
+  border-color: #d4d4d8;
   background: #ffffff;
   pointer-events: auto;
   cursor: pointer;
@@ -232,8 +259,6 @@
 
 .home-screen .word-block.action.action-primary {
   border-color: var(--home-fg);
-  background: var(--home-fg);
-  color: #ffffff;
 }
 
 .home-screen .word-block.action.action-primary:hover {
@@ -254,6 +279,14 @@
 
 .home-screen.home-armed .word-block.action:hover {
   transform: none;
+}
+
+.home-screen .phys-block.action {
+  background: #ffffff;
+}
+
+.home-screen .phys-block.action.action-primary svg {
+  color: #ffffff;
 }
 
 /* ---- Header social icons (rendered here so they can fall with the rest) ---- */
@@ -397,7 +430,7 @@
 /* ---- Physics clones ---- */
 
 /* Stops short of the footer — its bottom edge is the floor blocks land on. */
-.home-screen #physics-container {
+.home-screen .home-physics {
   position: absolute;
   top: 0;
   left: 0;
@@ -440,54 +473,8 @@
   cursor: grabbing;
 }
 
-/* Padding must match `.word-block.greet` exactly — the clone is locked to the
-   source's rect, so a wider box here would clip the word. */
-.home-screen .phys-block.greet {
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(2.1rem, 5.4vw, 3.875rem);
-  font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: -0.025em;
-  padding: 0 6px;
-}
-
-.home-screen .phys-block.fact {
-  font-size: clamp(0.75rem, 1.35vw, 0.875rem);
-  line-height: 1.5;
-  border-width: 1.5px;
-  border-radius: 6px;
-  padding: 6px 11px;
-  justify-content: flex-start;
-}
-
-.home-screen .phys-block.fact svg {
-  flex-shrink: 0;
-  color: var(--home-dim);
-}
-
-.home-screen .phys-block.cta {
-  gap: 8px;
-  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 12px 24px;
-  border-radius: 999px;
-  border-width: 1.5px;
-  background: #ffffff;
-}
-
-.home-screen .phys-block.cta.cta-primary {
-  background: var(--home-fg);
-  color: #ffffff;
-}
-
-.home-screen .phys-block.cta.cta-primary svg {
-  color: #ffffff;
-}
-
 .home-screen .phys-block.hand-wave {
-  font-size: clamp(2.1rem, 5.4vw, 3.875rem);
+  font-size: var(--home-greet-size);
   padding: 0 4px;
   line-height: 1.12;
   border: none;
@@ -541,7 +528,7 @@
   z-index: 6;
 }
 
-.home-screen #hint {
+.home-screen .home-hint {
   position: absolute;
   bottom: calc(var(--home-floor-gap) + 14px);
   left: 50%;
@@ -560,22 +547,7 @@
   line-height: 1.4;
 }
 
-/* Stack the details on narrow screens; the nudge has no room there either. */
-@media (max-width: 720px) {
-  .home-screen .home-facts {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 12px;
-    justify-items: center;
-    text-align: center;
-  }
-
-  .home-screen .home-playground-nudge,
-  .home-screen .home-playground-arrow {
-    display: none;
-  }
-}
-
-/* ---- Phone shell (below Tailwind's `md`) ----------------------------------
+/* ---- Phone shell (the exact complement of Tailwind's `md`) -----------------
  *
  * The desktop home is one viewport-locked screen. A phone has neither the width
  * nor the height for that, so here the intro becomes an ordinary scrolling
@@ -583,7 +555,7 @@
  * button — stays pinned to the viewport. The bottom tab bar replaces the footer
  * at that edge and doubles as the floor the dropped pile lands on.
  */
-@media (max-width: 767.98px) {
+@media (width < 48rem) {
   .home-screen {
     /* Blocks land on the tab bar's top edge, inset included. */
     --home-floor-gap: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
@@ -592,7 +564,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .home-screen #intro {
+  .home-screen .home-intro {
     position: relative;
     inset: auto;
     min-height: 100%;
@@ -605,8 +577,8 @@
    * homing and drag calculation is already viewport-relative
    * (getBoundingClientRect on both sides), so the numbers stay correct.
    */
-  .home-screen #physics-container,
-  .home-screen #hint,
+  .home-screen .home-physics,
+  .home-screen .home-hint,
   .home-screen .home-playground {
     position: fixed;
   }
@@ -614,6 +586,12 @@
   .home-screen .home-playground {
     top: 60px;
     right: 16px;
+  }
+
+  /* No room for the nudge beside the button at this width. */
+  .home-screen .home-playground-nudge,
+  .home-screen .home-playground-arrow {
+    display: none;
   }
 
   /* The tab bar owns this edge on phones; the footer stays on every other tab. */
@@ -627,7 +605,7 @@
    * line into four. It also sits on its own tint so it stays readable where the
    * pile reaches it.
    */
-  .home-screen #hint {
+  .home-screen .home-hint {
     left: 1rem;
     right: 1rem;
     transform: none;
@@ -641,12 +619,15 @@
     max-width: 100%;
   }
 
+  /* One detail per line, centred under the lede. */
   .home-screen .home-facts {
+    grid-template-columns: minmax(0, 1fr);
     row-gap: 10px;
+    justify-items: center;
+    text-align: center;
   }
 
   .home-screen .word-block.fact {
-    max-width: 100%;
     min-width: 0;
   }
 
