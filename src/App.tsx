@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import HomeScreen from './HomeScreen';
+import HomeScreen from './pages/home/HomeScreen';
 import TechIWorkWith from './TechIWorkWith';
 import ProjectGlyph from './ProjectGlyph';
 import ExperienceList from './ExperienceList';
@@ -504,11 +504,7 @@ export default function App() {
         }`}
         aria-hidden={activeTab !== 'home'}
       >
-        <HomeScreen
-          isPaused={activeTab !== 'home'}
-          onViewProjects={() => setActiveTab('projects')}
-          resumeUrl={RESUME_URL}
-        />
+        <HomeScreen isPaused={activeTab !== 'home'} onViewProjects={() => setActiveTab('projects')} />
       </div>
 
       {activeTab !== 'home' && (
