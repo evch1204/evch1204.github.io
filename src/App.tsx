@@ -28,17 +28,66 @@ import {
   Maximize2,
   Download,
   X,
+  Home,
+  User,
+  Briefcase,
+  LayoutGrid,
 } from 'lucide-react';
 
 type Tab = 'home' | 'about' | 'experience' | 'projects' | 'contact';
 
-const NAV_TABS: { id: Tab; label: string }[] = [
-  { id: 'home', label: 'Home' },
-  { id: 'about', label: 'About' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' },
+/**
+ * The one list of tabs. The desktop pill renders the labels, the phone tab bar
+ * renders the icons — both walk this array so they can never drift apart.
+ */
+const NAV_TABS: { id: Tab; label: string; Icon: typeof Home }[] = [
+  { id: 'home', label: 'Home', Icon: Home },
+  { id: 'about', label: 'About', Icon: User },
+  { id: 'experience', label: 'Experience', Icon: Briefcase },
+  { id: 'projects', label: 'Projects', Icon: LayoutGrid },
+  { id: 'contact', label: 'Contact', Icon: Mail },
 ];
+
+/**
+ * Phone navigation. The desktop pill needs ~500px and there is nowhere near
+ * that below `md`, so the same tabs sit along the bottom edge instead, where a
+ * thumb can reach them. Its height is `--tabbar-h` — see src/index.css.
+ */
+function TabBar({ activeTab, onSelect }: { activeTab: Tab; onSelect: (tab: Tab) => void }) {
+  return (
+    <nav
+      aria-label="Primary"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200/60 bg-white/80 backdrop-blur-2xl pb-[env(safe-area-inset-bottom)] md:hidden"
+    >
+      <div className="flex h-[var(--tabbar-h)] items-stretch">
+        {NAV_TABS.map(({ id, label, Icon }) => {
+          const active = activeTab === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onSelect(id)}
+              aria-current={active ? 'page' : undefined}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 transition-colors ${
+                active ? 'text-zinc-900' : 'text-zinc-400'
+              }`}
+            >
+              {/* Same filled lozenge as the desktop pill, shrunk to the icon. */}
+              <span
+                className={`flex h-7 items-center justify-center rounded-full px-4 transition-colors duration-300 ${
+                  active ? 'bg-zinc-900 text-white' : ''
+                }`}
+              >
+                <Icon size={20} strokeWidth={2} aria-hidden />
+              </span>
+              <span className="text-[10px] font-semibold tracking-wide">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
 
 function companyInitials(company: string) {
   const cleaned = company.replace(/[.,]/g, '').replace(/-/g, ' ').trim();
@@ -591,7 +640,7 @@ export default function App() {
       </div>
 
       {/* Navigation + social links (same row, all pages) */}
-      <header className="fixed top-8 left-0 right-0 z-50 px-6 flex items-center gap-4">
+      <header className="fixed top-4 md:top-8 left-0 right-0 z-50 px-4 md:px-6 flex items-center gap-3 md:gap-4">
         <div className="flex-1 min-w-0 flex items-center justify-start">
           <button
             type="button"
@@ -603,7 +652,7 @@ export default function App() {
         </div>
         <nav
           ref={navRef}
-          className="relative shrink-0 p-1.5 bg-white/70 backdrop-blur-2xl border border-zinc-200/50 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)] flex items-center gap-1"
+          className="relative shrink-0 p-1.5 bg-white/70 backdrop-blur-2xl border border-zinc-200/50 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)] hidden md:flex items-center gap-1"
         >
           <motion.div
             className="pointer-events-none absolute inset-y-1.5 z-0 rounded-full bg-zinc-900"
@@ -620,7 +669,7 @@ export default function App() {
               }}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
+              className={`relative z-10 px-4 lg:px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
                 activeTab === tab.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-900'
               }`}
             >
@@ -628,9 +677,12 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="flex-1 min-w-0 flex justify-end items-center gap-5">
+        <div className="flex-1 min-w-0 flex justify-end items-center gap-4 md:gap-5">
           {activeTab === 'home' ? (
-            <div className="flex items-center justify-end gap-5 pointer-events-none opacity-0 select-none" aria-hidden>
+            <div
+              className="flex items-center justify-end gap-4 md:gap-5 pointer-events-none opacity-0 select-none"
+              aria-hidden
+            >
               <span className="block w-[22px] h-[22px]" />
               <span className="block w-[22px] h-[22px]" />
               <span className="block w-[22px] h-[22px]" />
@@ -681,8 +733,9 @@ export default function App() {
         />
       </div>
 
+      {/* Bottom padding clears the phone tab bar (and the home-button inset under it). */}
       {activeTab !== 'home' && (
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-32">
+      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-[calc(var(--tabbar-h)+2rem+env(safe-area-inset-bottom))] md:pb-32">
         <AnimatePresence mode="wait">
           {activeTab === 'about' && (
             <Section title="Profile" key="about">
@@ -905,9 +958,11 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <SiteFooter className="mt-40 pt-12" />
+        <SiteFooter className="mt-24 md:mt-40 pt-12" />
       </main>
       )}
+
+      <TabBar activeTab={activeTab} onSelect={setActiveTab} />
 
       <ProjectDetailModal project={detailProject} onClose={() => setDetailProject(null)} />
       <ResumeModal open={resumeOpen} onClose={() => setResumeOpen(false)} resumeUrl={resumeUrl} />
