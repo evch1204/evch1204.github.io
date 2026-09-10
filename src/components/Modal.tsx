@@ -47,7 +47,9 @@ export default function Modal({
   useEffect(() => {
     if (!open) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    panelRef.current?.focus();
+    // `preventScroll`: a panel taller than the phone viewport would otherwise be
+    // scrolled into view on open, jumping past its own title.
+    panelRef.current?.focus({ preventScroll: true });
     return () => {
       opener?.focus();
     };
