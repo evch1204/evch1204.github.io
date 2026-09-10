@@ -183,7 +183,7 @@ const Section = ({
  * line-art mark when it does not (research, embedded and CLI work).
  */
 const ProjectPanel = ({ project }: { project: Project }) => (
-  <div className="mb-6 h-[200px] overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 flex items-center justify-center">
+  <div className="mb-6 h-[180px] sm:h-[200px] overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 flex items-center justify-center">
     {project.screenshot ? (
       <img
         src={project.screenshot}
@@ -222,7 +222,7 @@ const ProjectCardButton = ({ project, onOpen }: { project: Project; onOpen: () =
   <button
     type="button"
     onClick={onOpen}
-    className="group relative flex w-full flex-col text-left p-8 rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+    className="group relative flex w-full flex-col text-left p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
   >
     <ProjectPanel project={project} />
     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2.5">{project.kind}</p>
@@ -333,7 +333,7 @@ function ResumeModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="relative z-[102] flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
+            className="relative z-[102] flex max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
           >
             <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-5 py-4 sm:px-6">
               <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">Resume</h2>
@@ -494,7 +494,7 @@ function ProjectDetailModal({ project, onClose }: { project: Project | null; onC
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 pt-20 pb-12 sm:pt-24"
+          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 pt-16 pb-12 sm:pt-24"
         >
           <button
             type="button"
@@ -510,7 +510,7 @@ function ProjectDetailModal({ project, onClose }: { project: Project | null; onC
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="relative z-[102] my-auto w-full max-w-2xl rounded-[2rem] border border-zinc-100 bg-white p-8 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
+            className="relative z-[102] my-auto w-full max-w-2xl rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white p-6 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 mb-6">
@@ -771,15 +771,15 @@ export default function App() {
                               href={href}
                               target={href.startsWith('mailto:') ? undefined : '_blank'}
                               rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                              className="group inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900"
+                              className="group inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900"
                             >
                               <Icon size={14} className="shrink-0" />
-                              {label}
+                              <span className="truncate">{label}</span>
                             </a>
                           ) : (
-                            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 font-mono text-xs font-bold text-zinc-500">
+                            <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 font-mono text-xs font-bold text-zinc-500">
                               <Icon size={14} className="shrink-0" />
-                              {label}
+                              <span className="truncate">{label}</span>
                             </span>
                           )}
                         </li>
@@ -925,21 +925,23 @@ export default function App() {
 
           {activeTab === 'contact' && (
             <Section title="Connect" key="contact">
-              <div className="max-w-2xl mx-auto text-center py-12">
+              <div className="max-w-2xl mx-auto text-center py-6 sm:py-12">
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="p-12 rounded-[3rem] bg-white border border-zinc-100 shadow-[0_32px_64px_rgba(0,0,0,0.03)]"
+                  className="p-7 sm:p-12 rounded-[2rem] sm:rounded-[3rem] bg-white border border-zinc-100 shadow-[0_32px_64px_rgba(0,0,0,0.03)]"
                 >
-                  <h3 className="text-4xl font-bold mb-6 tracking-tight text-zinc-900">Let's build something.</h3>
-                  <p className="text-zinc-500 mb-12 text-lg font-medium leading-relaxed">
+                  <h3 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight text-zinc-900">
+                    Let's build something.
+                  </h3>
+                  <p className="text-zinc-500 mb-8 sm:mb-12 text-base sm:text-lg font-medium leading-relaxed">
                     I'm currently looking for new opportunities in AI and Software Engineering. Whether you have a question or just want to say hi, my
                     inbox is always open.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
                       href="mailto:changtei1204@gmail.com"
-                      className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-full bg-zinc-900 text-white font-bold hover:bg-black hover:scale-105 transition-all duration-300 shadow-xl shadow-zinc-200"
+                      className="inline-flex items-center justify-center gap-3 px-8 py-4 sm:px-10 sm:py-5 rounded-full bg-zinc-900 text-white font-bold hover:bg-black hover:scale-105 transition-all duration-300 shadow-xl shadow-zinc-200"
                     >
                       <Mail size={20} /> Send an Email
                     </a>
@@ -947,7 +949,7 @@ export default function App() {
                       href="https://www.linkedin.com/in/evan-chang1/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-full border border-zinc-200 bg-white text-zinc-900 font-bold hover:bg-zinc-50 hover:scale-105 transition-all duration-300"
+                      className="inline-flex items-center justify-center gap-3 px-8 py-4 sm:px-10 sm:py-5 rounded-full border border-zinc-200 bg-white text-zinc-900 font-bold hover:bg-zinc-50 hover:scale-105 transition-all duration-300"
                     >
                       <Linkedin size={20} /> LinkedIn
                     </a>
