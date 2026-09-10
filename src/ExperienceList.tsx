@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { ChevronsUpDown, Code2, Cpu, Database, GraduationCap, Headset, School } from 'lucide-react';
-import type { Org, Role, RoleIcon } from './experienceData';
-import { defaultOpenRoleId } from './experienceData';
+import Tag from '@/components/Tag';
+import type { Org, Role, RoleIcon } from '@/content/experience';
+import { defaultOpenRoleId } from '@/content/experience';
 
 /** Shared easing + duration so height, fade and chevron travel as one motion. */
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
@@ -92,9 +93,7 @@ function RoleRow({ role, open, onToggle }: { role: Role; open: boolean; onToggle
               <ul className="mt-4 flex flex-wrap gap-[7px]">
                 {role.tags.map((tag) => (
                   <li key={tag}>
-                    <span className="inline-block rounded-full bg-zinc-100 px-[11px] py-[5px] text-[10px] font-bold uppercase leading-none tracking-wider text-zinc-500">
-                      {tag}
-                    </span>
+                    <Tag variant="role">{tag}</Tag>
                   </li>
                 ))}
               </ul>

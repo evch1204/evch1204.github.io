@@ -14,7 +14,18 @@ import {
   User,
   Zap,
 } from 'lucide-react';
-import SiteFooter from './SiteFooter';
+import SiteFooter from '@/components/SiteFooter';
+import {
+  EMAIL,
+  GITHUB_URL,
+  LINKEDIN_URL,
+  LOCATION,
+  MAILTO,
+  PHONE,
+  RESUME_DOWNLOAD_FILENAME,
+} from '@/content/site';
+import { readLocalClock } from '@/lib/clock';
+import { triggerDownload } from '@/lib/download';
 import './home-screen.css';
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -45,47 +56,6 @@ type PhysBody = {
 /** Axis-aligned obstacles (the italic line, which stays put) in physics-container space. */
 type StaticRect = { x: number; y: number; w: number; h: number };
 
-/** Where Tei actually is, for the live clock in the details list. */
-const HOME_TIMEZONE = 'America/Los_Angeles';
-
-/** Minutes that `tz` is offset from UTC at `at`, DST included. */
-function tzOffsetMinutes(tz: string, at: Date) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz,
-    hour12: false,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).formatToParts(at);
-  const get = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((p) => p.type === type)?.value ?? '0');
-  // Intl renders midnight as hour 24; Date.UTC wants 0.
-  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
-  return Math.round((asUtc - at.getTime()) / 60000);
-}
-
-/**
- * Tei's wall clock, plus how far it sits from the visitor's own — the suffix is
- * relative to whoever is reading, so it says something different in every city.
- */
-function readLocalClock(at = new Date()) {
-  const time = new Intl.DateTimeFormat('en-US', {
-    timeZone: HOME_TIMEZONE,
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(at);
-
-  const deltaMinutes = tzOffsetMinutes(HOME_TIMEZONE, at) - -at.getTimezoneOffset();
-  if (deltaMinutes === 0) return { time, delta: '// same time as you' };
-
-  const hours = Math.abs(deltaMinutes) / 60;
-  const rounded = Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
-  return { time, delta: `// ${rounded}h ${deltaMinutes > 0 ? 'ahead' : 'behind'}` };
-}
-
 const GRAVITY = 0.4;
 const RESTITUTION = 0.55;
 const FRICTION_GROUND = 0.78;
@@ -93,7 +63,6 @@ const FRICTION_AIR = 0.995;
 const SLEEP_VEL = 0.4;
 const SLEEP_ROT = 0.08;
 const CTA_CLICK_MAX_PX = 18;
-const RESUME_DOWNLOAD_FILENAME = 'CV_Tei_Chang.pdf';
 
 /** One simulation step, so the feel is the same on a 60Hz and a 120Hz display. */
 const STEP_MS = 1000 / 60;
@@ -264,13 +233,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
     function triggerResumeDownload() {
       const href = resumeUrlRef.current;
       if (!href) return;
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = RESUME_DOWNLOAD_FILENAME;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      triggerDownload(href, RESUME_DOWNLOAD_FILENAME);
     }
 
     function createPhysBlock(
@@ -777,11 +740,11 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
           } else if (b.cta === 'resume') {
             triggerResumeDownload();
           } else if (b.cta === 'github') {
-            window.open('https://github.com/evch1204', '_blank', 'noopener,noreferrer');
+            window.open(GITHUB_URL, '_blank', 'noopener,noreferrer');
           } else if (b.cta === 'linkedin') {
-            window.open('https://www.linkedin.com/in/evan-chang1/', '_blank', 'noopener,noreferrer');
+            window.open(LINKEDIN_URL, '_blank', 'noopener,noreferrer');
           } else if (b.cta === 'mail') {
-            window.location.href = 'mailto:changtei1204@gmail.com';
+            window.location.href = MAILTO;
           }
         }
 
@@ -1064,13 +1027,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
 
   const downloadResume = () => {
     if (armed || !resumeUrl) return;
-    const a = document.createElement('a');
-    a.href = resumeUrl;
-    a.download = RESUME_DOWNLOAD_FILENAME;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    triggerDownload(resumeUrl, RESUME_DOWNLOAD_FILENAME);
   };
 
   const openExternal = (href: string) => () => {
@@ -1139,7 +1096,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
 
             <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
               <MapPin size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">Santa Clara, CA</span>
+              <span className="fact-v">{LOCATION}</span>
             </span>
             <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
               <Clock size={16} strokeWidth={2} aria-hidden />
@@ -1158,11 +1115,11 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
 
             <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
               <Mail size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">changtei1204@gmail.com</span>
+              <span className="fact-v">{EMAIL}</span>
             </span>
             <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
               <Phone size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">+1 (301) 768-8151</span>
+              <span className="fact-v">{PHONE}</span>
             </span>
           </div>
 
@@ -1239,7 +1196,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
             tabIndex={armed ? -1 : 0}
             aria-label="GitHub"
             title="GitHub"
-            onClick={openExternal('https://github.com/evch1204')}
+            onClick={openExternal(GITHUB_URL)}
           >
             <Github size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>
@@ -1253,7 +1210,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
             tabIndex={armed ? -1 : 0}
             aria-label="LinkedIn"
             title="LinkedIn"
-            onClick={openExternal('https://www.linkedin.com/in/evan-chang1/')}
+            onClick={openExternal(LINKEDIN_URL)}
           >
             <Linkedin size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>
@@ -1267,7 +1224,7 @@ export default function HomeScreen({ onViewProjects, resumeUrl, isPaused = false
             tabIndex={armed ? -1 : 0}
             aria-label="Email"
             title="Email"
-            onClick={openExternal('mailto:changtei1204@gmail.com')}
+            onClick={openExternal(MAILTO)}
           >
             <Mail size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>

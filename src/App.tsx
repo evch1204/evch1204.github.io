@@ -1,28 +1,35 @@
-import { ReactNode, useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import HomeScreen from './HomeScreen';
 import TechIWorkWith from './TechIWorkWith';
-import {
-  FEATURED_PROJECT,
-  PROJECT_GROUPS,
-  projectsInGroup,
-  hostLabel,
-  repoLabel,
-  type Project,
-} from './projectsData';
 import ProjectGlyph from './ProjectGlyph';
 import ExperienceList from './ExperienceList';
-import SiteFooter from './SiteFooter';
 import GithubActivity from './GithubActivity';
-import { EXPERIENCE, EDUCATION } from './experienceData';
-import profilePhoto from '../images/your-photo.jpg';
-import musclePhoto from '../images/muscle.jpg';
-import resumePreview from '../images/resume-preview-page1.jpg';
+import Modal from '@/components/Modal';
+import Section from '@/components/Section';
+import SectionHeading from '@/components/SectionHeading';
+import SiteFooter from '@/components/SiteFooter';
+import Tag from '@/components/Tag';
+import { EXPERIENCE, EDUCATION } from '@/content/experience';
+import { FEATURED_PROJECT, PROJECT_GROUPS, projectsInGroup, type Project } from '@/content/projects';
+import {
+  CONTACT_LINKS,
+  GITHUB_URL,
+  LINKEDIN_URL,
+  MAILTO,
+  RESUME_PANEL_DOWNLOAD_FILENAME,
+  RESUME_URL,
+  SOCIAL_LINKS,
+} from '@/content/site';
+import { RESUME_SKILLS } from '@/content/skills';
+import { hostLabel, repoLabel } from '@/lib/url';
+import profilePhoto from '@/assets/images/your-photo.jpg';
+import musclePhoto from '@/assets/images/muscle.jpg';
+import resumePreview from '@/assets/images/resume-preview-page1.jpg';
 import {
   Github,
   Linkedin,
   Mail,
-  MapPin,
   ArrowRight,
   ExternalLink,
   Maximize2,
@@ -88,47 +95,6 @@ function CompanyLogo({ domain, company, size = 40 }: { domain?: string; company:
   );
 }
 
-const Section = ({
-  title,
-  children,
-  titleAlign = 'left',
-}: {
-  title: string;
-  children: ReactNode;
-  /** Center section label (e.g. under centered top nav). */
-  titleAlign?: 'left' | 'center';
-}) => (
-  <motion.section
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-    className="w-full"
-  >
-    <div className={titleAlign === 'center' ? 'mb-7 flex justify-center' : 'mb-7'}>
-      <h2
-        className={`text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-2 flex items-center gap-3 ${
-          titleAlign === 'center' ? 'justify-center' : ''
-        }`}
-      >
-        {titleAlign === 'center' ? (
-          <>
-            <span className="hidden sm:block w-10 sm:w-12 h-[1px] bg-zinc-200 shrink-0" aria-hidden />
-            {title}
-            <span className="hidden sm:block w-10 sm:w-12 h-[1px] bg-zinc-200 shrink-0" aria-hidden />
-          </>
-        ) : (
-          <>
-            <span className="w-12 h-[1px] bg-zinc-200" />
-            {title}
-          </>
-        )}
-      </h2>
-    </div>
-    {children}
-  </motion.section>
-);
-
 /**
  * Card panel: a screenshot when the project has a live page to show, and a
  * line-art mark when it does not (research, embedded and CLI work).
@@ -183,12 +149,7 @@ const ProjectCardButton = ({ project, onOpen }: { project: Project; onOpen: () =
     <p className="text-sm text-zinc-500 mb-5 leading-relaxed font-medium text-pretty">{project.cardDescription}</p>
     <div className="mt-auto flex flex-wrap gap-2 mb-[22px]">
       {project.cardTags.map((tag) => (
-        <span
-          key={tag}
-          className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-500 uppercase tracking-wider"
-        >
-          {tag}
-        </span>
+        <Tag key={tag}>{tag}</Tag>
       ))}
     </div>
     {/* Wraps rather than clips: a long repo path takes its own row on narrow cards. */}
@@ -203,129 +164,55 @@ const ProjectCardButton = ({ project, onOpen }: { project: Project; onOpen: () =
   </button>
 );
 
-const CONTACT_LINKS = [
-  { label: 'changtei1204@gmail.com', href: 'mailto:changtei1204@gmail.com', Icon: Mail },
-  { label: 'github.com/evch1204', href: 'https://github.com/evch1204', Icon: Github },
-  { label: 'linkedin.com/in/evan-chang1', href: 'https://www.linkedin.com/in/evan-chang1/', Icon: Linkedin },
-  { label: 'Santa Clara, CA', href: undefined, Icon: MapPin },
-] as const;
-
-/** Skills as they are grouped on the resume, so the two never drift apart. */
-const RESUME_SKILLS = [
-  {
-    heading: 'Languages',
-    items: ['Python', 'Java', 'C++', 'TypeScript', 'JavaScript', 'SQL'],
-  },
-  {
-    heading: 'Frameworks & tools',
-    items: ['React', 'Next.js', 'Node.js', 'TensorFlow', 'OpenCV', 'Cloudflare Workers', 'Docker', 'Git', 'REST APIs'],
-  },
-  {
-    heading: 'Certifications',
-    items: [
-      'Advanced AI Essentials (Google)',
-      'Developing Applications in Python (AWS)',
-      'Deploying AI in Your Enterprise (IBM)',
-      'Introduction to LLMs (Google)',
-      'Generative AI (Google)',
-    ],
-  },
-] as const;
-
 /** Enlarged, scrollable resume. Same close behaviour as the project modal. */
-function ResumeModal({
-  open,
-  onClose,
-  resumeUrl,
-}: {
-  open: boolean;
-  onClose: () => void;
-  resumeUrl: string;
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
+function ResumeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
-        >
+    <Modal
+      open={open}
+      onClose={onClose}
+      overlayClassName="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+      backdropClassName="bg-black/50 backdrop-blur-[1px]"
+      backdropLabel="Close resume"
+      label="Resume"
+      panelClassName="relative z-[102] flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
+    >
+      <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-5 py-4 sm:px-6">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">Resume</h2>
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href={RESUME_URL}
+            download={RESUME_PANEL_DOWNLOAD_FILENAME}
+            className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-black"
+          >
+            <Download size={14} /> <span className="hidden sm:inline">Download PDF</span>
+          </a>
+          <a
+            href={RESUME_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
+          >
+            <ExternalLink size={14} /> <span className="hidden sm:inline">Open PDF</span>
+          </a>
           <button
             type="button"
-            className="fixed inset-0 z-[101] bg-black/50 backdrop-blur-[1px]"
-            aria-label="Close resume"
             onClick={onClose}
-          />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Resume"
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="relative z-[102] flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
+            className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            aria-label="Close"
           >
-            <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-5 py-4 sm:px-6">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">Resume</h2>
-              <div className="ml-auto flex items-center gap-2">
-                <a
-                  href={resumeUrl}
-                  download="Tei-Chang-Resume.pdf"
-                  className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-black"
-                >
-                  <Download size={14} /> <span className="hidden sm:inline">Download PDF</span>
-                </a>
-                <a
-                  href={resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
-                >
-                  <ExternalLink size={14} /> <span className="hidden sm:inline">Open PDF</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
-                  aria-label="Close"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-            {/* The page is taller than the viewport, so this is the scroll area. */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-zinc-100 p-3 sm:p-6">
-              <img
-                src={resumePreview}
-                alt="Tei Chang's resume"
-                className="mx-auto block w-full max-w-3xl rounded-lg border border-zinc-200 bg-white shadow-sm"
-              />
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+            <X size={20} />
+          </button>
+        </div>
+      </div>
+      {/* The page is taller than the viewport, so this is the scroll area. */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-zinc-100 p-3 sm:p-6">
+        <img
+          src={resumePreview}
+          alt="Tei Chang's resume"
+          className="mx-auto block w-full max-w-3xl rounded-lg border border-zinc-200 bg-white shadow-sm"
+        />
+      </div>
+    </Modal>
   );
 }
 
@@ -334,13 +221,10 @@ function ResumeModal({
  * (an embedded PDF viewer does not render reliably on mobile), alongside the
  * skills breakdown and the download / open actions.
  */
-function ResumePanel({ resumeUrl, onExpand }: { resumeUrl: string; onExpand: () => void }) {
+function ResumePanel({ onExpand }: { onExpand: () => void }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
-        <span className="w-12 h-px bg-zinc-200" />
-        Resume
-      </h3>
+      <SectionHeading>Resume</SectionHeading>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-14 lg:items-start">
         <button
           type="button"
@@ -373,9 +257,7 @@ function ResumePanel({ resumeUrl, onExpand }: { resumeUrl: string; onExpand: () 
               <ul className="flex flex-wrap gap-2">
                 {items.map((item) => (
                   <li key={item}>
-                    <span className="inline-block rounded-full bg-zinc-100 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600">
-                      {item}
-                    </span>
+                    <Tag variant="detail">{item}</Tag>
                   </li>
                 ))}
               </ul>
@@ -384,14 +266,14 @@ function ResumePanel({ resumeUrl, onExpand }: { resumeUrl: string; onExpand: () 
 
           <div className="flex flex-col gap-3 pt-1 sm:flex-row">
             <a
-              href={resumeUrl}
-              download="Tei-Chang-Resume.pdf"
+              href={RESUME_URL}
+              download={RESUME_PANEL_DOWNLOAD_FILENAME}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-black"
             >
               <Download size={18} /> Download PDF
             </a>
             <a
-              href={resumeUrl}
+              href={RESUME_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 px-6 py-3 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
@@ -417,136 +299,99 @@ const GroupHeading = ({ label, count }: { label: string; count: number }) => (
 );
 
 function ProjectDetailModal({ project, onClose }: { project: Project | null; onClose: () => void }) {
-  useEffect(() => {
-    if (!project) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [project, onClose]);
-
-  useEffect(() => {
-    if (project) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
-  }, [project]);
-
   return (
-    <AnimatePresence>
+    <Modal
+      open={project !== null}
+      onClose={onClose}
+      motionKey={project?.id}
+      overlayClassName="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 pt-20 pb-12 sm:pt-24"
+      backdropClassName="bg-black/45 backdrop-blur-[1px]"
+      backdropLabel="Close project details"
+      labelledBy="project-modal-title"
+      panelClassName="relative z-[102] my-auto w-full max-w-2xl rounded-[2rem] border border-zinc-100 bg-white p-8 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
+      stopPanelClick
+    >
       {project ? (
-        <motion.div
-          key={project.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 pt-20 pb-12 sm:pt-24"
-        >
-          <button
-            type="button"
-            className="fixed inset-0 z-[101] bg-black/45 backdrop-blur-[1px]"
-            aria-label="Close project details"
-            onClick={onClose}
-          />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="project-modal-title"
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="relative z-[102] my-auto w-full max-w-2xl rounded-[2rem] border border-zinc-100 bg-white p-8 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <h2 id="project-modal-title" className="text-xl sm:text-2xl font-bold text-zinc-900 tracking-tight pr-2">
-                {project.modalTitle}
-              </h2>
-              <button
-                type="button"
-                onClick={onClose}
-                className="shrink-0 rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
-                aria-label="Close"
+        <>
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <h2 id="project-modal-title" className="text-xl sm:text-2xl font-bold text-zinc-900 tracking-tight pr-2">
+              {project.modalTitle}
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+              aria-label="Close"
+            >
+              <X size={22} />
+            </button>
+          </div>
+
+          <p className="text-sm text-zinc-600 leading-relaxed font-medium mb-8">{project.overview}</p>
+
+          <div className="mb-8">
+            <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 mb-3">Key Features</h3>
+            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-600 font-medium leading-relaxed">
+              {project.keyFeatures.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mb-10">
+            <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 mb-3">Technologies Used</h3>
+            <ul className="flex flex-wrap gap-2">
+              {project.technologies.map((t) => (
+                <li key={t}>
+                  <Tag variant="detail">{t}</Tag>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2 border-t border-zinc-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-zinc-200 text-zinc-900 font-bold text-sm hover:bg-zinc-50 transition-colors"
+            >
+              Close
+            </button>
+            {project.githubUrl ? (
+              <a
+                href={project.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-colors ${
+                  project.liveUrl
+                    ? 'border border-zinc-200 text-zinc-900 hover:bg-zinc-50'
+                    : 'bg-zinc-900 text-white hover:bg-black'
+                }`}
               >
-                <X size={22} />
-              </button>
-            </div>
-
-            <p className="text-sm text-zinc-600 leading-relaxed font-medium mb-8">{project.overview}</p>
-
-            <div className="mb-8">
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 mb-3">Key Features</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-zinc-600 font-medium leading-relaxed">
-                {project.keyFeatures.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mb-10">
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 mb-3">Technologies Used</h3>
-              <ul className="flex flex-wrap gap-2">
-                {project.technologies.map((t) => (
-                  <li key={t}>
-                    <span className="inline-block text-[11px] font-bold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
-                      {t}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2 border-t border-zinc-100">
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-zinc-200 text-zinc-900 font-bold text-sm hover:bg-zinc-50 transition-colors"
+                <Github size={18} />
+                View on GitHub
+              </a>
+            ) : null}
+            {project.liveUrl ? (
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-sm hover:bg-black transition-colors"
               >
-                Close
-              </button>
-              {project.githubUrl ? (
-                <a
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-colors ${
-                    project.liveUrl
-                      ? 'border border-zinc-200 text-zinc-900 hover:bg-zinc-50'
-                      : 'bg-zinc-900 text-white hover:bg-black'
-                  }`}
-                >
-                  <Github size={18} />
-                  View on GitHub
-                </a>
-              ) : null}
-              {project.liveUrl ? (
-                <a
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-sm hover:bg-black transition-colors"
-                >
-                  <ExternalLink size={18} />
-                  {hostLabel(project.liveUrl)}
-                </a>
-              ) : null}
-            </div>
-          </motion.div>
-        </motion.div>
+                <ExternalLink size={18} />
+                {hostLabel(project.liveUrl)}
+              </a>
+            ) : null}
+          </div>
+        </>
       ) : null}
-    </AnimatePresence>
+    </Modal>
   );
 }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
-  const resumeUrl = `${import.meta.env.BASE_URL}resume.pdf`;
   const [resumeOpen, setResumeOpen] = useState(false);
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -636,33 +481,18 @@ export default function App() {
               <span className="block w-[22px] h-[22px]" />
             </div>
           ) : (
-            <>
+            SOCIAL_LINKS.map(({ id, label, href, Icon }) => (
               <a
-                href="https://github.com/evch1204"
-                target="_blank"
-                rel="noopener noreferrer"
+                key={id}
+                href={href}
+                target={href.startsWith('mailto:') ? undefined : '_blank'}
+                rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                 className="text-black hover:opacity-75 transition-all hover:scale-110 p-1"
-                aria-label="GitHub"
+                aria-label={label}
               >
-                <Github size={22} />
+                <Icon size={22} />
               </a>
-              <a
-                href="https://www.linkedin.com/in/evan-chang1/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-black hover:opacity-75 transition-all hover:scale-110 p-1"
-                aria-label="LinkedIn"
-              >
-                <Linkedin size={22} />
-              </a>
-              <a
-                href="mailto:changtei1204@gmail.com"
-                className="text-black hover:opacity-75 transition-all hover:scale-110 p-1"
-                aria-label="Email"
-              >
-                <Mail size={22} />
-              </a>
-            </>
+            ))
           )}
         </div>
       </header>
@@ -677,7 +507,7 @@ export default function App() {
         <HomeScreen
           isPaused={activeTab !== 'home'}
           onViewProjects={() => setActiveTab('projects')}
-          resumeUrl={resumeUrl}
+          resumeUrl={RESUME_URL}
         />
       </div>
 
@@ -763,7 +593,7 @@ export default function App() {
                 </div>
 
                 <div className="border-t border-zinc-100 pt-10">
-                  <ResumePanel resumeUrl={resumeUrl} onExpand={() => setResumeOpen(true)} />
+                  <ResumePanel onExpand={() => setResumeOpen(true)} />
                 </div>
               </div>
             </Section>
@@ -817,12 +647,9 @@ export default function App() {
                     )}
                     <div className="flex flex-wrap gap-2 mb-2">
                       {FEATURED_PROJECT.cardTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] font-bold px-3 py-1 rounded-full bg-zinc-100 text-zinc-500 uppercase tracking-wider"
-                        >
+                        <Tag key={tag} variant="featured">
                           {tag}
-                        </span>
+                        </Tag>
                       ))}
                     </div>
                     <span className="inline-flex items-center gap-2 text-sm font-bold text-zinc-900 group-hover:gap-3 transition-all">
@@ -859,7 +686,7 @@ export default function App() {
               })}
               <div className="mt-16 flex justify-center">
                 <a
-                  href="https://github.com/evch1204"
+                  href={GITHUB_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white border border-zinc-200 text-zinc-900 font-bold hover:border-zinc-900 transition-all duration-300"
@@ -885,13 +712,13 @@ export default function App() {
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
-                      href="mailto:changtei1204@gmail.com"
+                      href={MAILTO}
                       className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-full bg-zinc-900 text-white font-bold hover:bg-black hover:scale-105 transition-all duration-300 shadow-xl shadow-zinc-200"
                     >
                       <Mail size={20} /> Send an Email
                     </a>
                     <a
-                      href="https://www.linkedin.com/in/evan-chang1/"
+                      href={LINKEDIN_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-full border border-zinc-200 bg-white text-zinc-900 font-bold hover:bg-zinc-50 hover:scale-105 transition-all duration-300"
@@ -910,7 +737,7 @@ export default function App() {
       )}
 
       <ProjectDetailModal project={detailProject} onClose={() => setDetailProject(null)} />
-      <ResumeModal open={resumeOpen} onClose={() => setResumeOpen(false)} resumeUrl={resumeUrl} />
+      <ResumeModal open={resumeOpen} onClose={() => setResumeOpen(false)} />
     </div>
   );
 }

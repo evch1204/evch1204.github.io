@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Github } from 'lucide-react';
-import data from './contributionsData.json';
+import SectionHeading from '@/components/SectionHeading';
+import data from '@/content/contributions.json';
 
 /** GitHub's own light-mode heatmap scale, level 0 → 4. */
 const LEVEL_COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
@@ -95,10 +96,7 @@ export default function GithubActivity() {
 
   return (
     <div>
-      <h3 className="mb-6 flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">
-        <span className="h-px w-12 bg-zinc-200" />
-        GitHub activity
-      </h3>
+      <SectionHeading>GitHub activity</SectionHeading>
 
       <div ref={frameRef} className="relative" onMouseLeave={() => setTip(null)}>
         {tip ? (

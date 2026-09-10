@@ -1,8 +1,9 @@
-import type { GlyphName } from './ProjectGlyph';
-import shotRunningMap from '../images/shot-runningmap.jpg';
-import shotDrawSpace from '../images/shot-drawspace.jpg';
-import shotBookWithMe from '../images/shot-bookwithme.jpg';
-import shotDocs from '../images/shot-docs.jpg';
+import type { GlyphName } from '@/ProjectGlyph';
+import shotRunningMap from '@/assets/images/shot-runningmap.jpg';
+import shotDrawSpace from '@/assets/images/shot-drawspace.jpg';
+import shotBookWithMe from '@/assets/images/shot-bookwithme.jpg';
+import shotDocs from '@/assets/images/shot-docs.jpg';
+import { GITHUB_URL } from './site';
 
 export type ProjectGroup = 'apps' | 'data';
 
@@ -57,7 +58,7 @@ export const PROJECTS: Project[] = [
       'Implications for real-time occupational monitoring and future IMU feature work',
     ],
     technologies: ['Python', 'Jupyter', 'Data Analysis', 'Scikit-learn', 'Matplotlib'],
-    githubUrl: 'https://github.com/evch1204/EMGT311-ENGR184-Final-Project',
+    githubUrl: `${GITHUB_URL}/EMGT311-ENGR184-Final-Project`,
     reportPreview:
       'We collected surface EMG (biceps and deltoids) and IMU data during controlled repetitive lifting and trained models—including logistic regression and random forest—to classify low- vs high-risk conditions from EMG-only and IMU-only feature sets, toward eventual multimodal fusion. Random forest classifiers with EMG features reliably distinguished risk levels by capturing meaningful muscle-activation variation, whereas IMU features showed limited separation between categories in this protocol, exposing gaps in biomechanical signal for IMU under these trials. Together, the results support EMG-driven ML as a viable path to real-time occupational monitoring; next steps include broader cohorts, stronger IMU feature engineering, and careful balance of fatigue manipulation with participant safety.',
   },
@@ -173,7 +174,7 @@ export const PROJECTS: Project[] = [
       'Real-time processing straight from the webcam via OpenCV',
     ],
     technologies: ['Python', 'MediaPipe', 'OpenCV', 'NumPy'],
-    githubUrl: 'https://github.com/evch1204/hand_tracker',
+    githubUrl: `${GITHUB_URL}/hand_tracker`,
   },
   {
     id: 'nba-analytics',
@@ -195,7 +196,7 @@ export const PROJECTS: Project[] = [
       'Comprehensive statistical reports',
     ],
     technologies: ['Python', 'Data Analysis', 'Matplotlib', 'Pandas', 'NumPy'],
-    githubUrl: 'https://github.com/evch1204/NBA-Statistic-Analysis---184-Proj',
+    githubUrl: `${GITHUB_URL}/NBA-Statistic-Analysis---184-Proj`,
   },
   {
     id: 'gaming-scraping',
@@ -217,7 +218,7 @@ export const PROJECTS: Project[] = [
       'Competitive gaming insights',
     ],
     technologies: ['Python', 'Web Scraping', 'Data Analysis', 'Data Extraction'],
-    githubUrl: 'https://github.com/evch1204/Gaming-Statistic-Web-Scrapping-Analysis',
+    githubUrl: `${GITHUB_URL}/Gaming-Statistic-Web-Scrapping-Analysis`,
   },
 ];
 
@@ -228,8 +229,3 @@ export const GRID_PROJECTS = PROJECTS.filter((p) => p.id !== FEATURED_PROJECT_ID
 export const projectsInGroup = (group: ProjectGroup) =>
   GRID_PROJECTS.filter((p) => p.group === group);
 
-/** `runningmap.app.space` — the bare host, used as the card's link text. */
-export const hostLabel = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-
-/** `evch1204/hand_tracker` — the repo path, used as the card's link text. */
-export const repoLabel = (url: string) => url.replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
