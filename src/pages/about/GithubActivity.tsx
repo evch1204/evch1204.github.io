@@ -149,6 +149,8 @@ export default function GithubActivity() {
                           className="aspect-square w-full rounded-[2px] transition-transform duration-150 hover:scale-[1.35]"
                           style={{ backgroundColor: LEVEL_COLORS[day.level] ?? LEVEL_COLORS[0] }}
                           onMouseEnter={(e) => showTip(day, e.currentTarget)}
+                          // Touch has no hover, so a tap has to be able to ask too.
+                          onClick={(e) => showTip(day, e.currentTarget)}
                         />
                       ) : (
                         <span key={`${wi}-${di}`} className="aspect-square w-full" aria-hidden />

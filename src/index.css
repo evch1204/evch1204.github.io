@@ -7,6 +7,15 @@
   --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/*
+ * Height of the phone tab bar, in one place: the TabBar sizes its row from it,
+ * the content pages reserve bottom padding with it, and the home screen uses it
+ * as the physics floor so a dropped pile lands on the bar's top edge.
+ */
+:root {
+  --tabbar-h: 64px;
+}
+
 @layer base {
   body {
     @apply bg-white text-zinc-900 antialiased;

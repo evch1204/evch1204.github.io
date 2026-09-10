@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import SiteFooter from '@/components/SiteFooter';
 import Header from '@/layout/Header';
+import TabBar from '@/layout/TabBar';
 import type { Tab } from '@/layout/nav';
 import HomeScreen from './pages/home/HomeScreen';
 import AboutPage from './pages/about/AboutPage';
@@ -36,8 +37,9 @@ export default function App() {
         <HomeScreen isPaused={activeTab !== 'home'} onViewProjects={() => setActiveTab('projects')} />
       </div>
 
+      {/* Bottom padding clears the phone tab bar (and the home-button inset under it). */}
       {activeTab !== 'home' && (
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-32">
+      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-[calc(var(--tabbar-h)+2rem+env(safe-area-inset-bottom))] md:pb-32">
         <AnimatePresence mode="wait">
           {activeTab === 'about' && <AboutPage key="about" />}
           {activeTab === 'experience' && <ExperiencePage key="experience" />}
@@ -45,9 +47,11 @@ export default function App() {
           {activeTab === 'contact' && <ContactPage key="contact" />}
         </AnimatePresence>
 
-        <SiteFooter className="mt-40 pt-12" />
+        <SiteFooter className="mt-24 md:mt-40 pt-12" />
       </main>
       )}
+
+      <TabBar activeTab={activeTab} onSelect={setActiveTab} />
     </div>
   );
 }

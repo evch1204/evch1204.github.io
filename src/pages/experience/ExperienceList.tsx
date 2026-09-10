@@ -70,7 +70,7 @@ function RoleRow({ role, open, onToggle }: { role: Role; open: boolean; onToggle
       >
         <div className="min-h-0 overflow-hidden">
           <div
-            className="pb-4 pl-[52px] pr-3.5 pt-0.5"
+            className="pb-4 pl-10 sm:pl-[52px] pr-3.5 pt-0.5"
             style={{
               opacity: open ? 1 : 0,
               transform: open ? 'translateY(0)' : 'translateY(-6px)',
@@ -120,18 +120,22 @@ function OrgGroup({
 }) {
   return (
     <div className={first ? 'pb-6' : 'border-t border-zinc-100 py-6'}>
-      <div className="mb-2.5 flex items-center gap-3 pl-0.5">
+      {/* Wraps on narrow screens: the location drops under the name, indented to
+          line up with it, instead of squeezing the org name to nothing. */}
+      <div className="mb-2.5 flex flex-wrap items-center gap-3 pl-0.5">
         {renderLogo(org)}
         <h3 className="text-[17px] font-bold tracking-[-0.025em] text-zinc-900">{org.name}</h3>
         {org.current ? (
           <span className="block h-[7px] w-[7px] rounded-full bg-zinc-900" title="Current" aria-label="Current" />
         ) : null}
         {org.location ? (
-          <span className="ml-auto text-[11px] font-medium text-zinc-400">{org.location}</span>
+          <span className="basis-full pl-[46px] text-[11px] font-medium text-zinc-400 sm:ml-auto sm:basis-auto sm:pl-0">
+            {org.location}
+          </span>
         ) : null}
       </div>
       {/* Rail tying a company's positions together. */}
-      <div className="ml-4 border-l border-zinc-100 pl-[17px]">
+      <div className="ml-3 border-l border-zinc-100 pl-3 sm:ml-4 sm:pl-[17px]">
         {org.roles.map((role) => (
           <RoleRow key={role.id} role={role} open={openIds.has(role.id)} onToggle={() => onToggle(role.id)} />
         ))}

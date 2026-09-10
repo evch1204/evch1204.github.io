@@ -217,19 +217,17 @@ export function createPlayground({
       body.rotV *= 0.35;
     }
 
-    el.addEventListener('mousedown', (e) => {
+    /*
+     * One input path for mouse, pen and touch. `.phys-block` sets
+     * `touch-action: none`, so a drag never turns into a page scroll, and the
+     * document-level `pointercancel` below means an interrupted touch can no
+     * longer leave a block welded to a pointer that is gone.
+     */
+    el.addEventListener('pointerdown', (e) => {
+      if (!e.isPrimary || e.button !== 0) return;
       e.preventDefault();
       startDrag(e.clientX, e.clientY);
     });
-    el.addEventListener(
-      'touchstart',
-      (e) => {
-        e.preventDefault();
-        const t = e.touches[0];
-        startDrag(t.clientX, t.clientY);
-      },
-      { passive: false },
-    );
 
     return body;
   }
@@ -455,25 +453,14 @@ export function createPlayground({
     syncBodyDom(dragging);
   }
 
-  function onMouseMove(e: MouseEvent) {
-    if (!dragging) return;
+  function onPointerMove(e: PointerEvent) {
+    if (!dragging || !e.isPrimary) return;
     pointer.push(e.clientX, e.clientY, e.timeStamp);
     const p = containerOffset(e.clientX, e.clientY);
     dragPointerCX = p.x;
     dragPointerCY = p.y;
     lastMX = e.clientX;
     lastMY = e.clientY;
-  }
-
-  function onTouchMove(e: TouchEvent) {
-    if (!dragging) return;
-    const t = e.touches[0];
-    pointer.push(t.clientX, t.clientY, e.timeStamp);
-    const p = containerOffset(t.clientX, t.clientY);
-    dragPointerCX = p.x;
-    dragPointerCY = p.y;
-    lastMX = t.clientX;
-    lastMY = t.clientY;
   }
 
   function endDrag() {
@@ -495,10 +482,9 @@ export function createPlayground({
     }
   }
 
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchend', endDrag);
+  document.addEventListener('pointermove', onPointerMove);
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
 
   async function launchBlock(blockEl: HTMLSpanElement, cls: string, label: string, cta?: CtaKind) {
     const rect = blockEl.getBoundingClientRect();
@@ -706,10 +692,9 @@ export function createPlayground({
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', markLayoutDirty);
       window.removeEventListener('orientationchange', markLayoutDirty);
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('touchmove', onTouchMove);
-      document.removeEventListener('mouseup', endDrag);
-      document.removeEventListener('touchend', endDrag);
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', endDrag);
+      document.removeEventListener('pointercancel', endDrag);
       blockCleanups.forEach((fn) => fn());
       container.replaceChildren();
       intro?.classList.remove('intro-launchable');

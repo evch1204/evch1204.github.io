@@ -424,6 +424,9 @@
   cursor: grab;
   user-select: none;
   pointer-events: all;
+  /* Dragging a block is never a page scroll, so the browser must not claim the
+     gesture — without this the pointer stream is cancelled mid-drag on touch. */
+  touch-action: none;
   transform-origin: center;
   transition: box-shadow 0.15s;
   white-space: nowrap;
@@ -572,5 +575,100 @@
   .home-screen .home-playground-nudge,
   .home-screen .home-playground-arrow {
     display: none;
+  }
+}
+
+/* ---- Phone shell (below Tailwind's `md`) ----------------------------------
+ *
+ * The desktop home is one viewport-locked screen. A phone has neither the width
+ * nor the height for that, so here the intro becomes an ordinary scrolling
+ * page while the playful furniture — the physics field, the hint, the arm
+ * button — stays pinned to the viewport. The bottom tab bar replaces the footer
+ * at that edge and doubles as the floor the dropped pile lands on.
+ */
+@media (max-width: 767.98px) {
+  .home-screen {
+    /* Blocks land on the tab bar's top edge, inset included. */
+    --home-floor-gap: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-screen #intro {
+    position: relative;
+    inset: auto;
+    min-height: 100%;
+    /* Top padding clears the header row and the arm button under it. */
+    padding: 7rem 1rem calc(var(--home-floor-gap) + 1.5rem);
+  }
+
+  /*
+   * Pinned to the viewport while the intro scrolls beneath. Every launch,
+   * homing and drag calculation is already viewport-relative
+   * (getBoundingClientRect on both sides), so the numbers stay correct.
+   */
+  .home-screen #physics-container,
+  .home-screen #hint,
+  .home-screen .home-playground {
+    position: fixed;
+  }
+
+  .home-screen .home-playground {
+    top: 60px;
+    right: 16px;
+  }
+
+  /* The tab bar owns this edge on phones; the footer stays on every other tab. */
+  .home-screen .home-footer-slot {
+    display: none;
+  }
+
+  /*
+   * Pinned to both edges rather than shrink-to-fit from the centre: a fixed box
+   * with only `left: 50%` gets half the viewport to fit in, which folded this
+   * line into four. It also sits on its own tint so it stays readable where the
+   * pile reaches it.
+   */
+  .home-screen #hint {
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+    max-width: none;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(250, 250, 250, 0.92);
+  }
+
+  .home-screen .home-lede {
+    max-width: 100%;
+  }
+
+  .home-screen .home-facts {
+    row-gap: 10px;
+  }
+
+  .home-screen .word-block.fact {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .home-screen .fact-v {
+    min-width: 0;
+  }
+
+  /*
+   * The wide fact does not fit on one phone line, and truncating it hid the
+   * employer. It wraps instead — and because the falling clone is sized from
+   * this box's rect and copies its markup, `.phys-block.fact` has to wrap the
+   * very same way or the clone would clip its own second line.
+   */
+  .home-screen .word-block.fact.fact-wide,
+  .home-screen .phys-block.fact {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 2px;
+    white-space: normal;
+    text-align: center;
   }
 }

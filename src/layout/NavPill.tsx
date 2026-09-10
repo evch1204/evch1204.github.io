@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { NAV_TABS, type Tab } from './nav';
 
 /**
- * The tab bar. The dark pill is a single element that slides between the
+ * The desktop tab row (phones get the TabBar instead). The dark pill is a single element that slides between the
  * buttons, so it has to measure where the active button actually sits — on
  * mount, whenever the tab changes and whenever the row is resized.
  */
@@ -45,7 +45,7 @@ export default function NavPill({
   return (
     <nav
       ref={navRef}
-      className="relative shrink-0 p-1.5 bg-white/70 backdrop-blur-2xl border border-zinc-200/50 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)] flex items-center gap-1"
+      className="relative shrink-0 p-1.5 bg-white/70 backdrop-blur-2xl border border-zinc-200/50 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)] hidden md:flex items-center gap-1"
     >
       <motion.div
         className="pointer-events-none absolute inset-y-1.5 z-0 rounded-full bg-zinc-900"
@@ -62,7 +62,7 @@ export default function NavPill({
           }}
           type="button"
           onClick={() => onSelect(tab.id)}
-          className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
+          className={`relative z-10 px-4 lg:px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
             activeTab === tab.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-900'
           }`}
         >

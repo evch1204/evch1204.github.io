@@ -16,11 +16,11 @@ export default function ProjectDetailModal({
       open={project !== null}
       onClose={onClose}
       motionKey={project?.id}
-      overlayClassName="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 pt-20 pb-12 sm:pt-24"
+      overlayClassName="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 pt-16 pb-12 sm:pt-24"
       backdropClassName="bg-black/45 backdrop-blur-[1px]"
       backdropLabel="Close project details"
       labelledBy="project-modal-title"
-      panelClassName="relative z-[102] my-auto w-full max-w-2xl rounded-[2rem] border border-zinc-100 bg-white p-8 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
+      panelClassName="relative z-[102] my-auto w-full max-w-2xl rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white p-6 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
       stopPanelClick
     >
       {project ? (

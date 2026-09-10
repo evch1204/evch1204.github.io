@@ -9,7 +9,7 @@ import ProjectGlyph from './ProjectGlyph';
  * line-art mark when it does not (research, embedded and CLI work).
  */
 const ProjectPanel = ({ project }: { project: Project }) => (
-  <div className="mb-6 h-[200px] overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 flex items-center justify-center">
+  <div className="mb-6 h-[180px] sm:h-[200px] overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 flex items-center justify-center">
     {project.screenshot ? (
       <img
         src={project.screenshot}
@@ -48,7 +48,7 @@ const ProjectCardButton = ({ project, onOpen }: { project: Project; onOpen: () =
   <button
     type="button"
     onClick={onOpen}
-    className="group relative flex w-full flex-col text-left p-8 rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+    className="group relative flex w-full flex-col text-left p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
   >
     <ProjectPanel project={project} />
     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2.5">{project.kind}</p>

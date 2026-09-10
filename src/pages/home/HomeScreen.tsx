@@ -224,24 +224,24 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
 
       {/* Same row layout as the App header: left | nav (invisible width) | socials */}
       <div
-        className="home-floating-socials fixed top-8 left-0 right-0 z-[45] px-6 flex items-center gap-4 pointer-events-none"
+        className="home-floating-socials fixed top-4 md:top-8 left-0 right-0 z-[45] px-4 md:px-6 flex items-center gap-3 md:gap-4 pointer-events-none"
         aria-label="Social links"
       >
         <div className="flex-1 min-w-0" aria-hidden />
         <nav
-          className="home-floating-nav-spacer shrink-0 p-1.5 flex items-center gap-1 rounded-full border border-transparent opacity-0 pointer-events-none select-none"
+          className="home-floating-nav-spacer shrink-0 p-1.5 hidden md:flex items-center gap-1 rounded-full border border-transparent opacity-0 pointer-events-none select-none"
           aria-hidden
         >
           {NAV_TABS.map(({ id, label }) => (
             <span
               key={id}
-              className="relative px-6 py-2 text-sm font-semibold rounded-full whitespace-nowrap text-transparent"
+              className="relative px-4 lg:px-6 py-2 text-sm font-semibold rounded-full whitespace-nowrap text-transparent"
             >
               {label}
             </span>
           ))}
         </nav>
-        <div className="flex-1 min-w-0 flex justify-end items-center gap-5">
+        <div className="flex-1 min-w-0 flex justify-end items-center gap-4 md:gap-5">
           <span
             className="word-block home-social-fall"
             data-phys="1"

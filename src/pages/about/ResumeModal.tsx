@@ -13,7 +13,7 @@ export default function ResumeModal({ open, onClose }: { open: boolean; onClose:
       backdropClassName="bg-black/50 backdrop-blur-[1px]"
       backdropLabel="Close resume"
       label="Resume"
-      panelClassName="relative z-[102] flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
+      panelClassName="relative z-[102] flex max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem] border border-zinc-100 bg-white shadow-[0_32px_64px_rgba(0,0,0,0.18)]"
     >
       <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-5 py-4 sm:px-6">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">Resume</h2>
