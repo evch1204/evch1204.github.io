@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
+import SectionHeading from './SectionHeading';
 
 /**
  * A page's top-level section: the fade-and-slide that plays as tabs swap, plus
@@ -14,12 +15,9 @@ export default function Section({ title, children }: { title: string; children: 
       transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
       className="w-full"
     >
-      <div className="mb-7">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-2 flex items-center gap-3">
-          <span className="w-12 h-[1px] bg-zinc-200" />
-          {title}
-        </h2>
-      </div>
+      <SectionHeading as="h2" className="mb-7">
+        {title}
+      </SectionHeading>
       {children}
     </motion.section>
   );

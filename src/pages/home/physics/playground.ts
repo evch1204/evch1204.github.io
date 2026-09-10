@@ -1,6 +1,8 @@
 import { bounce, resolveCollision, resolveStatic } from './collisions';
 import {
+  AIR_SPIN_DAMP,
   CTA_CLICK_MAX_PX,
+  DRAG_CLAMP_ITERATIONS,
   DRAG_PENDULUM_DAMP,
   DRAG_PENDULUM_GRAVITY,
   DRAG_POINTER_DEAD,
@@ -12,14 +14,19 @@ import {
   FRICTION_AIR,
   FRICTION_GROUND,
   GRAVITY,
+  LAND_SPIN_DAMP,
   MAX_STEPS_PER_FRAME,
+  PAIR_ITERATIONS,
+  SLEEP_FRAMES,
   SLEEP_ROT,
   SLEEP_VEL,
+  STATIC_ITERATIONS_POST,
+  STATIC_ITERATIONS_PRE,
   STEP_MS,
   THROW_GAIN,
 } from './constants';
 import { createPointerTracker } from './pointer';
-import type { BoolRef, CtaKind, PhysBody, StaticRect } from './types';
+import type { CtaKind, PhysBody, StaticRect } from './types';
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -27,18 +34,15 @@ function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3;
 }
 
-export type PlaygroundOptions = {
+type PlaygroundOptions = {
   /** Layer the physics blocks are appended to; its box is the world. */
   container: HTMLDivElement;
   /** Home screen root. Every `[data-phys="1"]` span inside it can be knocked down. */
   root: HTMLElement | null;
   /** The one-line instruction that appears once everything has dropped. */
   hint: HTMLDivElement;
-  intro: HTMLElement | null;
   /** The italic line that stays put and acts as a shelf for the falling pieces. */
   shelf: HTMLElement | null;
-  /** True while the visitor is on another tab: the loop stops, the bodies stay. */
-  paused: BoolRef;
   /** Tapping a still block runs this instead of the engine knowing any URLs. */
   onCta: (kind: CtaKind) => void;
 };
@@ -61,16 +65,13 @@ export function createPlayground({
   container,
   root,
   hint,
-  intro,
   shelf,
-  paused,
   onCta,
 }: PlaygroundOptions): Playground {
   let cancelled = false;
   const blockCleanups: (() => void)[] = [];
 
   container.replaceChildren();
-  intro?.classList.remove('intro-launchable');
 
   for (const el of Array.from((root ?? document).querySelectorAll<HTMLSpanElement>('[data-phys="1"]'))) {
     el.removeAttribute('data-phys-launched');
@@ -102,7 +103,7 @@ export function createPlayground({
     if (!layoutDirty) return;
     layoutDirty = false;
     containerRect = container.getBoundingClientRect();
-    collectStaticTextRects();
+    collectShelfRects();
   }
 
   function containerOffset(clientX: number, clientY: number) {
@@ -135,36 +136,61 @@ export function createPlayground({
     velDragX = v.vx;
   }
 
-  function createPhysBlock(
-    label: string,
-    cls: string,
-    x: number,
-    y: number,
-    vx: number,
-    vy: number,
-    sourceSpan: HTMLSpanElement,
-    fixedW?: number,
-    fixedH?: number,
-    cta?: CtaKind,
-    physInnerHtml?: string,
-  ) {
+  type PhysBlockSpec = {
+    /** Plain text for a text-only block. */
+    label: string;
+    /** Space-separated `.phys-block` modifier classes. */
+    cls: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    /** The span this clone stands in for, and flies back to on reset. */
+    sourceSpan: HTMLSpanElement;
+    /** Locked to the source's rect, so the clone can never reflow its own text. */
+    width?: number;
+    height?: number;
+    cta?: CtaKind;
+    /** Markup for a block that holds an icon as well as words. */
+    innerHtml?: string;
+  };
+
+  function createPhysBlock({
+    label,
+    cls,
+    x,
+    y,
+    vx,
+    vy,
+    sourceSpan,
+    width,
+    height,
+    cta,
+    innerHtml,
+  }: PhysBlockSpec) {
     const el = document.createElement('div');
     el.className = `phys-block ${cls}`;
-    if (physInnerHtml) {
-      el.innerHTML = physInnerHtml;
+    if (innerHtml) {
+      /*
+       * The only source of this markup is what React rendered from the literals
+       * in HomeScreen — an icon and a couple of spans. Routing any URL, user
+       * input or fetched data into a `data-phys-html` span would make this
+       * assignment stored XSS; keep the sources literal.
+       */
+      el.innerHTML = innerHtml;
       el.classList.add('phys-block--rich');
     } else {
       el.textContent = label;
     }
     el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    if (fixedW) {
-      el.style.width = `${fixedW}px`;
-      el.style.minWidth = `${fixedW}px`;
+    if (width) {
+      el.style.width = `${width}px`;
+      el.style.minWidth = `${width}px`;
     }
     container.appendChild(el);
 
-    const w = fixedW || el.offsetWidth || 100;
-    const h = fixedH || el.offsetHeight || 38;
+    const w = width || el.offsetWidth || 100;
+    const h = height || el.offsetHeight || 38;
 
     const body: PhysBody = {
       el,
@@ -243,7 +269,7 @@ export function createPlayground({
 
   const staticRectsBuf: StaticRect[] = [];
 
-  function collectStaticTextRects() {
+  function collectShelfRects() {
     staticRectsBuf.length = 0;
     const cr = containerRect;
     const push = (el: HTMLElement | null) => {
@@ -349,7 +375,7 @@ export function createPlayground({
       b.x += b.vx;
       b.y += b.vy;
       b.rot += b.rotV;
-      b.rotV *= 0.88;
+      b.rotV *= AIR_SPIN_DAMP;
       if (Math.abs(b.rotV) < 0.05) b.rotV = 0;
 
       let landed = false;
@@ -370,7 +396,7 @@ export function createPlayground({
         b.y = H - b.h;
         b.vy = -bounce(b.vy);
         b.vx *= FRICTION_GROUND;
-        b.rotV *= 0.35;
+        b.rotV *= LAND_SPIN_DAMP;
         landed = true;
       }
 
@@ -392,7 +418,7 @@ export function createPlayground({
       const speed = Math.abs(b.vx) + Math.abs(b.vy);
       if (speed < SLEEP_VEL && Math.abs(b.rotV) < SLEEP_ROT && settled) {
         b.sleepTimer = (b.sleepTimer || 0) + 1;
-        if (b.sleepTimer > 30) {
+        if (b.sleepTimer > SLEEP_FRAMES) {
           b.vx = 0;
           b.vy = 0;
           b.rotV = 0;
@@ -403,9 +429,9 @@ export function createPlayground({
       }
     }
 
-    resolveAllStatics(5);
+    resolveAllStatics(STATIC_ITERATIONS_PRE);
 
-    for (let iter = 0; iter < 3; iter++) {
+    for (let iter = 0; iter < PAIR_ITERATIONS; iter++) {
       for (let i = 0; i < bodies.length; i++) {
         for (let j = i + 1; j < bodies.length; j++) {
           resolveCollision(bodies[i], bodies[j], dragging);
@@ -413,7 +439,7 @@ export function createPlayground({
       }
     }
 
-    resolveAllStatics(3);
+    resolveAllStatics(STATIC_ITERATIONS_POST);
 
     /*
      * Position-only containment, last. The solver passes above can push a body
@@ -431,11 +457,6 @@ export function createPlayground({
 
   function tick(now: number) {
     if (cancelled) return;
-    if (paused.current) {
-      rafId = 0;
-      lastFrameTs = 0;
-      return;
-    }
 
     refreshLayout();
 
@@ -467,7 +488,7 @@ export function createPlayground({
 
   function clampDragAgainstStatics() {
     if (!dragging) return;
-    for (let iter = 0; iter < 8; iter++) {
+    for (let iter = 0; iter < DRAG_CLAMP_ITERATIONS; iter++) {
       for (let k = 0; k < staticRectsBuf.length; k++) {
         resolveStatic(dragging, staticRectsBuf[k], dragging);
       }
@@ -515,16 +536,23 @@ export function createPlayground({
   document.addEventListener('pointerup', onPointerEnd);
   document.addEventListener('pointercancel', onPointerEnd);
 
-  async function launchBlock(blockEl: HTMLSpanElement, cls: string, label: string, cta?: CtaKind) {
+  function launchBlock(blockEl: HTMLSpanElement, cls: string, label: string, cta?: CtaKind) {
     const rect = blockEl.getBoundingClientRect();
     const cr = container.getBoundingClientRect();
-    const x = rect.left - cr.left;
-    const y = rect.top - cr.top;
-    const vx = (Math.random() - 0.5) * 3;
-    const vy = -1.5 + Math.random() * -2;
-    const physInnerHtml = blockEl.dataset.physHtml === '1' ? blockEl.innerHTML : undefined;
     blockEl.style.opacity = '0';
-    createPhysBlock(label, cls, x, y, vx, vy, blockEl, rect.width, rect.height, cta, physInnerHtml);
+    createPhysBlock({
+      label,
+      cls,
+      x: rect.left - cr.left,
+      y: rect.top - cr.top,
+      vx: (Math.random() - 0.5) * 3,
+      vy: -1.5 + Math.random() * -2,
+      sourceSpan: blockEl,
+      width: rect.width,
+      height: rect.height,
+      cta,
+      innerHtml: blockEl.dataset.physHtml === '1' ? blockEl.innerHTML : undefined,
+    });
     if (!physicsStarted) {
       physicsStarted = true;
       rafId = requestAnimationFrame(tick);
@@ -558,7 +586,7 @@ export function createPlayground({
       if (cancelled) return;
       const { el, cls, label, cta } = configs[i];
       el.setAttribute('data-phys-launched', '1');
-      void launchBlock(el, cls, label, cta);
+      launchBlock(el, cls, label, cta);
       if (i < configs.length - 1) await sleep(70);
     }
     if (!cancelled) {
@@ -570,8 +598,6 @@ export function createPlayground({
   function detachBlockLaunchers() {
     blockCleanups.forEach((fn) => fn());
     blockCleanups.length = 0;
-    intro?.classList.remove('intro-launchable');
-    root?.classList.remove('home-fall-ready');
   }
 
   function attachBlockLaunchers() {
@@ -582,14 +608,11 @@ export function createPlayground({
       const onActivate = () => {
         if (cancelled || el.getAttribute('data-phys-launched') === '1') return;
         el.setAttribute('data-phys-launched', '1');
-        void launchBlock(el, cls, label, cta);
+        launchBlock(el, cls, label, cta);
       };
       el.addEventListener('click', onActivate);
       blockCleanups.push(() => el.removeEventListener('click', onActivate));
     }
-
-    intro?.classList.add('intro-launchable');
-    root?.classList.add('home-fall-ready');
   }
 
   async function animateBodyHome(body: PhysBody): Promise<void> {
@@ -713,7 +736,6 @@ export function createPlayground({
     },
 
     resume() {
-      if (paused.current) return;
       if (!physicsStarted) return;
       if (bodies.length === 0 && dragging === null) return;
       if (rafId) return;
@@ -731,8 +753,6 @@ export function createPlayground({
       document.removeEventListener('pointercancel', onPointerEnd);
       blockCleanups.forEach((fn) => fn());
       container.replaceChildren();
-      intro?.classList.remove('intro-launchable');
-      root?.classList.remove('home-fall-ready');
     },
   };
 }

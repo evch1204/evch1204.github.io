@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Linkedin, Mail } from 'lucide-react';
+import PillLink from '@/components/PillLink';
 import Section from '@/components/Section';
 import { LINKEDIN_URL, MAILTO } from '@/content/site';
 
@@ -20,20 +21,22 @@ export default function ContactPage() {
             inbox is always open.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
+            {/* The page's two headline actions, so they also lift on hover. */}
+            <PillLink
               href={MAILTO}
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 sm:px-10 sm:py-5 rounded-full bg-zinc-900 text-white font-bold hover:bg-black hover:scale-105 transition-all duration-300 shadow-xl shadow-zinc-200"
+              size="lg"
+              className="gap-3 shadow-xl shadow-zinc-200 transition-all! duration-300 hover:scale-105"
             >
               <Mail size={20} /> Send an Email
-            </a>
-            <a
+            </PillLink>
+            <PillLink
               href={LINKEDIN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 sm:px-10 sm:py-5 rounded-full border border-zinc-200 bg-white text-zinc-900 font-bold hover:bg-zinc-50 hover:scale-105 transition-all duration-300"
+              size="lg"
+              variant="outline"
+              className="gap-3 bg-white transition-all! duration-300 hover:scale-105"
             >
               <Linkedin size={20} /> LinkedIn
-            </a>
+            </PillLink>
           </div>
         </motion.div>
       </div>

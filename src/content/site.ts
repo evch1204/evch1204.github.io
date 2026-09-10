@@ -4,27 +4,26 @@
  * and the contact row, which is how they drifted apart.
  */
 import { Github, Linkedin, Mail, MapPin } from 'lucide-react';
+import { hostLabel } from '@/lib/url';
 
 export const NAME = 'Tei Chang';
 /** The wordmark, in caps. The footer adds its own full stop. */
 export const BRAND = 'TEI CHANG';
 export const EMAIL = 'changtei1204@gmail.com';
-/** The footer prints the address in title case; the `mailto:` stays lower case. */
-export const EMAIL_DISPLAY = 'ChangTei1204@gmail.com';
 export const MAILTO = `mailto:${EMAIL}`;
 export const GITHUB_URL = 'https://github.com/evch1204';
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/evan-chang1/';
 export const LOCATION = 'Santa Clara, CA';
 export const PHONE = '+1 (301) 768-8151';
+/** Where Tei is; drives the live clock in the home screen's details list. */
+export const TIMEZONE = 'America/Los_Angeles';
 
 /** Lives in public/, so it has to follow the Vite base path. */
 export const RESUME_URL = `${import.meta.env.BASE_URL}resume.pdf`;
-/** Filename the home screen's Resume block saves as. */
-export const RESUME_DOWNLOAD_FILENAME = 'CV_Tei_Chang.pdf';
-/** Filename the About page's resume links save as — a different name to today. */
-export const RESUME_PANEL_DOWNLOAD_FILENAME = 'Tei-Chang-Resume.pdf';
+/** The one name every resume link saves the file as. */
+export const RESUME_FILENAME = 'Tei-Chang-Resume.pdf';
 
-export type SocialLink = {
+type SocialLink = {
   id: 'github' | 'linkedin' | 'mail';
   /** Accessible name; these links are icon-only everywhere they appear. */
   label: string;
@@ -41,7 +40,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
 /** The address row under the profile copy. No `href` means it is not a link. */
 export const CONTACT_LINKS = [
   { label: EMAIL, href: MAILTO, Icon: Mail },
-  { label: 'github.com/evch1204', href: GITHUB_URL, Icon: Github },
-  { label: 'linkedin.com/in/evan-chang1', href: LINKEDIN_URL, Icon: Linkedin },
+  { label: hostLabel(GITHUB_URL), href: GITHUB_URL, Icon: Github },
+  { label: hostLabel(LINKEDIN_URL), href: LINKEDIN_URL, Icon: Linkedin },
   { label: LOCATION, href: undefined, Icon: MapPin },
 ] as const;

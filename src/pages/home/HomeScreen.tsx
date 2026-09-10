@@ -3,10 +3,8 @@ import {
   Clock,
   CodeXml,
   Download,
-  Github,
   GraduationCap,
   Hand,
-  Linkedin,
   Mail,
   MapPin,
   Phone,
@@ -22,81 +20,78 @@ import {
   LOCATION,
   MAILTO,
   PHONE,
-  RESUME_DOWNLOAD_FILENAME,
+  RESUME_FILENAME,
   RESUME_URL,
+  SOCIAL_LINKS,
+  TIMEZONE,
 } from '@/content/site';
-import { NAV_TABS } from '@/layout/nav';
 import { readLocalClock } from '@/lib/clock';
 import { triggerDownload } from '@/lib/download';
-import type { CtaKind } from './physics/types';
-import { usePhysicsPlayground } from './usePhysicsPlayground';
+import { usePhysicsPlayground, type CtaKind } from './usePhysicsPlayground';
 import './home-screen.css';
 
-export type HomeScreenProps = {
+type HomeScreenProps = {
   onViewProjects?: () => void;
   /** When true (user navigated away), physics rAF pauses but block positions stay in memory. */
   isPaused?: boolean;
 };
 
+/**
+ * The one screen without the `Page` suffix: it is never swapped in or out, it
+ * stays mounted behind every tab so the blocks keep where they landed.
+ */
 export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScreenProps) {
   /** Physics is opt-in: nothing is grabbable until the visitor presses the button. */
   const [armed, setArmed] = useState(false);
 
   /**
-   * The falling blocks are plain DOM, so the engine reports which button was
-   * tapped and every address the site knows stays on this side.
+   * What each block does when it is tapped, in one table. The falling blocks are
+   * plain DOM, so the engine only reports which kind was tapped and every
+   * address the site knows stays on this side.
    */
-  const handleCta = (kind: CtaKind) => {
-    if (kind === 'projects') {
-      onViewProjects?.();
-    } else if (kind === 'resume') {
-      triggerDownload(RESUME_URL, RESUME_DOWNLOAD_FILENAME);
-    } else if (kind === 'github') {
-      window.open(GITHUB_URL, '_blank', 'noopener,noreferrer');
-    } else if (kind === 'linkedin') {
-      window.open(LINKEDIN_URL, '_blank', 'noopener,noreferrer');
-    } else if (kind === 'mail') {
+  const CTA_ACTIONS: Record<CtaKind, () => void> = {
+    projects: () => onViewProjects?.(),
+    resume: () => triggerDownload(RESUME_URL, RESUME_FILENAME),
+    github: () => window.open(GITHUB_URL, '_blank', 'noopener,noreferrer'),
+    linkedin: () => window.open(LINKEDIN_URL, '_blank', 'noopener,noreferrer'),
+    mail: () => {
       window.location.href = MAILTO;
-    }
+    },
   };
 
-  const { busy, dropAll, reset, containerRef, hintRef, introRef, rootRef, shelfRef } =
-    usePhysicsPlayground({ isPaused, onCta: handleCta });
+  const runCta = (kind: CtaKind) => CTA_ACTIONS[kind]();
 
-  const [clock, setClock] = useState(() => readLocalClock());
+  const { busy, dropAll, reset, containerRef, hintRef, rootRef, shelfRef } = usePhysicsPlayground({
+    isPaused,
+    onCta: runCta,
+  });
+
+  const [clock, setClock] = useState(() => readLocalClock(TIMEZONE));
 
   useEffect(() => {
     if (isPaused) return;
-    const id = window.setInterval(() => setClock(readLocalClock()), 30_000);
+    const id = window.setInterval(() => setClock(readLocalClock(TIMEZONE)), 30_000);
     return () => window.clearInterval(id);
   }, [isPaused]);
 
-  const viewProjects = () => onViewProjects?.();
-  const saveResume = () => triggerDownload(RESUME_URL, RESUME_DOWNLOAD_FILENAME);
-  const openLink = (href: string) => () => {
-    if (href.startsWith('mailto:')) window.location.href = href;
-    else window.open(href, '_blank', 'noopener,noreferrer');
-  };
-
   /**
    * At rest the buttons and social icons are ordinary controls. Once armed they
-   * become physics bodies, and the clone handles the click instead — so a click
-   * on the now-invisible source bails out rather than firing twice.
+   * become physics bodies and the clone handles the press instead, so a click on
+   * the now-invisible source bails out rather than firing twice.
    */
-  const whenIdle = (action: () => void) => () => {
+  const clickCta = (kind: CtaKind) => () => {
     if (armed) return;
-    action();
+    runCta(kind);
   };
 
   /**
-   * The keyboard never reaches a clone — the clones are not focusable — so the
-   * sources stay in the tab order and Enter/Space runs the real action whether
-   * the playground is armed or not.
+   * The keyboard never reaches a clone, so the sources stay in the tab order and
+   * Enter/Space runs the real action whether the playground is armed or not.
    */
-  const onActivateKey = (action: () => void) => (e: KeyboardEvent<HTMLElement>) => {
+  const keyCta = (kind: CtaKind) => (e: KeyboardEvent<HTMLElement>) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
-    action();
+    runCta(kind);
   };
 
   const togglePlayground = () => {
@@ -114,7 +109,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
     <div className={`home-screen${armed ? ' home-armed' : ''}`} ref={rootRef}>
       <div className="grain" aria-hidden />
 
-      <div id="intro" ref={introRef}>
+      <div id="intro">
         <div className="home-block">
           <h1 className="home-greeting">
             <span className="word-block greet" data-phys="1" data-phys-cls="greet">
@@ -194,8 +189,8 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
               data-phys-cta="projects"
               role="button"
               tabIndex={0}
-              onClick={whenIdle(viewProjects)}
-              onKeyDown={onActivateKey(viewProjects)}
+              onClick={clickCta('projects')}
+              onKeyDown={keyCta('projects')}
             >
               View projects
             </span>
@@ -207,8 +202,8 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
               data-phys-html="1"
               role="button"
               tabIndex={0}
-              onClick={whenIdle(saveResume)}
-              onKeyDown={onActivateKey(saveResume)}
+              onClick={clickCta('resume')}
+              onKeyDown={keyCta('resume')}
             >
               <Download size={14} strokeWidth={2} aria-hidden />
               <span>Resume</span>
@@ -219,72 +214,30 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
 
       <div id="physics-container" ref={containerRef} />
 
-      {/* Same row layout as the App header: left | nav (invisible width) | socials */}
+      {/* Right-anchored on the header's own line: same top, side padding and row
+          height, so these fallable icons sit exactly where the header's would. */}
       <div
-        className="home-floating-socials fixed top-4 md:top-8 left-0 right-0 z-[45] px-4 md:px-6 flex items-center gap-3 md:gap-4 pointer-events-none"
+        className="home-floating-socials fixed top-4 md:top-8 left-0 right-0 z-[45] px-4 md:px-6 md:h-[var(--header-h)] flex items-center justify-end gap-4 md:gap-5 pointer-events-none"
         aria-label="Social links"
       >
-        <div className="flex-1 min-w-0" aria-hidden />
-        <nav
-          className="home-floating-nav-spacer shrink-0 p-1.5 hidden md:flex items-center gap-1 rounded-full border border-transparent opacity-0 pointer-events-none select-none"
-          aria-hidden
-        >
-          {NAV_TABS.map(({ id, label }) => (
-            <span
-              key={id}
-              className="relative px-4 lg:px-6 py-2 text-sm font-semibold rounded-full whitespace-nowrap text-transparent"
-            >
-              {label}
-            </span>
-          ))}
-        </nav>
-        <div className="flex-1 min-w-0 flex justify-end items-center gap-4 md:gap-5">
+        {SOCIAL_LINKS.map(({ id, label, Icon }) => (
           <span
+            key={id}
             className="word-block home-social-fall"
             data-phys="1"
-            data-phys-cls="social-github"
-            data-phys-cta="github"
+            data-phys-cls="social"
+            data-phys-cta={id}
             data-phys-html="1"
             role="link"
             tabIndex={0}
-            aria-label="GitHub"
-            title="GitHub"
-            onClick={whenIdle(openLink(GITHUB_URL))}
-            onKeyDown={onActivateKey(openLink(GITHUB_URL))}
+            aria-label={label}
+            title={label}
+            onClick={clickCta(id)}
+            onKeyDown={keyCta(id)}
           >
-            <Github size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
+            <Icon size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>
-          <span
-            className="word-block home-social-fall"
-            data-phys="1"
-            data-phys-cls="social-linkedin"
-            data-phys-cta="linkedin"
-            data-phys-html="1"
-            role="link"
-            tabIndex={0}
-            aria-label="LinkedIn"
-            title="LinkedIn"
-            onClick={whenIdle(openLink(LINKEDIN_URL))}
-            onKeyDown={onActivateKey(openLink(LINKEDIN_URL))}
-          >
-            <Linkedin size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
-          </span>
-          <span
-            className="word-block home-social-fall"
-            data-phys="1"
-            data-phys-cls="social-mail"
-            data-phys-cta="mail"
-            data-phys-html="1"
-            role="link"
-            tabIndex={0}
-            aria-label="Email"
-            title="Email"
-            onClick={whenIdle(openLink(MAILTO))}
-            onKeyDown={onActivateKey(openLink(MAILTO))}
-          >
-            <Mail size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
-          </span>
-        </div>
+        ))}
       </div>
 
       <div className="home-playground">

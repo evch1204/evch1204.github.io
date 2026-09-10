@@ -14,6 +14,10 @@
  */
 :root {
   --tabbar-h: 64px;
+  /* The NavPill's outer height (border 1 + padding 6 + button 36 + padding 6 +
+     border 1), shared so the home screen's fallable social icons sit on the
+     same line as the header's. */
+  --header-h: 50px;
 }
 
 @layer base {

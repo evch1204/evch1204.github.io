@@ -29,7 +29,7 @@ import {
 import { FaDatabase, FaJava } from 'react-icons/fa';
 import { siCursor } from 'simple-icons';
 
-export type IconProps = { className?: string };
+type IconProps = { className?: string };
 
 function CursorBrandIcon({ className }: IconProps) {
   return (

@@ -1,10 +1,15 @@
 import { ArrowRight } from 'lucide-react';
 import Tag from '@/components/Tag';
-import { FEATURED_PROJECT } from '@/content/projects';
-import musclePhoto from '@/assets/images/muscle.jpg';
+import type { Project } from '@/content/projects';
 
 /** The one project that opens the page, on its own wide card. */
-export default function FeaturedProjectCard({ onOpen }: { onOpen: () => void }) {
+export default function FeaturedProjectCard({
+  project,
+  onOpen,
+}: {
+  project: Project;
+  onOpen: () => void;
+}) {
   return (
     <button
       type="button"
@@ -15,22 +20,22 @@ export default function FeaturedProjectCard({ onOpen }: { onOpen: () => void }) 
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2">Featured</p>
           <h3 className="text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-bold text-zinc-900 tracking-tight mb-2 group-hover:text-black transition-colors leading-tight">
-            {FEATURED_PROJECT.cardTitle}
+            {project.cardTitle}
           </h3>
           <p className="text-sm sm:text-base text-zinc-500 leading-snug font-medium mb-3 max-w-3xl">
-            {FEATURED_PROJECT.cardDescription}
+            {project.cardDescription}
           </p>
-          {FEATURED_PROJECT.reportPreview && (
+          {project.reportPreview && (
             <div className="rounded-xl border border-zinc-100 bg-zinc-50/90 px-4 py-3 md:px-4 md:py-3.5 mb-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Report preview</p>
               <p className="text-xs sm:text-sm text-zinc-600 leading-snug font-medium">
-                {FEATURED_PROJECT.reportPreview}
+                {project.reportPreview}
               </p>
             </div>
           )}
           <div className="flex flex-wrap gap-2 mb-2">
-            {FEATURED_PROJECT.cardTags.map((tag) => (
-              <Tag key={tag} variant="featured">
+            {project.cardTags.map((tag) => (
+              <Tag key={tag}>
                 {tag}
               </Tag>
             ))}
@@ -40,11 +45,13 @@ export default function FeaturedProjectCard({ onOpen }: { onOpen: () => void }) 
           </span>
         </div>
         <div className="relative flex w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50 min-h-[200px] sm:min-h-[220px] lg:min-h-[240px] lg:max-h-[300px] p-2 sm:p-3">
-          <img
-            src={musclePhoto}
-            alt="Illustration for ergonomic risk and muscle-activation research"
-            className="max-h-[min(280px,42vw)] w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.02]"
-          />
+          {project.heroImage ? (
+            <img
+              src={project.heroImage}
+              alt="Illustration for ergonomic risk and muscle-activation research"
+              className="max-h-[min(280px,42vw)] w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.02]"
+            />
+          ) : null}
         </div>
       </div>
     </button>

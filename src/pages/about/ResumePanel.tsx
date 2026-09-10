@@ -1,7 +1,8 @@
 import { Download, ExternalLink, Maximize2 } from 'lucide-react';
+import PillLink from '@/components/PillLink';
 import SectionHeading from '@/components/SectionHeading';
 import Tag from '@/components/Tag';
-import { RESUME_PANEL_DOWNLOAD_FILENAME, RESUME_URL } from '@/content/site';
+import { NAME, RESUME_FILENAME, RESUME_URL } from '@/content/site';
 import { RESUME_SKILLS } from '@/content/skills';
 import resumePreview from '@/assets/images/resume-preview-page1.jpg';
 
@@ -23,7 +24,7 @@ export default function ResumePanel({ onExpand }: { onExpand: () => void }) {
         >
           <img
             src={resumePreview}
-            alt="First page of Tei Chang's resume"
+            alt={`First page of ${NAME}'s resume`}
             loading="lazy"
             className="block w-full transition-transform duration-700 group-hover:scale-[1.01]"
           />
@@ -54,21 +55,12 @@ export default function ResumePanel({ onExpand }: { onExpand: () => void }) {
           ))}
 
           <div className="flex flex-col gap-3 pt-1 sm:flex-row">
-            <a
-              href={RESUME_URL}
-              download={RESUME_PANEL_DOWNLOAD_FILENAME}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-black"
-            >
+            <PillLink href={RESUME_URL} download={RESUME_FILENAME}>
               <Download size={18} /> Download PDF
-            </a>
-            <a
-              href={RESUME_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 px-6 py-3 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
-            >
+            </PillLink>
+            <PillLink variant="outline" href={RESUME_URL}>
               <ExternalLink size={18} /> Open in new tab
-            </a>
+            </PillLink>
           </div>
         </div>
       </div>

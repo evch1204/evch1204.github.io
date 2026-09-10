@@ -23,7 +23,7 @@ export default function ProjectsPage() {
 
   return (
     <Section title="Creations">
-      <FeaturedProjectCard onOpen={() => setDetailProject(FEATURED_PROJECT)} />
+      <FeaturedProjectCard project={FEATURED_PROJECT} onOpen={() => setDetailProject(FEATURED_PROJECT)} />
 
       {PROJECT_GROUPS.map((group) => {
         const items = projectsInGroup(group.id);

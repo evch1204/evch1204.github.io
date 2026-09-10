@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import Section from '@/components/Section';
-import { CONTACT_LINKS } from '@/content/site';
+import { CONTACT_LINKS, NAME } from '@/content/site';
+import { linkProps } from '@/lib/links';
 import profilePhoto from '@/assets/images/your-photo.jpg';
 import GithubActivity from './GithubActivity';
 import ResumeModal from './ResumeModal';
@@ -22,7 +23,7 @@ export default function AboutPage() {
                 animate={{ opacity: 1, x: 0 }}
                 className="text-4xl font-bold tracking-tighter text-zinc-900 sm:text-5xl lg:text-6xl"
               >
-                Tei Chang
+                {NAME}
               </motion.h1>
               <p className="mt-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">
                 B.S. Computer Science (Data Science) · SCU &apos;25
@@ -43,8 +44,7 @@ export default function AboutPage() {
                   {href ? (
                     <a
                       href={href}
-                      target={href.startsWith('mailto:') ? undefined : '_blank'}
-                      rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                      {...linkProps(href)}
                       className="group inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900"
                     >
                       <Icon size={14} className="shrink-0" />
@@ -70,7 +70,7 @@ export default function AboutPage() {
               >
                 <img
                   src={profilePhoto}
-                  alt="Tei Chang"
+                  alt={NAME}
                   className="h-full w-full object-cover"
                   decoding="async"
                 />

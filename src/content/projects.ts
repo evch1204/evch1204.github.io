@@ -1,11 +1,14 @@
-import type { GlyphName } from '@/pages/projects/ProjectGlyph';
 import shotRunningMap from '@/assets/images/shot-runningmap.jpg';
 import shotDrawSpace from '@/assets/images/shot-drawspace.jpg';
 import shotBookWithMe from '@/assets/images/shot-bookwithme.jpg';
 import shotDocs from '@/assets/images/shot-docs.jpg';
+import musclePhoto from '@/assets/images/muscle.jpg';
 import { GITHUB_URL } from './site';
 
 export type ProjectGroup = 'apps' | 'data';
+
+/** Names the line-art mark a project falls back to; the drawings live with the page. */
+export type GlyphName = 'hand' | 'chart' | 'scrape' | 'route' | 'draw' | 'calendar' | 'doc';
 
 export type Project = {
   id: string;
@@ -27,11 +30,13 @@ export type Project = {
   liveUrl?: string;
   /** Screenshot for the card panel. Falls back to `glyph` when absent. */
   screenshot?: string;
+  /** Wide image for the featured card's hero panel. */
+  heroImage?: string;
   /** Line-art mark used when there is no screenshot. */
   glyph: GlyphName;
 };
 
-export const FEATURED_PROJECT_ID = 'ergonomic-risk' as const;
+const FEATURED_PROJECT_ID = 'ergonomic-risk' as const;
 
 export const PROJECT_GROUPS: { id: ProjectGroup; label: string }[] = [
   { id: 'apps', label: 'Apps & interfaces' },
@@ -45,6 +50,7 @@ export const PROJECTS: Project[] = [
     kind: 'Research',
     group: 'data',
     glyph: 'chart',
+    heroImage: musclePhoto,
     cardDescription:
       'Wearable EMG and IMU data from controlled repetitive-lifting trials, trained with logistic and random forest models to classify high- vs low-risk biomechanical conditions.',
     cardTags: ['Python', 'EMG', 'IMU', 'Random Forest'],

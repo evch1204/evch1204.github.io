@@ -496,9 +496,7 @@
 }
 
 /* Social phys: same 22px icon + 4px padding as the header. */
-.home-screen .phys-block.social-github,
-.home-screen .phys-block.social-linkedin,
-.home-screen .phys-block.social-mail {
+.home-screen .phys-block.social {
   font-size: 0;
   line-height: 0;
   letter-spacing: normal;
@@ -515,9 +513,7 @@
   display: block;
 }
 
-.home-screen .phys-block--rich.social-github svg,
-.home-screen .phys-block--rich.social-linkedin svg,
-.home-screen .phys-block--rich.social-mail svg {
+.home-screen .phys-block--rich.social svg {
   width: 22px;
   height: 22px;
   min-width: 22px;
@@ -531,9 +527,7 @@
 }
 
 .home-screen .phys-block.hand-wave:hover,
-.home-screen .phys-block.social-github:hover,
-.home-screen .phys-block.social-linkedin:hover,
-.home-screen .phys-block.social-mail:hover {
+.home-screen .phys-block.social:hover {
   box-shadow: none;
 }
 

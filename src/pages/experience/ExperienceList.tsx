@@ -1,12 +1,13 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { ChevronsUpDown, Code2, Cpu, Database, GraduationCap, Headset, School } from 'lucide-react';
 import Tag from '@/components/Tag';
 import type { Org, Role, RoleIcon } from '@/content/experience';
-import { defaultOpenRoleId } from '@/content/experience';
+import CompanyLogo from './CompanyLogo';
 
 /** Shared easing + duration so height, fade and chevron travel as one motion. */
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const DURATION = 460;
+const TIMING = { transitionDuration: `${DURATION}ms`, transitionTimingFunction: EASE };
 
 const ROLE_ICONS: Record<RoleIcon, typeof Code2> = {
   code: Code2,
@@ -29,7 +30,7 @@ function RoleRow({ role, open, onToggle }: { role: Role; open: boolean; onToggle
   return (
     <div
       className="rounded-2xl transition-colors"
-      style={{ backgroundColor: open ? '#ffffff' : 'rgba(255,255,255,0)', transitionDuration: `${DURATION}ms`, transitionTimingFunction: EASE }}
+      style={{ backgroundColor: open ? '#ffffff' : 'rgba(255,255,255,0)', ...TIMING }}
     >
       <button
         type="button"
@@ -55,7 +56,7 @@ function RoleRow({ role, open, onToggle }: { role: Role; open: boolean; onToggle
         </span>
         <span
           className="mt-1 flex shrink-0 items-center text-zinc-400 transition-transform group-hover:text-zinc-900"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transitionDuration: `${DURATION}ms`, transitionTimingFunction: EASE }}
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', ...TIMING }}
           aria-hidden
         >
           <ChevronsUpDown size={15} />
@@ -93,7 +94,7 @@ function RoleRow({ role, open, onToggle }: { role: Role; open: boolean; onToggle
               <ul className="mt-4 flex flex-wrap gap-[7px]">
                 {role.tags.map((tag) => (
                   <li key={tag}>
-                    <Tag variant="role">{tag}</Tag>
+                    <Tag>{tag}</Tag>
                   </li>
                 ))}
               </ul>
@@ -107,23 +108,19 @@ function RoleRow({ role, open, onToggle }: { role: Role; open: boolean; onToggle
 
 function OrgGroup({
   org,
-  first,
   openIds,
   onToggle,
-  renderLogo,
 }: {
   org: Org;
-  first: boolean;
   openIds: Set<string>;
   onToggle: (id: string) => void;
-  renderLogo: (org: Org) => ReactNode;
 }) {
   return (
-    <div className={first ? 'pb-6' : 'border-t border-zinc-100 py-6'}>
+    <div className="border-t border-zinc-100 py-6 first:border-t-0 first:pt-0">
       {/* Wraps on narrow screens: the location drops under the name, indented to
           line up with it, instead of squeezing the org name to nothing. */}
       <div className="mb-2.5 flex flex-wrap items-center gap-3 pl-0.5">
-        {renderLogo(org)}
+        <CompanyLogo domain={org.logoDomain} company={org.name} size={34} />
         <h3 className="text-[17px] font-bold tracking-[-0.025em] text-zinc-900">{org.name}</h3>
         {org.current ? (
           <span className="block h-[7px] w-[7px] rounded-full bg-zinc-900" title="Current" aria-label="Current" />
@@ -144,15 +141,10 @@ function OrgGroup({
   );
 }
 
-export default function ExperienceList({
-  orgs,
-  renderLogo,
-}: {
-  orgs: Org[];
-  renderLogo: (org: Org) => ReactNode;
-}) {
+export default function ExperienceList({ orgs }: { orgs: Org[] }) {
+  /** The most recent position opens by default, so the list never lands fully collapsed. */
   const [openIds, setOpenIds] = useState<Set<string>>(() => {
-    const first = defaultOpenRoleId(orgs);
+    const first = orgs[0]?.roles[0]?.id;
     return new Set(first ? [first] : []);
   });
 
@@ -166,15 +158,8 @@ export default function ExperienceList({
 
   return (
     <div>
-      {orgs.map((org, i) => (
-        <OrgGroup
-          key={org.id}
-          org={org}
-          first={i === 0}
-          openIds={openIds}
-          onToggle={toggle}
-          renderLogo={renderLogo}
-        />
+      {orgs.map((org) => (
+        <OrgGroup key={org.id} org={org} openIds={openIds} onToggle={toggle} />
       ))}
     </div>
   );

@@ -201,6 +201,3 @@ export const EDUCATION: Org[] = [
     ],
   },
 ];
-
-/** The most recent position — open by default so the section never lands fully collapsed. */
-export const defaultOpenRoleId = (orgs: Org[]) => orgs[0]?.roles[0]?.id ?? null;

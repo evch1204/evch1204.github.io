@@ -35,3 +35,17 @@ export const DRAG_ROT_MAX = 3.2;
 /** On floor: extra spin decay + gentle straighten toward level (not instant snap). */
 export const FLOOR_SPIN_DAMP = 0.68;
 export const FLOOR_ROT_STRAIGHTEN = 0.91;
+
+/** Solver passes per step: shelves first, then pairs, then shelves again. */
+export const STATIC_ITERATIONS_PRE = 5;
+export const PAIR_ITERATIONS = 3;
+export const STATIC_ITERATIONS_POST = 3;
+/** A held block is immovable, so it needs more passes to be pushed clear of a shelf. */
+export const DRAG_CLAMP_ITERATIONS = 8;
+/** Sideways drag lost by the pair standing on or under another block. */
+export const STACK_FRICTION = 0.85;
+/** Spin decay in flight, and the extra bite it takes on touching down. */
+export const AIR_SPIN_DAMP = 0.88;
+export const LAND_SPIN_DAMP = 0.35;
+/** Steps a body must stay slow and supported before it is put to sleep. */
+export const SLEEP_FRAMES = 30;

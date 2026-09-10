@@ -1,5 +1,6 @@
 import { ExternalLink, Github, X } from 'lucide-react';
 import Modal from '@/components/Modal';
+import PillLink from '@/components/PillLink';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
 import { hostLabel } from '@/lib/url';
@@ -21,7 +22,6 @@ export default function ProjectDetailModal({
       backdropLabel="Close project details"
       labelledBy="project-modal-title"
       panelClassName="relative z-[102] my-auto w-full max-w-2xl rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white p-6 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
-      stopPanelClick
     >
       {project ? (
         <>
@@ -62,38 +62,25 @@ export default function ProjectDetailModal({
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2 border-t border-zinc-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-zinc-200 text-zinc-900 font-bold text-sm hover:bg-zinc-50 transition-colors"
-            >
+            <PillLink as="button" variant="outline" onClick={onClose}>
               Close
-            </button>
+            </PillLink>
             {project.githubUrl ? (
-              <a
+              // The deployed site is the headline action where there is one, so
+              // the repo link steps back to the outline treatment beside it.
+              <PillLink
                 href={project.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-colors ${
-                  project.liveUrl
-                    ? 'border border-zinc-200 text-zinc-900 hover:bg-zinc-50'
-                    : 'bg-zinc-900 text-white hover:bg-black'
-                }`}
+                variant={project.liveUrl ? 'outline' : 'solid'}
               >
                 <Github size={18} />
                 View on GitHub
-              </a>
+              </PillLink>
             ) : null}
             {project.liveUrl ? (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-sm hover:bg-black transition-colors"
-              >
+              <PillLink href={project.liveUrl}>
                 <ExternalLink size={18} />
                 {hostLabel(project.liveUrl)}
-              </a>
+              </PillLink>
             ) : null}
           </div>
         </>

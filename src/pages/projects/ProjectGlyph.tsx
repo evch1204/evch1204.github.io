@@ -4,8 +4,7 @@
  * so they share a stroke weight and optical size with the lucide icons.
  */
 import type { ReactNode } from 'react';
-
-export type GlyphName = 'hand' | 'chart' | 'scrape' | 'route' | 'draw' | 'calendar' | 'doc';
+import type { GlyphName } from '@/content/projects';
 
 const PATHS: Record<GlyphName, ReactNode> = {
   hand: (

@@ -4,6 +4,7 @@ import {
   POSITION_CORRECTION,
   RESTITUTION,
   RESTITUTION_MIN_SPEED,
+  STACK_FRICTION,
 } from './constants';
 import type { PhysBody, StaticRect } from './types';
 
@@ -18,38 +19,41 @@ export function bounce(v: number) {
   return speed > RESTITUTION_MIN_SPEED ? speed * RESTITUTION : 0;
 }
 
+type Box = { x: number; y: number; w: number; h: number };
+
+/**
+ * Centre-to-centre delta and per-axis AABB overlap of two boxes. An overlap of
+ * zero or less on either axis means they are not touching at all.
+ */
+function overlap(a: Box, b: Box) {
+  const dx = b.x + b.w / 2 - (a.x + a.w / 2);
+  const dy = b.y + b.h / 2 - (a.y + a.h / 2);
+  return { dx, dy, x: (a.w + b.w) / 2 - Math.abs(dx), y: (a.h + b.h) / 2 - Math.abs(dy) };
+}
+
+/*
+ * Leave a sliver of penetration and correct most of the rest, instead of
+ * pushing past touching every step. The old `overlap + SLOP` shoved the
+ * pair 0.5px apart, gravity closed it again next step, and the pile hummed.
+ */
+const correct = (depth: number) =>
+  Math.max(0, depth - PENETRATION_ALLOWANCE) * POSITION_CORRECTION;
+
 export function resolveCollision(a: PhysBody, b: PhysBody, dragging: PhysBody | null) {
   if (a.homing || b.homing) return;
   if (a.sleeping && b.sleeping) return;
 
-  const cx1 = a.x + a.w / 2;
-  const cy1 = a.y + a.h / 2;
-  const cx2 = b.x + b.w / 2;
-  const cy2 = b.y + b.h / 2;
-
-  const dx = cx2 - cx1;
-  const dy = cy2 - cy1;
-  const overlapX = (a.w + b.w) / 2 - Math.abs(dx);
-  const overlapY = (a.h + b.h) / 2 - Math.abs(dy);
-
-  if (overlapX <= 0 || overlapY <= 0) return;
+  const o = overlap(a, b);
+  if (o.x <= 0 || o.y <= 0) return;
 
   const aFixed = a === dragging;
   const bFixed = b === dragging;
 
-  /*
-   * Leave a sliver of penetration and correct most of the rest, instead of
-   * pushing past touching every step. The old `overlap + SLOP` shoved the
-   * pair 0.5px apart, gravity closed it again next step, and the pile hummed.
-   */
-  const correct = (overlap: number) =>
-    Math.max(0, overlap - PENETRATION_ALLOWANCE) * POSITION_CORRECTION;
-
   let jolted = false;
 
-  if (overlapX < overlapY) {
-    const nx = Math.sign(dx);
-    const sep = correct(overlapX);
+  if (o.x < o.y) {
+    const nx = Math.sign(o.dx);
+    const sep = correct(o.x);
     if (!aFixed && !bFixed) {
       a.x -= nx * sep * 0.5;
       b.x += nx * sep * 0.5;
@@ -68,8 +72,8 @@ export function resolveCollision(a: PhysBody, b: PhysBody, dragging: PhysBody | 
     if (!bFixed) b.vx += imp;
     jolted = approach > 0.6 || sep > 0.6;
   } else {
-    const ny = Math.sign(dy);
-    const sep = correct(overlapY);
+    const ny = Math.sign(o.dy);
+    const sep = correct(o.y);
     if (!aFixed && !bFixed) {
       a.y -= ny * sep * 0.5;
       b.y += ny * sep * 0.5;
@@ -87,9 +91,8 @@ export function resolveCollision(a: PhysBody, b: PhysBody, dragging: PhysBody | 
     if (!aFixed) a.vy -= imp;
     if (!bFixed) b.vy += imp;
 
-    const frictionScale = 0.85;
-    if (!aFixed) a.vx *= frictionScale;
-    if (!bFixed) b.vx *= frictionScale;
+    if (!aFixed) a.vx *= STACK_FRICTION;
+    if (!bFixed) b.vx *= STACK_FRICTION;
 
     // Whichever body got pushed up is the one standing on the other.
     if (ny > 0) a.supported = true;
@@ -111,29 +114,18 @@ export function resolveCollision(a: PhysBody, b: PhysBody, dragging: PhysBody | 
   }
 }
 
-/** Immovable typed-text regions: blocks bounce or slide off like platforms/walls. */
+/** The shelf: an immovable region blocks bounce or slide off, like a platform. */
 export function resolveStatic(b: PhysBody, s: StaticRect, dragging: PhysBody | null) {
   if (b.homing) return;
 
-  const cx1 = b.x + b.w / 2;
-  const cy1 = b.y + b.h / 2;
-  const cx2 = s.x + s.w / 2;
-  const cy2 = s.y + s.h / 2;
-  const dx = cx2 - cx1;
-  const dy = cy2 - cy1;
-  const overlapX = (b.w + s.w) / 2 - Math.abs(dx);
-  const overlapY = (b.h + s.h) / 2 - Math.abs(dy);
-
-  if (overlapX <= 0 || overlapY <= 0) return;
+  const o = overlap(b, s);
+  if (o.x <= 0 || o.y <= 0) return;
 
   const isDrag = b === dragging;
 
-  const correct = (overlap: number) =>
-    Math.max(0, overlap - PENETRATION_ALLOWANCE) * POSITION_CORRECTION;
-
-  if (overlapX < overlapY) {
-    const nx = Math.sign(dx);
-    const sep = correct(overlapX);
+  if (o.x < o.y) {
+    const nx = Math.sign(o.dx);
+    const sep = correct(o.x);
     b.x -= nx * sep;
     if (!isDrag) {
       const approach = Math.abs(b.vx);
@@ -145,8 +137,8 @@ export function resolveStatic(b: PhysBody, s: StaticRect, dragging: PhysBody | n
       }
     }
   } else {
-    const ny = Math.sign(dy);
-    const sep = correct(overlapY);
+    const ny = Math.sign(o.dy);
+    const sep = correct(o.y);
     b.y -= ny * sep;
     if (!isDrag) {
       const approach = Math.abs(b.vy);

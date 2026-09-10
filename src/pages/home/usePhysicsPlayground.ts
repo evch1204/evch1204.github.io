@@ -2,11 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPlayground, type Playground } from './physics/playground';
 import type { CtaKind } from './physics/types';
 
+/** The kinds of block the engine can report a tap on — re-exported so the screen
+ *  takes it from the hook rather than reaching into the engine's own types. */
+export type { CtaKind };
+
 /**
  * The React side of the playground: created once on mount and destroyed on
- * unmount, so the blocks keep their positions across every tab switch. `isPaused`
- * travels through a ref the tick loop reads, plus a pause/resume call when it
- * flips; `busy` is the one piece of engine state the UI needs back.
+ * unmount, so the blocks keep their positions across every tab switch. A flip of
+ * `isPaused` stops or restarts the loop outright; `busy` is the one piece of
+ * engine state the UI needs back.
  */
 export function usePhysicsPlayground({
   isPaused,
@@ -17,15 +21,12 @@ export function usePhysicsPlayground({
 }) {
   const [busy, setBusy] = useState(false);
 
-  const pausedRef = useRef(isPaused);
-  pausedRef.current = isPaused;
   const onCtaRef = useRef(onCta);
   onCtaRef.current = onCta;
 
   const playgroundRef = useRef<Playground | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   /** The italic line stays put and acts as a shelf the falling pieces land on. */
   const shelfRef = useRef<HTMLParagraphElement>(null);
@@ -39,9 +40,7 @@ export function usePhysicsPlayground({
       container,
       root: rootRef.current,
       hint,
-      intro: introRef.current,
       shelf: shelfRef.current,
-      paused: pausedRef,
       onCta: (kind) => onCtaRef.current(kind),
     });
     playgroundRef.current = playground;
@@ -60,19 +59,19 @@ export function usePhysicsPlayground({
   }, [isPaused]);
 
   /** Both buttons have the same shape: flag busy, run the flight, unflag. */
-  const runBusy = useCallback(async (action: 'dropAll' | 'reset') => {
+  const runBusy = useCallback(async (flight: (p: Playground) => Promise<void>) => {
     const playground = playgroundRef.current;
     if (!playground) return;
     setBusy(true);
     try {
-      await playground[action]();
+      await flight(playground);
     } finally {
       setBusy(false);
     }
   }, []);
 
-  const dropAll = useCallback(() => runBusy('dropAll'), [runBusy]);
-  const reset = useCallback(() => runBusy('reset'), [runBusy]);
+  const dropAll = useCallback(() => runBusy((p) => p.dropAll()), [runBusy]);
+  const reset = useCallback(() => runBusy((p) => p.reset()), [runBusy]);
 
-  return { busy, dropAll, reset, containerRef, hintRef, introRef, rootRef, shelfRef };
+  return { busy, dropAll, reset, containerRef, hintRef, rootRef, shelfRef };
 }

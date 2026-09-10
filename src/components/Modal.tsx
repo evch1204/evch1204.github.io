@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
-export type ModalProps = {
+type ModalProps = {
   open: boolean;
   onClose: () => void;
   /** Remounts the dialog when the thing it shows changes identity. */
@@ -18,8 +18,6 @@ export type ModalProps = {
   label?: string;
   /** id of the dialog's visible title, when it has one. */
   labelledBy?: string;
-  /** Keeps a click inside the panel from reaching anything behind it. */
-  stopPanelClick?: boolean;
   children: ReactNode;
 };
 
@@ -38,7 +36,6 @@ export default function Modal({
   panelClassName,
   label,
   labelledBy,
-  stopPanelClick = false,
   children,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -109,7 +106,6 @@ export default function Modal({
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
             className={panelClassName}
-            onClick={stopPanelClick ? (e) => e.stopPropagation() : undefined}
           >
             {children}
           </motion.div>

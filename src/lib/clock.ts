@@ -1,8 +1,5 @@
-/** Where Tei actually is, for the live clock in the details list. */
-export const HOME_TIMEZONE = 'America/Los_Angeles';
-
 /** Minutes that `tz` is offset from UTC at `at`, DST included. */
-export function tzOffsetMinutes(tz: string, at: Date) {
+function tzOffsetMinutes(tz: string, at: Date) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: tz,
     hour12: false,
@@ -21,17 +18,18 @@ export function tzOffsetMinutes(tz: string, at: Date) {
 }
 
 /**
- * Tei's wall clock, plus how far it sits from the visitor's own — the suffix is
- * relative to whoever is reading, so it says something different in every city.
+ * The wall clock in `tz`, plus how far it sits from the visitor's own — the
+ * suffix is relative to whoever is reading, so it says something different in
+ * every city. The zone itself is a site fact, so it arrives as an argument.
  */
-export function readLocalClock(at = new Date()) {
+export function readLocalClock(tz: string, at = new Date()) {
   const time = new Intl.DateTimeFormat('en-US', {
-    timeZone: HOME_TIMEZONE,
+    timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
   }).format(at);
 
-  const deltaMinutes = tzOffsetMinutes(HOME_TIMEZONE, at) - -at.getTimezoneOffset();
+  const deltaMinutes = tzOffsetMinutes(tz, at) - -at.getTimezoneOffset();
   if (deltaMinutes === 0) return { time, delta: '// same time as you' };
 
   const hours = Math.abs(deltaMinutes) / 60;

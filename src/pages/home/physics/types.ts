@@ -20,11 +20,5 @@ export type PhysBody = {
   homing?: boolean;
 };
 
-/** Axis-aligned obstacles (the italic line, which stays put) in physics-container space. */
+/** Axis-aligned obstacles (the italic shelf line, which stays put) in physics-container space. */
 export type StaticRect = { x: number; y: number; w: number; h: number };
-
-/**
- * A live read of React state for the loop to follow. The tick reads it every
- * frame, so it must never be a value copied at creation time.
- */
-export type BoolRef = { readonly current: boolean };

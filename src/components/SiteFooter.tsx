@@ -1,4 +1,5 @@
-import { BRAND, EMAIL_DISPLAY, MAILTO, NAME, SOCIAL_LINKS } from '@/content/site';
+import { BRAND, EMAIL, MAILTO, NAME, SOCIAL_LINKS } from '@/content/site';
+import { linkProps } from '@/lib/links';
 
 /** The profile links; the email already has its own line above them. */
 const FOOTER_LINKS = SOCIAL_LINKS.filter((link) => link.id !== 'mail');
@@ -19,7 +20,7 @@ export default function SiteFooter({ className = '' }: { className?: string }) {
           href={MAILTO}
           className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
         >
-          {EMAIL_DISPLAY}
+          {EMAIL}
         </a>
       </div>
       <p className="text-[11px] text-zinc-400 tracking-wide font-medium">
@@ -30,8 +31,7 @@ export default function SiteFooter({ className = '' }: { className?: string }) {
           <a
             key={id}
             href={href}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...linkProps(href)}
             className="text-zinc-400 hover:text-black transition-colors"
             aria-label={label}
           >
