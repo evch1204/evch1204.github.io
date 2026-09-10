@@ -288,8 +288,11 @@
   cursor: pointer;
 }
 
+/* Armed, the source is invisible but still sits above the physics layer — it has
+   to stop taking pointers or it is a dead zone over its own falling clone. */
 .home-screen.home-armed .home-floating-socials .word-block.home-social-fall {
   cursor: grab;
+  pointer-events: none;
 }
 
 /* ---- The playground button, top right ---- */

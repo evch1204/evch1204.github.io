@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import {
   Clock,
   CodeXml,
@@ -71,25 +71,32 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
     return () => window.clearInterval(id);
   }, [isPaused]);
 
-  /**
-   * At rest the buttons and social icons are ordinary controls. Once armed they
-   * become physics bodies, and the clone handles the click instead — so these
-   * bail out to avoid firing twice.
-   */
-  const openProjects = () => {
-    if (armed) return;
-    onViewProjects?.();
-  };
-
-  const downloadResume = () => {
-    if (armed) return;
-    triggerDownload(RESUME_URL, RESUME_DOWNLOAD_FILENAME);
-  };
-
-  const openExternal = (href: string) => () => {
-    if (armed) return;
+  const viewProjects = () => onViewProjects?.();
+  const saveResume = () => triggerDownload(RESUME_URL, RESUME_DOWNLOAD_FILENAME);
+  const openLink = (href: string) => () => {
     if (href.startsWith('mailto:')) window.location.href = href;
     else window.open(href, '_blank', 'noopener,noreferrer');
+  };
+
+  /**
+   * At rest the buttons and social icons are ordinary controls. Once armed they
+   * become physics bodies, and the clone handles the click instead — so a click
+   * on the now-invisible source bails out rather than firing twice.
+   */
+  const whenIdle = (action: () => void) => () => {
+    if (armed) return;
+    action();
+  };
+
+  /**
+   * The keyboard never reaches a clone — the clones are not focusable — so the
+   * sources stay in the tab order and Enter/Space runs the real action whether
+   * the playground is armed or not.
+   */
+  const onActivateKey = (action: () => void) => (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    action();
   };
 
   const togglePlayground = () => {
@@ -186,14 +193,9 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
               data-phys-cls="cta cta-primary"
               data-phys-cta="projects"
               role="button"
-              tabIndex={armed ? -1 : 0}
-              onClick={openProjects}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  openProjects();
-                }
-              }}
+              tabIndex={0}
+              onClick={whenIdle(viewProjects)}
+              onKeyDown={onActivateKey(viewProjects)}
             >
               View projects
             </span>
@@ -204,14 +206,9 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
               data-phys-cta="resume"
               data-phys-html="1"
               role="button"
-              tabIndex={armed ? -1 : 0}
-              onClick={downloadResume}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  downloadResume();
-                }
-              }}
+              tabIndex={0}
+              onClick={whenIdle(saveResume)}
+              onKeyDown={onActivateKey(saveResume)}
             >
               <Download size={14} strokeWidth={2} aria-hidden />
               <span>Resume</span>
@@ -249,10 +246,11 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             data-phys-cta="github"
             data-phys-html="1"
             role="link"
-            tabIndex={armed ? -1 : 0}
+            tabIndex={0}
             aria-label="GitHub"
             title="GitHub"
-            onClick={openExternal(GITHUB_URL)}
+            onClick={whenIdle(openLink(GITHUB_URL))}
+            onKeyDown={onActivateKey(openLink(GITHUB_URL))}
           >
             <Github size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>
@@ -263,10 +261,11 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             data-phys-cta="linkedin"
             data-phys-html="1"
             role="link"
-            tabIndex={armed ? -1 : 0}
+            tabIndex={0}
             aria-label="LinkedIn"
             title="LinkedIn"
-            onClick={openExternal(LINKEDIN_URL)}
+            onClick={whenIdle(openLink(LINKEDIN_URL))}
+            onKeyDown={onActivateKey(openLink(LINKEDIN_URL))}
           >
             <Linkedin size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>
@@ -277,10 +276,11 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             data-phys-cta="mail"
             data-phys-html="1"
             role="link"
-            tabIndex={armed ? -1 : 0}
+            tabIndex={0}
             aria-label="Email"
             title="Email"
-            onClick={openExternal(MAILTO)}
+            onClick={whenIdle(openLink(MAILTO))}
+            onKeyDown={onActivateKey(openLink(MAILTO))}
           >
             <Mail size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
           </span>

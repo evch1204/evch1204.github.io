@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -41,6 +41,21 @@ export default function Modal({
   stopPanelClick = false,
   children,
 }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * Opening a dialog moves focus into it, so the keyboard is inside the thing
+   * that just appeared; closing it hands focus back to whatever opened it.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    panelRef.current?.focus();
+    return () => {
+      opener?.focus();
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -83,6 +98,8 @@ export default function Modal({
             onClick={onClose}
           />
           <motion.div
+            ref={panelRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label={label}

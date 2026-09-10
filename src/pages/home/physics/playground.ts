@@ -94,6 +94,9 @@ export function createPlayground({
   }
   window.addEventListener('resize', markLayoutDirty);
   window.addEventListener('orientationchange', markLayoutDirty);
+  /* On phones `.home-screen` scrolls under the fixed `#physics-container`, so the
+     shelf's viewport rect moves without a resize; capture catches that scroll. */
+  document.addEventListener('scroll', markLayoutDirty, { capture: true, passive: true });
 
   function refreshLayout() {
     if (!layoutDirty) return;
@@ -107,6 +110,8 @@ export function createPlayground({
   }
 
   let dragging: PhysBody | null = null;
+  /** The one pointer that owns the current drag; -1 when nothing is held. */
+  let dragPointerId = -1;
   let lastMX = 0;
   let lastMY = 0;
   let velDragX = 0;
@@ -226,6 +231,10 @@ export function createPlayground({
     el.addEventListener('pointerdown', (e) => {
       if (!e.isPrimary || e.button !== 0) return;
       e.preventDefault();
+      /* Capture keeps the move/up stream on this element even after the pointer
+         leaves the window, so a drag can never stay welded to a gone pointer. */
+      el.setPointerCapture(e.pointerId);
+      dragPointerId = e.pointerId;
       startDrag(e.clientX, e.clientY);
     });
 
@@ -405,6 +414,19 @@ export function createPlayground({
     }
 
     resolveAllStatics(3);
+
+    /*
+     * Position-only containment, last. The solver passes above can push a body
+     * straight through a wall or the floor, and a sleeping body never reaches
+     * the clamp at the top of the step — on a narrow phone that reads as
+     * permanent drift off the edge, so every body is pulled back in here.
+     */
+    for (let i = 0; i < bodies.length; i++) {
+      const b = bodies[i];
+      if (b.homing || b === dragging) continue;
+      b.x = Math.max(0, Math.min(b.x, Math.max(0, W - b.w)));
+      b.y = Math.max(0, Math.min(b.y, Math.max(0, H - b.h)));
+    }
   }
 
   function tick(now: number) {
@@ -454,7 +476,7 @@ export function createPlayground({
   }
 
   function onPointerMove(e: PointerEvent) {
-    if (!dragging || !e.isPrimary) return;
+    if (!dragging || e.pointerId !== dragPointerId) return;
     pointer.push(e.clientX, e.clientY, e.timeStamp);
     const p = containerOffset(e.clientX, e.clientY);
     dragPointerCX = p.x;
@@ -480,11 +502,18 @@ export function createPlayground({
       dragging = null;
       pointer.clear();
     }
+    dragPointerId = -1;
+  }
+
+  /** Only the pointer that started the drag may end it. */
+  function onPointerEnd(e: PointerEvent) {
+    if (e.pointerId !== dragPointerId) return;
+    endDrag();
   }
 
   document.addEventListener('pointermove', onPointerMove);
-  document.addEventListener('pointerup', endDrag);
-  document.addEventListener('pointercancel', endDrag);
+  document.addEventListener('pointerup', onPointerEnd);
+  document.addEventListener('pointercancel', onPointerEnd);
 
   async function launchBlock(blockEl: HTMLSpanElement, cls: string, label: string, cta?: CtaKind) {
     const rect = blockEl.getBoundingClientRect();
@@ -570,7 +599,10 @@ export function createPlayground({
     body.vy = 0;
     body.rotV = 0;
     body.sleeping = false;
-    if (dragging === body) dragging = null;
+    if (dragging === body) {
+      dragging = null;
+      dragPointerId = -1;
+    }
 
     const sx = body.x;
     const sy = body.y;
@@ -624,6 +656,7 @@ export function createPlayground({
       dragging.vy = 0;
       dragging.rotV = 0;
       dragging = null;
+      dragPointerId = -1;
     }
 
     try {
@@ -692,9 +725,10 @@ export function createPlayground({
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', markLayoutDirty);
       window.removeEventListener('orientationchange', markLayoutDirty);
+      document.removeEventListener('scroll', markLayoutDirty, { capture: true });
       document.removeEventListener('pointermove', onPointerMove);
-      document.removeEventListener('pointerup', endDrag);
-      document.removeEventListener('pointercancel', endDrag);
+      document.removeEventListener('pointerup', onPointerEnd);
+      document.removeEventListener('pointercancel', onPointerEnd);
       blockCleanups.forEach((fn) => fn());
       container.replaceChildren();
       intro?.classList.remove('intro-launchable');

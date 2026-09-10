@@ -45,6 +45,7 @@ export default function NavPill({
   return (
     <nav
       ref={navRef}
+      aria-label="Primary"
       className="relative shrink-0 p-1.5 bg-white/70 backdrop-blur-2xl border border-zinc-200/50 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)] hidden md:flex items-center gap-1"
     >
       <motion.div
@@ -54,21 +55,25 @@ export default function NavPill({
         transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
         aria-hidden
       />
-      {NAV_TABS.map((tab, i) => (
-        <button
-          key={tab.id}
-          ref={(el) => {
-            tabButtonRefs.current[i] = el;
-          }}
-          type="button"
-          onClick={() => onSelect(tab.id)}
-          className={`relative z-10 px-4 lg:px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
-            activeTab === tab.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-900'
-          }`}
-        >
-          {tab.label}
-        </button>
-      ))}
+      {NAV_TABS.map((tab, i) => {
+        const active = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            ref={(el) => {
+              tabButtonRefs.current[i] = el;
+            }}
+            type="button"
+            onClick={() => onSelect(tab.id)}
+            aria-current={active ? 'page' : undefined}
+            className={`relative z-10 px-4 lg:px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
+              active ? 'text-white' : 'text-zinc-500 hover:text-zinc-900'
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
     </nav>
   );
 }

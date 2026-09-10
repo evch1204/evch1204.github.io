@@ -72,7 +72,6 @@ export default function AboutPage() {
                   src={profilePhoto}
                   alt="Tei Chang"
                   className="h-full w-full object-cover"
-                  loading="lazy"
                   decoding="async"
                 />
               </motion.div>

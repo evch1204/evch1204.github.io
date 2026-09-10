@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Github } from 'lucide-react';
 import SectionHeading from '@/components/SectionHeading';
 import data from '@/content/contributions.json';
+import { GITHUB_URL } from '@/content/site';
 
 /** GitHub's own light-mode heatmap scale, level 0 → 4. */
 const LEVEL_COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
@@ -168,7 +169,7 @@ export default function GithubActivity() {
         <p className="text-xs font-medium text-zinc-500">
           <span className="font-bold text-zinc-900">{data.total.toLocaleString()}</span> contributions in the last year on{' '}
           <a
-            href={`https://github.com/${data.user}`}
+            href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-bold text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition-colors hover:decoration-zinc-900"
