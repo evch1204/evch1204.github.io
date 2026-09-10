@@ -528,22 +528,30 @@
   z-index: 6;
 }
 
+/*
+ * Sits under the "Put it back" button, the one corner the pile never reaches —
+ * at the bottom it shared its spot with the landed blocks and read through
+ * them. The tint is for the moment a thrown block passes behind it.
+ */
 .home-screen .home-hint {
   position: absolute;
-  bottom: calc(var(--home-floor-gap) + 14px);
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(clamp(76px, 9vh, 96px) + 46px);
+  right: clamp(16px, 4vw, 24px);
   font-family: 'Space Mono', monospace;
   font-size: 11px;
-  color: var(--home-hint);
-  letter-spacing: 0.1em;
+  color: var(--home-muted);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   z-index: 30;
   pointer-events: none;
   opacity: 0;
   transition: opacity 1s;
-  max-width: min(90vw, 30rem);
-  text-align: center;
+  max-width: min(calc(100vw - 2rem), 22rem);
+  padding: 6px 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  text-align: right;
   line-height: 1.4;
 }
 
@@ -599,20 +607,12 @@
     display: none;
   }
 
-  /*
-   * Pinned to both edges rather than shrink-to-fit from the centre: a fixed box
-   * with only `left: 50%` gets half the viewport to fit in, which folded this
-   * line into four. It also sits on its own tint so it stays readable where the
-   * pile reaches it.
-   */
+  /* Under the button, which sits at 60px here; wraps to two lines on narrow phones. */
   .home-screen .home-hint {
-    left: 1rem;
-    right: 1rem;
-    transform: none;
-    max-width: none;
-    padding: 5px 12px;
-    border-radius: 999px;
-    background: rgba(250, 250, 250, 0.92);
+    top: 106px;
+    right: 16px;
+    max-width: calc(100vw - 2rem);
+    border-radius: 14px;
   }
 
   .home-screen .home-lede {
