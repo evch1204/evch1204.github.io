@@ -20,16 +20,30 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 ```
 ├── .github/workflows/   # CI: build + deploy Pages
 ├── public/              # Static assets served as-is (e.g. resume.pdf)
-├── images/              # Project and profile images
+├── images/              # Source images the app does not import
 ├── src/
-│   ├── App.tsx          # Layout, tabs, sections
-│   ├── HomeScreen.tsx   # Home hero + physics blocks
-│   ├── TechIWorkWith.tsx
-│   ├── projectsData.ts
+│   ├── App.tsx          # Shell: tab state, header, page switch, footer
 │   ├── main.tsx
-│   └── index.css
+│   ├── index.css
+│   ├── assets/images/   # The images the app imports
+│   ├── content/         # What a non-engineer edits: copy, links, data
+│   │   ├── site.ts      # Name, email, links, resume
+│   │   ├── projects.ts
+│   │   ├── experience.ts
+│   │   ├── skills.ts
+│   │   ├── tech.tsx
+│   │   └── contributions.json
+│   ├── components/      # Section, SectionHeading, Tag, Modal, SiteFooter
+│   ├── layout/          # Header, sliding-pill nav, the tab list
+│   ├── lib/             # Link labels, file download, home clock
+│   └── pages/
+│       ├── home/        # Home screen, home-screen.css, physics/ playground
+│       ├── about/       # Profile, tech, GitHub activity, resume
+│       ├── experience/  # Journey and education lists
+│       ├── projects/    # Featured card, card grid, detail modal
+│       └── contact/
 ├── index.html
-├── vite.config.ts
+├── vite.config.ts       # `@` is an alias for src/
 ├── tsconfig.json
 └── package.json
 ```
@@ -61,9 +75,11 @@ In the repo: **Settings → Pages** — source should be **GitHub Actions** for 
 ## Customization
 
 - **Copy & meta:** `index.html`
-- **Routes / tabs / sections:** `src/App.tsx`
-- **Home interaction:** `src/HomeScreen.tsx`, `src/home-screen.css`
-- **Projects & featured content:** `src/projectsData.ts`
+- **Name, email, links, resume filename:** `src/content/site.ts`
+- **Routes / tabs:** `src/layout/nav.ts`; the pages themselves live in `src/pages/`
+- **Home interaction:** `src/pages/home/` (`HomeScreen.tsx`, `home-screen.css`, `physics/`)
+- **Projects & featured content:** `src/content/projects.ts`
+- **Experience & education:** `src/content/experience.ts`
 - **Resume file:** add or replace `public/resume.pdf` (linked from the app)
 
 ## Environment & secrets

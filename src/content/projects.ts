@@ -1,4 +1,4 @@
-import type { GlyphName } from '@/ProjectGlyph';
+import type { GlyphName } from '@/pages/projects/ProjectGlyph';
 import shotRunningMap from '@/assets/images/shot-runningmap.jpg';
 import shotDrawSpace from '@/assets/images/shot-drawspace.jpg';
 import shotBookWithMe from '@/assets/images/shot-bookwithme.jpg';

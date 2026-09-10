@@ -25,6 +25,7 @@ import {
   RESUME_DOWNLOAD_FILENAME,
   RESUME_URL,
 } from '@/content/site';
+import { NAV_TABS } from '@/layout/nav';
 import { readLocalClock } from '@/lib/clock';
 import { triggerDownload } from '@/lib/download';
 import type { CtaKind } from './physics/types';
@@ -231,9 +232,9 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
           className="home-floating-nav-spacer shrink-0 p-1.5 flex items-center gap-1 rounded-full border border-transparent opacity-0 pointer-events-none select-none"
           aria-hidden
         >
-          {(['Home', 'About', 'Experience', 'Projects', 'Contact'] as const).map((label) => (
+          {NAV_TABS.map(({ id, label }) => (
             <span
-              key={label}
+              key={id}
               className="relative px-6 py-2 text-sm font-semibold rounded-full whitespace-nowrap text-transparent"
             >
               {label}

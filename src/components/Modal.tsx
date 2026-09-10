@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
 export type ModalProps = {
@@ -58,7 +59,13 @@ export default function Modal({
     };
   }, [open]);
 
-  return (
+  /*
+   * Rendered into <body> rather than where it is written: a page's <main> is a
+   * z-10 stacking context, so a dialog nested inside one would paint under the
+   * z-50 header. This keeps the overlay above everything, exactly where it sat
+   * when App owned both modals.
+   */
+  return createPortal(
     <AnimatePresence>
       {open ? (
         <motion.div
@@ -91,6 +98,7 @@ export default function Modal({
           </motion.div>
         </motion.div>
       ) : null}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
