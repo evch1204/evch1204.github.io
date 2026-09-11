@@ -28,7 +28,7 @@ export default function App() {
   }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-zinc-900 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-zinc-900 selection:text-white overflow-x-clip">
       {/* Background Accents */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-zinc-100/50 blur-[60px] md:blur-[120px]" />
