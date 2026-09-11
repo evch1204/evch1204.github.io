@@ -7,7 +7,6 @@ import emgRaw from '@/assets/images/projects/ergonomic-risk/emg-raw.jpg';
 import emgRoc from '@/assets/images/projects/ergonomic-risk/roc.jpg';
 import emgTree from '@/assets/images/projects/ergonomic-risk/tree.jpg';
 import emgAccel from '@/assets/images/projects/ergonomic-risk/accelerometer.jpg';
-import runningMapRoute from '@/assets/images/projects/runningmap/route.jpg';
 import runningMapHome from '@/assets/images/projects/runningmap/home.jpg';
 import bookWithMeHome from '@/assets/images/projects/bookwithme/home.jpg';
 import docsHome from '@/assets/images/projects/docs/home.jpg';
@@ -359,11 +358,6 @@ export const PROJECTS: Project[] = [
             'A route is an ordered list of waypoints. Tapping adds one to the end; each point is draggable afterwards so the line can be nudged onto the right side of a street, and shift-click removes a point without breaking the route in two. The distance readout in the bottom card updates continuously, and the pace model under it switches between walk, bike, drive and manual, changing the time estimate rather than the line.',
             'The toolbar below the readout carries undo, redo and delete, then export and share. Two side tools sit next to the planner: parks nearby, which lists green space around the current view, and draw a shape, for freehand area planning when the route is not a line at all. Search in the top-right jumps the map to an address or landmark, and the locate button centres on the browser’s geolocation.',
           ],
-          figure: {
-            src: runningMapRoute,
-            alt: 'A four-waypoint route drawn across the United States with a 1,079.1 mi readout, walk pacing selected and the undo, redo, delete, export and share toolbar',
-            caption: 'A route in progress — 1,079.1 mi over four points, walk pacing, undo / redo / export / share',
-          },
         },
         {
           heading: 'Under the hood',
@@ -386,11 +380,6 @@ export const PROJECTS: Project[] = [
         { label: 'Map', value: 'MapLibre · OpenFreeMap' },
       ],
       gallery: [
-        {
-          src: runningMapRoute,
-          alt: 'A route in progress with the distance readout and toolbar',
-          caption: 'Route in progress',
-        },
         {
           src: runningMapHome,
           alt: 'The planner at full window size, signed out',
