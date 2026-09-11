@@ -17,7 +17,6 @@ import CompanyLogo from './CompanyLogo';
 /** Shared easing + duration so height, fade and chevron travel as one motion. */
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const DURATION = 460;
-const TIMING = { transitionDuration: `${DURATION}ms`, transitionTimingFunction: EASE };
 
 const ROLE_ICONS: Record<RoleIcon, typeof Code2> = {
   code: Code2,
@@ -54,6 +53,11 @@ function RoleRow({
   const Icon = ROLE_ICONS[role.icon];
   const panelId = `role-panel-${role.id}`;
   const teaser = role.bullets[0];
+  // Reduced motion: the row still opens and closes, just without the travel.
+  const reduceMotion = useReducedMotion();
+  const duration = reduceMotion ? 0 : DURATION;
+  const timing = { transitionDuration: `${duration}ms`, transitionTimingFunction: EASE };
+  const fade = (ms: number) => (reduceMotion ? 0 : ms);
 
   return (
     <div
@@ -63,7 +67,7 @@ function RoleRow({
         backgroundColor: open ? '#ffffff' : 'rgba(255,255,255,0)',
         borderColor: open ? '#f4f4f5' : 'transparent',
         boxShadow: open ? '0 12px 32px rgba(0,0,0,0.04)' : '0 12px 32px rgba(0,0,0,0)',
-        ...TIMING,
+        ...timing,
       }}
     >
       <button
@@ -79,7 +83,7 @@ function RoleRow({
               ? 'border-zinc-900 bg-zinc-900 text-white'
               : 'border-zinc-200 bg-zinc-50 text-zinc-500 group-hover:border-zinc-300 group-hover:text-zinc-900'
           }`}
-          style={TIMING}
+          style={timing}
         >
           <Icon size={13} strokeWidth={2} aria-hidden />
         </span>
@@ -94,16 +98,17 @@ function RoleRow({
             </span>
             <span className="font-mono text-[11px]">{role.period}</span>
           </span>
+          {/* A visual preview of the first bullet, which the panel below already carries. */}
           {teaser ? (
             <span
               className="grid"
-              style={{ gridTemplateRows: open ? '0fr' : '1fr', transition: `grid-template-rows ${DURATION}ms ${EASE}` }}
-              aria-hidden={open}
+              style={{ gridTemplateRows: open ? '0fr' : '1fr', transition: `grid-template-rows ${duration}ms ${EASE}` }}
+              aria-hidden
             >
               <span className="block min-h-0 overflow-hidden">
                 <span
                   className="mt-1 line-clamp-1 text-[13px] font-medium leading-normal text-zinc-400"
-                  style={{ opacity: open ? 0 : 1, transition: `opacity ${open ? 200 : 300}ms ease` }}
+                  style={{ opacity: open ? 0 : 1, transition: `opacity ${fade(open ? 200 : 300)}ms ease` }}
                 >
                   {teaser}
                 </span>
@@ -115,7 +120,7 @@ function RoleRow({
           className={`mt-1 flex shrink-0 items-center transition-[transform,color] group-hover:text-zinc-900 ${
             open ? 'text-zinc-900' : 'text-zinc-400'
           }`}
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', ...TIMING }}
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', ...timing }}
           aria-hidden
         >
           <ChevronsUpDown size={15} />
@@ -125,7 +130,7 @@ function RoleRow({
       <div
         id={panelId}
         className="grid"
-        style={{ gridTemplateRows: open ? '1fr' : '0fr', transition: `grid-template-rows ${DURATION}ms ${EASE}` }}
+        style={{ gridTemplateRows: open ? '1fr' : '0fr', transition: `grid-template-rows ${duration}ms ${EASE}` }}
         {...(open ? {} : { inert: true })}
       >
         <div className="min-h-0 overflow-hidden">
@@ -134,9 +139,9 @@ function RoleRow({
             style={{
               opacity: open ? 1 : 0,
               transform: open ? 'translateY(0)' : 'translateY(-6px)',
-              transition: `opacity 300ms ease, transform 300ms ${EASE}`,
+              transition: `opacity ${fade(300)}ms ease, transform ${fade(300)}ms ${EASE}`,
               // Content waits for the height to get going, but leaves immediately.
-              transitionDelay: open ? '120ms' : '0ms',
+              transitionDelay: open ? `${fade(120)}ms` : '0ms',
             }}
           >
             <ul className="flex flex-col gap-2">
@@ -188,15 +193,22 @@ function OrgGroup({
   const [ink, setInk] = useState(0);
   const first = index === 0;
   const year = startYear(org);
+  // This org's open rows in row order, as one string: a stable key for the
+  // measurement below, where the Set is a new object on every toggle.
+  const openKey = org.roles
+    .filter((role) => openIds.has(role.id))
+    .map((role) => role.id)
+    .join(' ');
 
   useLayoutEffect(() => {
     const roles = rolesRef.current;
     if (!roles) return;
     const measure = () => {
       let bottom = 0;
-      for (const role of org.roles) {
-        const el = rowEls.current.get(role.id);
-        if (el && openIds.has(role.id)) bottom = el.offsetTop + el.offsetHeight;
+      // Row order, so the last open row wins.
+      for (const id of openKey.split(' ')) {
+        const el = rowEls.current.get(id);
+        if (el) bottom = el.offsetTop + el.offsetHeight;
       }
       setInk(bottom);
     };
@@ -205,7 +217,7 @@ function OrgGroup({
     const observer = new ResizeObserver(measure);
     observer.observe(roles);
     return () => observer.disconnect();
-  }, [org.roles, openIds]);
+  }, [openKey]);
 
   return (
     <motion.div

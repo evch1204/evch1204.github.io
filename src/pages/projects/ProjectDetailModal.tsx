@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronDown, ExternalLink, Github, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import Modal from '@/components/Modal';
@@ -13,9 +13,9 @@ const TITLE_ID = 'project-modal-title';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** The small uppercase label that opens every block of the case study. */
+/** The small uppercase heading that opens every block of the case study, under the title's h2. */
 const Label = ({ children, className = 'mb-3' }: { children: string; className?: string }) => (
-  <p className={`text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 ${className}`}>{children}</p>
+  <h3 className={`text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 ${className}`}>{children}</h3>
 );
 
 /** Mono caption row under a picture: bold index, caption, and an optional right-hand note. */
@@ -37,8 +37,9 @@ const Section = ({ section }: { section: CaseStudySection }) => (
   <section>
     <Label>{section.heading}</Label>
     <div className="space-y-3">
-      {section.body.map((paragraph) => (
-        <p key={paragraph.slice(0, 40)} className="text-sm font-medium leading-relaxed text-zinc-600 text-pretty">
+      {section.body.map((paragraph, i) => (
+        // Static content: the index is the paragraph's identity.
+        <p key={i} className="text-sm font-medium leading-relaxed text-zinc-600 text-pretty">
           {paragraph}
         </p>
       ))}
@@ -148,20 +149,22 @@ const Gallery = ({
         const active = i === current;
         return (
           <li key={picture.src ?? picture.illustration}>
-            <button
-              type="button"
-              onClick={() => onPick(i)}
-              aria-pressed={active}
-              aria-label={`Show picture ${pad(i + 1)}: ${picture.caption}`}
-              className={`block w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-shadow hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
-                active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
-              }`}
-            >
-              <div className="aspect-[16/10] w-full">
-                <ProjectFigure figure={picture} className="h-full w-full object-contain" />
-              </div>
-            </button>
-            <Caption index={i + 1} text={picture.caption} className="mt-2" />
+            <figure>
+              <button
+                type="button"
+                onClick={() => onPick(i)}
+                aria-pressed={active}
+                aria-label={`Show picture ${pad(i + 1)}: ${picture.caption}`}
+                className={`block w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-shadow hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
+                  active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
+                }`}
+              >
+                <div className="aspect-[16/10] w-full">
+                  <ProjectFigure figure={picture} className="h-full w-full object-contain" />
+                </div>
+              </button>
+              <Caption index={i + 1} text={picture.caption} className="mt-2" />
+            </figure>
           </li>
         );
       })}
@@ -340,14 +343,15 @@ export default function ProjectDetailModal({
   onClose: () => void;
   onSelect: (project: Project) => void;
 }) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const index = project ? projects.indexOf(project) : -1;
+  const index = project ? projects.findIndex((p) => p.id === project.id) : -1;
   const prev = index > 0 ? projects[index - 1] : null;
   const next = index >= 0 && index < projects.length - 1 ? projects[index + 1] : null;
 
   useEffect(() => {
     if (!project) return;
     const onKey = (e: KeyboardEvent) => {
+      // A chord (Alt+← is the browser's back) or a held key is not a request to move.
+      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || e.defaultPrevented) return;
       if (e.key === 'ArrowRight' && next) onSelect(next);
       if (e.key === 'ArrowLeft' && prev) onSelect(prev);
     };
@@ -355,25 +359,11 @@ export default function ProjectDetailModal({
     return () => window.removeEventListener('keydown', onKey);
   }, [project, prev, next, onSelect]);
 
-  /*
-   * Moving to another project keeps the dialog mounted, so it is this
-   * component's job to start the new one at the top with focus on the panel.
-   * Which element scrolls depends on the layout: the panel itself on phones,
-   * the overlay around it on desktop.
-   */
-  useEffect(() => {
-    if (!project) return;
-    const panel = rootRef.current?.closest<HTMLElement>('[role="dialog"]');
-    if (!panel) return;
-    panel.scrollTop = 0;
-    if (panel.parentElement) panel.parentElement.scrollTop = 0;
-    panel.focus({ preventScroll: true });
-  }, [project]);
-
   return (
     <Modal
       open={project !== null}
       onClose={onClose}
+      resetKey={project?.id}
       overlayClassName="fixed inset-0 z-[100] md:flex md:items-start md:justify-center md:overflow-y-auto md:p-4 md:pt-24 md:pb-12"
       backdropClassName="bg-black/45 backdrop-blur-[1px]"
       backdropLabel="Close project details"
@@ -381,7 +371,7 @@ export default function ProjectDetailModal({
       panelClassName="fixed inset-x-0 bottom-0 top-3 z-[102] overflow-y-auto overscroll-contain rounded-t-[1.5rem] border border-zinc-100 bg-white shadow-[0_-16px_48px_rgba(0,0,0,0.12)] focus:outline-none md:relative md:inset-auto md:my-auto md:w-full md:max-w-4xl md:overflow-visible md:rounded-[2rem] md:shadow-[0_32px_64px_rgba(0,0,0,0.12)]"
     >
       {project ? (
-        <div ref={rootRef} className="md:overflow-hidden md:rounded-[2rem]">
+        <div className="md:overflow-hidden md:rounded-[2rem]">
           {/* Toolbar */}
           <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-zinc-100 bg-white/95 py-2 pl-2 pr-2 backdrop-blur md:static md:gap-3 md:py-3.5 md:pl-7 md:pr-4">
             <button

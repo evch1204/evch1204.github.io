@@ -7,6 +7,11 @@ type ModalProps = {
   onClose: () => void;
   /** Remounts the dialog when the thing it shows changes identity. */
   motionKey?: string;
+  /**
+   * Changes while the dialog stays open — a different project in the same
+   * frame — scroll it back to the top and put focus on the panel again.
+   */
+  resetKey?: string;
   /** Positioning of the full-screen layer the dialog sits in. */
   overlayClassName: string;
   /** Tint and blur of the click-to-close backdrop. */
@@ -21,15 +26,18 @@ type ModalProps = {
   children: ReactNode;
 };
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 /**
- * The overlay, the click-to-close backdrop, the dialog frame and the two pieces
- * of behaviour every modal needs: Escape closes it, and the page behind it stops
- * scrolling while it is open.
+ * The overlay, the click-to-close backdrop, the dialog frame and the pieces of
+ * behaviour every modal needs: focus moves in and is kept in, Escape closes
+ * it, and the page behind it stops scrolling while it is open.
  */
 export default function Modal({
   open,
   onClose,
   motionKey,
+  resetKey,
   overlayClassName,
   backdropClassName,
   backdropLabel,
@@ -55,10 +63,53 @@ export default function Modal({
     };
   }, [open]);
 
+  /*
+   * Which element scrolls depends on the layout — the panel itself as a phone
+   * sheet, the overlay around it on desktop — so both go back to the top.
+   */
+  useEffect(() => {
+    if (!open || resetKey === undefined) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.scrollTop = 0;
+    if (panel.parentElement) panel.parentElement.scrollTop = 0;
+    panel.focus({ preventScroll: true });
+  }, [open, resetKey]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      // Only what can take focus right now: the phone action bar is display:none
+      // on desktop, the desktop toolbar pills on a phone.
+      const focusable = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+        (el) => el.getClientRects().length > 0,
+      );
+      if (focusable.length === 0) {
+        e.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      // Focus starts on the panel itself, which is outside the first-to-last run.
+      const outside = active === panel || !panel.contains(active);
+      if (e.shiftKey) {
+        if (active === first || outside) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || outside) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
