@@ -1,4 +1,5 @@
 import { Download, ExternalLink, Maximize2 } from 'lucide-react';
+import Eyebrow from '@/components/Eyebrow';
 import PillLink from '@/components/PillLink';
 import SectionHeading from '@/components/SectionHeading';
 import Tag from '@/components/Tag';
@@ -43,7 +44,9 @@ export default function ResumePanel({ onExpand }: { onExpand: () => void }) {
         <div className="min-w-0 space-y-7">
           {RESUME_SKILLS.map(({ heading, items }) => (
             <div key={heading}>
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">{heading}</h4>
+              <Eyebrow as="h4" className="mb-3">
+                {heading}
+              </Eyebrow>
               <ul className="flex flex-wrap gap-2">
                 {items.map((item) => (
                   <li key={item}>

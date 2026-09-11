@@ -11,7 +11,11 @@ export type Role = {
   title: string;
   /** Employment type, or degree type in the education list. */
   kind: string;
-  /** MM.YYYY — MM.YYYY, or "Present" for a current role. */
+  /**
+   * `MM.YYYY — MM.YYYY`, or `MM.YYYY — Present` for a current role. The year
+   * gutter on the experience page reads an org's start year from the first
+   * four digits after the dot, so a period must open with `MM.YYYY`.
+   */
   period: string;
   bullets: string[];
   /** Stack for a job; relevant coursework and activities for a degree. */

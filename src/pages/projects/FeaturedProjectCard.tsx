@@ -1,7 +1,8 @@
 import { ArrowRight } from 'lucide-react';
+import Eyebrow from '@/components/Eyebrow';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
-import { PanelWindow } from './ProjectCard';
+import ProjectPanel from './ProjectPanel';
 
 /** The one project that opens the page, on its own wide card. */
 export default function FeaturedProjectCard({
@@ -28,7 +29,7 @@ export default function FeaturedProjectCard({
           </p>
           {project.reportPreview && (
             <div className="mb-4 max-w-[600px] border-l-2 border-zinc-200 pl-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">From the report</p>
+              <Eyebrow className="mb-1.5">From the report</Eyebrow>
               <p className="line-clamp-3 text-[13px] leading-[1.55] text-zinc-600 font-medium">{project.reportPreview}</p>
             </div>
           )}
@@ -43,9 +44,11 @@ export default function FeaturedProjectCard({
             View project details <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
           </span>
         </div>
-        <div className="flex h-[220px] w-full shrink-0 items-end overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 px-[18px] pt-[18px] sm:h-[250px] lg:h-[270px]">
-          <PanelWindow panel={project.panel} title={project.cardTitle} />
-        </div>
+        <ProjectPanel
+          panel={project.panel}
+          title={project.cardTitle}
+          className="h-[220px] w-full shrink-0 sm:h-[250px] lg:h-[270px]"
+        />
       </div>
     </button>
   );

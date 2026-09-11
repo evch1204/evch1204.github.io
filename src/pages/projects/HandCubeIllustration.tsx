@@ -70,16 +70,18 @@ const EDGES = EDGE_GROUPS.flatMap(({ edges, stroke }) => edges.map((e) => ({ e, 
   (p, q) => p.z - q.z,
 );
 
-export default function HandCubeIllustration({ className = '' }: { className?: string }) {
+/** `label` is the picture's alt text: content writes it once, next to the id that names this drawing. */
+export default function HandCubeIllustration({ label, className = '' }: { label: string; className?: string }) {
   return (
     <svg
       viewBox="0 0 560 400"
       width="560"
       height="400"
       role="img"
-      aria-label="Illustration of the hand-tracker's output: the 21-point hand skeleton and the colour-coded wireframe cube"
+      aria-label={label}
       className={className}
     >
+      <title>{label}</title>
       <rect width="560" height="400" fill="#FAFAFA" />
 
       {/* Landmarks, joined the MediaPipe way. */}

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import Chip from '@/components/Chip';
 import Section from '@/components/Section';
 import { CONTACT_LINKS, NAME } from '@/content/site';
-import { linkProps } from '@/lib/links';
 import profilePhoto from '@/assets/images/your-photo.jpg';
 import GithubActivity from './GithubActivity';
 import ResumeModal from './ResumeModal';
@@ -41,21 +41,9 @@ export default function AboutPage() {
             <ul className="flex flex-wrap gap-2.5 pt-1">
               {CONTACT_LINKS.map(({ label, href, Icon }) => (
                 <li key={label}>
-                  {href ? (
-                    <a
-                      href={href}
-                      {...linkProps(href)}
-                      className="group inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900"
-                    >
-                      <Icon size={14} className="shrink-0" />
-                      <span className="truncate">{label}</span>
-                    </a>
-                  ) : (
-                    <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 font-mono text-xs font-bold text-zinc-500">
-                      <Icon size={14} className="shrink-0" />
-                      <span className="truncate">{label}</span>
-                    </span>
-                  )}
+                  <Chip Icon={Icon} href={href}>
+                    {label}
+                  </Chip>
                 </li>
               ))}
             </ul>

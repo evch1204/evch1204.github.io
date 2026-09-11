@@ -1,22 +1,18 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, ChevronDown, ExternalLink, Github, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronDown, X } from 'lucide-react';
 import { motion } from 'motion/react';
+import Chip from '@/components/Chip';
+import Eyebrow from '@/components/Eyebrow';
 import Modal from '@/components/Modal';
 import PillLink from '@/components/PillLink';
 import Tag from '@/components/Tag';
-import { groupLabel, type CaseStudySection, type Figure, type Project } from '@/content/projects';
-import { linkProps } from '@/lib/links';
-import { hostLabel, repoLabel } from '@/lib/url';
+import { groupLabel, type CaseStudy, type CaseStudySection, type Figure, type Project } from '@/content/projects';
+import { projectAddresses, type ProjectAddress } from './addresses';
 import ProjectFigure from './ProjectFigure';
 
 const TITLE_ID = 'project-modal-title';
 
 const pad = (n: number) => String(n).padStart(2, '0');
-
-/** The small uppercase heading that opens every block of the case study, under the title's h2. */
-const Label = ({ children, className = 'mb-3' }: { children: string; className?: string }) => (
-  <h3 className={`text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 ${className}`}>{children}</h3>
-);
 
 /** Mono caption row under a picture: bold index, caption, and an optional right-hand note. */
 const Caption = ({ index, text, right, className = '' }: { index: number; text: string; right?: string; className?: string }) => (
@@ -29,13 +25,15 @@ const Caption = ({ index, text, right, className = '' }: { index: number; text: 
   </figcaption>
 );
 
-/** The About page's photo frame, on a case-study picture. */
+/** A smaller cousin of the About page's photo frame: thinner white border, tighter radius, the same shadow from `md`. */
 const FRAME =
   'overflow-hidden rounded-[14px] border-4 border-white bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] md:rounded-[20px] md:border-[6px] md:shadow-[0_24px_64px_rgba(0,0,0,0.12)]';
 
-const Section = ({ section }: { section: CaseStudySection }) => (
+const StudySection = ({ section }: { section: CaseStudySection }) => (
   <section>
-    <Label>{section.heading}</Label>
+    <Eyebrow as="h3" className="mb-3">
+      {section.heading}
+    </Eyebrow>
     <div className="space-y-3">
       {section.body.map((paragraph, i) => (
         // Static content: the index is the paragraph's identity.
@@ -60,7 +58,9 @@ const Section = ({ section }: { section: CaseStudySection }) => (
 
 const WhatItDoes = ({ items }: { items: string[] }) => (
   <div>
-    <Label>What it does</Label>
+    <Eyebrow as="h3" className="mb-3">
+      What it does
+    </Eyebrow>
     <ol>
       {items.map((item, i) => (
         <li
@@ -75,13 +75,17 @@ const WhatItDoes = ({ items }: { items: string[] }) => (
   </div>
 );
 
-const Details = ({ rows }: { rows: Project['caseStudy']['details'] }) => (
+const Details = ({ rows }: { rows: CaseStudy['details'] }) => (
   <div>
-    <Label>Details</Label>
+    <Eyebrow as="h3" className="mb-3">
+      Details
+    </Eyebrow>
     <dl>
       {rows.map((row) => (
         <div key={row.label} className="flex items-start justify-between gap-4 border-t border-zinc-100 py-2.5 last:border-b">
-          <dt className="shrink-0 pt-[3px] text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">{row.label}</dt>
+          <Eyebrow as="dt" className="shrink-0 pt-[3px]">
+            {row.label}
+          </Eyebrow>
           <dd className="min-w-0 text-right font-mono text-xs font-bold leading-relaxed text-zinc-900 [overflow-wrap:anywhere]">
             {row.value}
           </dd>
@@ -93,7 +97,9 @@ const Details = ({ rows }: { rows: Project['caseStudy']['details'] }) => (
 
 const Stack = ({ items }: { items: string[] }) => (
   <div>
-    <Label>Stack</Label>
+    <Eyebrow as="h3" className="mb-3">
+      Stack
+    </Eyebrow>
     <ul className="flex flex-wrap gap-2">
       {items.map((t) => (
         <li key={t}>
@@ -105,28 +111,41 @@ const Stack = ({ items }: { items: string[] }) => (
 );
 
 /** The About page's contact chip, pointed at the project's addresses. */
-const Links = ({ links }: { links: Project['caseStudy']['links'] }) => (
+const Links = ({ addresses }: { addresses: ProjectAddress[] }) => (
   <div>
-    <Label>Links</Label>
+    <Eyebrow as="h3" className="mb-3">
+      Links
+    </Eyebrow>
     <ul className="flex flex-wrap gap-2">
-      {links.map((link) => {
-        const Icon = link.kind === 'repo' ? Github : ExternalLink;
-        return (
-          <li key={link.href} className="min-w-0 max-w-full">
-            <a
-              href={link.href}
-              {...linkProps(link.href)}
-              className="inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900"
-            >
-              <Icon size={14} className="shrink-0" />
-              <span className="truncate">{link.label}</span>
-            </a>
-          </li>
-        );
-      })}
+      {addresses.map((address) => (
+        <li key={address.href} className="min-w-0 max-w-full">
+          <Chip Icon={address.Icon} href={address.href}>
+            {address.label}
+          </Chip>
+        </li>
+      ))}
     </ul>
   </div>
 );
+
+/** What a picture is, for keys and de-duplication: the image path, or the drawing's id. */
+const pictureKey = (figure: Figure) => figure.src ?? figure.illustration;
+
+/**
+ * Every picture the case study shows, once each, in reading order: the hero,
+ * the section figures, then whatever content lists only for the gallery.
+ */
+function galleryOf(caseStudy: CaseStudy): Figure[] {
+  const seen = new Set<string>();
+  const pictures: Figure[] = [];
+  for (const figure of [caseStudy.hero, ...caseStudy.sections.flatMap((s) => (s.figure ? [s.figure] : [])), ...caseStudy.gallery]) {
+    const key = pictureKey(figure);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    pictures.push(figure);
+  }
+  return pictures;
+}
 
 const Gallery = ({
   pictures,
@@ -139,7 +158,7 @@ const Gallery = ({
 }) => (
   <div>
     <div className="mb-3 flex items-baseline justify-between">
-      <Label className="">Gallery</Label>
+      <Eyebrow as="h3">Gallery</Eyebrow>
       <span className="font-mono text-[11px] text-zinc-400">
         {pad(current + 1)} / {pad(pictures.length)}
       </span>
@@ -148,7 +167,7 @@ const Gallery = ({
       {pictures.map((picture, i) => {
         const active = i === current;
         return (
-          <li key={picture.src ?? picture.illustration}>
+          <li key={pictureKey(picture)}>
             <figure>
               <button
                 type="button"
@@ -211,32 +230,34 @@ const PrevNext = ({
 /** Everything below the toolbar. Keyed by project, so the gallery choice resets on navigation. */
 function CaseStudyBody({
   project,
-  index,
-  total,
+  position,
+  addresses,
   prev,
   next,
   onClose,
   onSelect,
 }: {
   project: Project;
-  index: number;
-  total: number;
+  /** "01 / 09 · Group" — where this project sits in the prev / next order. */
+  position: string;
+  addresses: ProjectAddress[];
   prev: Project | null;
   next: Project | null;
   onClose: () => void;
   onSelect: (project: Project) => void;
 }) {
   const { caseStudy } = project;
-  const pictures = [caseStudy.hero, ...caseStudy.gallery];
+  const pictures = galleryOf(caseStudy);
   const [current, setCurrent] = useState(0);
   const hero = pictures[current];
-  const address = project.liveUrl
-    ? hostLabel(project.liveUrl)
-    : project.githubUrl
-      ? repoLabel(project.githubUrl)
-      : undefined;
-  const group = groupLabel(project.group);
+  const primary = addresses[0];
   const nav = { prev, next, onSelect };
+  // Kind and group are the project's own fields; the register lists them first, then content's rows.
+  const details = [
+    { label: 'Kind', value: project.kind },
+    { label: 'Group', value: groupLabel(project.group) },
+    ...caseStudy.details,
+  ];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
@@ -249,7 +270,7 @@ function CaseStudyBody({
               <ProjectFigure figure={hero} eager className="block h-auto max-h-[520px] w-auto max-w-full" />
             </div>
           </div>
-          <Caption index={current + 1} text={hero.caption} right={address} className="mt-2.5 md:mt-3.5" />
+          <Caption index={current + 1} text={hero.caption} right={primary?.label} className="mt-2.5 md:mt-3.5" />
         </figure>
       </div>
 
@@ -268,15 +289,15 @@ function CaseStudyBody({
           </p>
           <div className="space-y-7">
             {caseStudy.sections.map((section) => (
-              <Section key={section.heading} section={section} />
+              <StudySection key={section.heading} section={section} />
             ))}
             <WhatItDoes items={project.keyFeatures} />
           </div>
         </div>
         <div className="flex flex-col gap-7">
-          <Details rows={caseStudy.details} />
+          <Details rows={details} />
           <Stack items={project.technologies} />
-          <Links links={caseStudy.links} />
+          <Links addresses={addresses} />
         </div>
       </div>
 
@@ -288,9 +309,7 @@ function CaseStudyBody({
 
       {/* Footer, desktop: index, Close, Prev / Next */}
       <div className="hidden items-center gap-4 border-t border-zinc-100 bg-white px-7 py-4 md:flex">
-        <span className="font-mono text-[11px] text-zinc-400">
-          {pad(index + 1)} / {pad(total)} &nbsp;·&nbsp; {group}
-        </span>
+        <span className="font-mono text-[11px] text-zinc-400">{position}</span>
         <div className="ml-auto flex items-center gap-5">
           <PillLink as="button" variant="outline" size="sm" onClick={onClose}>
             Close
@@ -301,24 +320,17 @@ function CaseStudyBody({
 
       {/* Phone: prev / next row, then the sticky action bar above the tab bar */}
       <div className="border-t border-zinc-100 px-5 py-2 md:hidden">
-        <p className="mb-1 font-mono text-[10px] text-zinc-400">
-          {pad(index + 1)} / {pad(total)} &nbsp;·&nbsp; {group}
-        </p>
+        <p className="mb-1 font-mono text-[10px] text-zinc-400">{position}</p>
         <PrevNext {...nav} className="grid grid-cols-2 items-center gap-3" />
       </div>
       <div className="sticky bottom-0 flex gap-2 border-t border-zinc-100 bg-white/90 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
         <PillLink as="button" variant="outline" onClick={onClose} className="shrink-0">
           Close
         </PillLink>
-        {project.liveUrl ? (
-          <PillLink href={project.liveUrl} className="min-w-0 flex-1">
-            <ExternalLink size={16} className="shrink-0" />
-            <span className="truncate">Open {hostLabel(project.liveUrl)}</span>
-          </PillLink>
-        ) : project.githubUrl ? (
-          <PillLink href={project.githubUrl} className="min-w-0 flex-1">
-            <Github size={16} className="shrink-0" />
-            View on GitHub
+        {primary ? (
+          <PillLink href={primary.href} className="min-w-0 flex-1">
+            <primary.Icon size={16} className="shrink-0" />
+            <span className="truncate">{primary.kind === 'live' ? `Open ${primary.label}` : 'View on GitHub'}</span>
           </PillLink>
         ) : null}
       </div>
@@ -359,6 +371,9 @@ export default function ProjectDetailModal({
     return () => window.removeEventListener('keydown', onKey);
   }, [project, prev, next, onSelect]);
 
+  const addresses = project ? projectAddresses(project) : [];
+  const position = project ? `${pad(index + 1)} / ${pad(projects.length)}  ·  ${groupLabel(project.group)}` : '';
+
   return (
     <Modal
       open={project !== null}
@@ -389,16 +404,17 @@ export default function ProjectDetailModal({
             </p>
             {/* The pills never wrap; the eyebrow's group name truncates instead when the row is tight. */}
             <div className="ml-auto hidden shrink-0 items-center gap-2 md:flex">
-              {project.liveUrl ? (
-                <PillLink size="sm" href={project.liveUrl} className="whitespace-nowrap">
-                  <ExternalLink size={14} /> Open {hostLabel(project.liveUrl)}
+              {addresses.map((address) => (
+                <PillLink
+                  key={address.href}
+                  size="sm"
+                  variant={address.kind === 'live' ? 'solid' : 'outline'}
+                  href={address.href}
+                  className="whitespace-nowrap"
+                >
+                  <address.Icon size={14} /> {address.kind === 'live' ? `Open ${address.label}` : 'GitHub'}
                 </PillLink>
-              ) : null}
-              {project.githubUrl ? (
-                <PillLink size="sm" variant="outline" href={project.githubUrl} className="whitespace-nowrap">
-                  <Github size={14} /> GitHub
-                </PillLink>
-              ) : null}
+              ))}
               <button
                 type="button"
                 onClick={onClose}
@@ -413,8 +429,8 @@ export default function ProjectDetailModal({
           <CaseStudyBody
             key={project.id}
             project={project}
-            index={index}
-            total={projects.length}
+            position={position}
+            addresses={addresses}
             prev={prev}
             next={next}
             onClose={onClose}

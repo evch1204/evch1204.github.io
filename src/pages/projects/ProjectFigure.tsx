@@ -6,11 +6,6 @@ const ILLUSTRATIONS: Record<IllustrationId, typeof HandCubeIllustration> = {
   'hand-cube': HandCubeIllustration,
 };
 
-export function Illustration({ id, className }: { id: IllustrationId; className?: string }) {
-  const Drawing = ILLUSTRATIONS[id];
-  return <Drawing className={className} />;
-}
-
 /**
  * A case-study picture: the imported image, or the named drawing. `eager` is
  * for the hero, which is the first thing the dialog shows; everything else
@@ -26,7 +21,8 @@ export default function ProjectFigure({
   eager?: boolean;
 }) {
   if (figure.illustration) {
-    return <Illustration id={figure.illustration} className={className} />;
+    const Drawing = ILLUSTRATIONS[figure.illustration];
+    return <Drawing label={figure.alt} className={className} />;
   }
   return (
     <img

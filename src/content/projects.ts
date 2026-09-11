@@ -39,11 +39,8 @@ export type Figure = {
   caption: string;
 } & ({ src: string; illustration?: never } | { illustration: IllustrationId; src?: never });
 
-/** What a card's panel shows: a screenshot gets the window treatment, a figure sits on the panel as is. */
-export type CardPanel =
-  | { kind: 'screenshot'; src: string }
-  | { kind: 'figure'; src: string; alt: string }
-  | { kind: 'illustration'; id: IllustrationId };
+/** What a card's panel shows: a screenshot fills the window from the top; a figure or drawing sits in it whole. */
+export type CardPanel = { kind: 'screenshot'; src: string } | { kind: 'figure'; figure: Figure };
 
 export type CaseStudySection = {
   heading: string;
@@ -52,8 +49,6 @@ export type CaseStudySection = {
   figure?: Figure;
 };
 
-export type ProjectLink = { label: string; href: string; kind: 'live' | 'repo' | 'page' };
-
 export type CaseStudy = {
   /** The first thing the modal shows. */
   hero: Figure;
@@ -61,11 +56,17 @@ export type CaseStudy = {
   summary: string;
   /** Three to five: why, how it works, results, what was learned. */
   sections: CaseStudySection[];
-  /** The register on the right: kind, group, context, year when known. */
+  /**
+   * The register on the right, after the Kind and Group rows the modal adds
+   * from the project itself: context, data, year when known.
+   */
   details: { label: string; value: string }[];
-  /** Real pictures only. The hero is listed first in the modal's gallery automatically. */
+  /**
+   * Real pictures only, and only ones not already shown as the hero or a
+   * section figure: the modal's gallery lists those first, in reading order,
+   * then these.
+   */
   gallery: Figure[];
-  links: ProjectLink[];
 };
 
 export type Project = {
@@ -109,8 +110,11 @@ export const PROJECTS: Project[] = [
     group: 'data',
     panel: {
       kind: 'figure',
-      src: musclePhoto,
-      alt: 'Logistic regression predictions versus true labels on two PCA components',
+      figure: {
+        src: musclePhoto,
+        alt: 'Logistic regression predictions versus true labels on two PCA components',
+        caption: 'Logistic regression on the first two PCA components',
+      },
     },
     cardDescription:
       'Wearable EMG and IMU data from controlled repetitive-lifting trials, trained with logistic and random forest models to classify high- vs low-risk biomechanical conditions.',
@@ -187,34 +191,16 @@ export const PROJECTS: Project[] = [
         },
       ],
       details: [
-        { label: 'Kind', value: 'Research' },
-        { label: 'Group', value: groupLabel('data') },
         { label: 'Context', value: `EMGT 311 / ENGR 184, ${SCU}` },
         { label: 'Data', value: '2 people · 4 trials · 4 EMG + IMU' },
       ],
       gallery: [
-        {
-          src: emgRaw,
-          alt: 'Raw EMG traces, Person 1 low-risk trial',
-          caption: 'Raw EMG, Person 1 low risk',
-        },
-        {
-          src: emgRoc,
-          alt: 'ROC curve of the logistic regression model, AUC 0.59',
-          caption: 'ROC, logistic regression',
-        },
-        {
-          src: emgTree,
-          alt: 'One decision tree from the random forest, depth 3',
-          caption: 'A tree from the forest',
-        },
         {
           src: emgAccel,
           alt: 'Accelerometer X, Y and Z traces for Person 1 low-risk trial',
           caption: 'Accelerometer, Person 1 low risk',
         },
       ],
-      links: [{ label: 'evch1204/EMGT311-ENGR184-Final-Project', href: `${GITHUB_URL}/EMGT311-ENGR184-Final-Project`, kind: 'repo' }],
     },
   },
   {
@@ -285,8 +271,6 @@ export const PROJECTS: Project[] = [
         },
       ],
       details: [
-        { label: 'Kind', value: 'Playable README' },
-        { label: 'Group', value: groupLabel('apps') },
         { label: 'Year', value: '2026' },
         { label: 'License', value: 'MIT' },
       ],
@@ -297,24 +281,10 @@ export const PROJECTS: Project[] = [
           caption: 'The whole year from above, in autumn',
         },
         {
-          src: mowWinter,
-          alt: 'Driving view in winter with a +22 combo',
-          caption: 'January, snowing',
-        },
-        {
-          src: mowFlat,
-          alt: 'The flat 2D view mid-mow',
-          caption: 'The flat view, mid-mow',
-        },
-        {
           src: mowOg,
           alt: 'Social card for mow your commits',
           caption: 'Social card',
         },
-      ],
-      links: [
-        { label: 'evch1204.github.io/mow-your-commits', href: 'https://evch1204.github.io/mow-your-commits/', kind: 'live' },
-        { label: 'evch1204/mow-your-commits', href: `${GITHUB_URL}/mow-your-commits`, kind: 'repo' },
       ],
     },
   },
@@ -374,8 +344,6 @@ export const PROJECTS: Project[] = [
         },
       ],
       details: [
-        { label: 'Kind', value: 'Route planner' },
-        { label: 'Group', value: groupLabel('apps') },
         { label: 'Context', value: 'DeepSpace' },
         { label: 'Map', value: 'MapLibre · OpenFreeMap' },
       ],
@@ -386,7 +354,6 @@ export const PROJECTS: Project[] = [
           caption: 'Planner, full window',
         },
       ],
-      links: [{ label: 'runningmap.app.space', href: 'https://runningmap.app.space', kind: 'live' }],
     },
   },
   {
@@ -437,13 +404,8 @@ export const PROJECTS: Project[] = [
           ],
         },
       ],
-      details: [
-        { label: 'Kind', value: 'Diagram canvas' },
-        { label: 'Group', value: groupLabel('apps') },
-        { label: 'Context', value: 'DeepSpace' },
-      ],
+      details: [{ label: 'Context', value: 'DeepSpace' }],
       gallery: [],
-      links: [{ label: 'drawspace.app.space', href: 'https://drawspace.app.space', kind: 'live' }],
     },
   },
   {
@@ -498,19 +460,8 @@ export const PROJECTS: Project[] = [
           ],
         },
       ],
-      details: [
-        { label: 'Kind', value: 'Scheduling' },
-        { label: 'Group', value: groupLabel('apps') },
-        { label: 'Context', value: 'DeepSpace' },
-      ],
-      gallery: [
-        {
-          src: bookWithMeHome,
-          alt: 'The host dashboard with the getting-started checklist',
-          caption: 'Host dashboard, getting started',
-        },
-      ],
-      links: [{ label: 'bookwithme.app.space', href: 'https://bookwithme.app.space', kind: 'live' }],
+      details: [{ label: 'Context', value: 'DeepSpace' }],
+      gallery: [],
     },
   },
   {
@@ -565,19 +516,8 @@ export const PROJECTS: Project[] = [
           ],
         },
       ],
-      details: [
-        { label: 'Kind', value: 'Document workspace' },
-        { label: 'Group', value: groupLabel('apps') },
-        { label: 'Context', value: 'DeepSpace' },
-      ],
-      gallery: [
-        {
-          src: docsHome,
-          alt: 'The Docs library view',
-          caption: 'Library, signed out',
-        },
-      ],
-      links: [{ label: 'docs.app.space', href: 'https://docs.app.space', kind: 'live' }],
+      details: [{ label: 'Context', value: 'DeepSpace' }],
+      gallery: [],
     },
   },
   {
@@ -585,7 +525,14 @@ export const PROJECTS: Project[] = [
     cardTitle: 'Hand Tracking 3D Cube',
     kind: 'Computer vision',
     group: 'apps',
-    panel: { kind: 'illustration', id: 'hand-cube' },
+    panel: {
+      kind: 'figure',
+      figure: {
+        illustration: 'hand-cube',
+        alt: 'Illustration of the hand-tracker’s output: the 21-point hand skeleton and the colour-coded wireframe cube',
+        caption: 'The landmark skeleton and the colour-coded cube',
+      },
+    },
     cardDescription:
       'Maps 21 MediaPipe hand landmarks onto a 3D cube in real time: an open right palm rotates it, a two-finger pinch scales it, with smoothing to kill jitter.',
     cardTags: ['Python', 'MediaPipe', 'OpenCV', 'NumPy'],
@@ -637,13 +584,10 @@ export const PROJECTS: Project[] = [
         },
       ],
       details: [
-        { label: 'Kind', value: 'Computer vision' },
-        { label: 'Group', value: groupLabel('apps') },
         { label: 'Input', value: 'Webcam · 21 landmarks × 2 hands' },
         { label: 'Runs', value: 'Python 3.7+ · ~30 FPS' },
       ],
       gallery: [],
-      links: [{ label: 'evch1204/hand_tracker', href: `${GITHUB_URL}/hand_tracker`, kind: 'repo' }],
     },
   },
   {
@@ -653,8 +597,11 @@ export const PROJECTS: Project[] = [
     group: 'data',
     panel: {
       kind: 'figure',
-      src: nbaTarget,
-      alt: 'Heatmap of feature correlation with the target rank',
+      figure: {
+        src: nbaTarget,
+        alt: 'Heatmap of feature correlation with the target rank',
+        caption: 'Correlation with the target rank',
+      },
     },
     cardDescription:
       'Ranks NBA players from fourteen per-game statistics with a decision tree trained on 2022, tested against the real 2024-25 ranking, and used to score trades.',
@@ -723,24 +670,10 @@ export const PROJECTS: Project[] = [
         },
       ],
       details: [
-        { label: 'Kind', value: 'Data science' },
-        { label: 'Group', value: groupLabel('data') },
         { label: 'Context', value: `CSCI 184, ${SCU}` },
         { label: 'Seasons', value: '2022 → 2023-24 · 2024-25 truth' },
       ],
-      gallery: [
-        {
-          src: nbaHeatmap,
-          alt: 'Feature-to-feature correlation heatmap',
-          caption: 'Feature correlation heatmap',
-        },
-        {
-          src: nbaTree,
-          alt: 'The depth-5 decision tree',
-          caption: 'Decision tree, depth 5',
-        },
-      ],
-      links: [{ label: 'evch1204/NBA-Statistic-Analysis---184-Proj', href: `${GITHUB_URL}/NBA-Statistic-Analysis---184-Proj`, kind: 'repo' }],
+      gallery: [],
     },
   },
   {
@@ -750,8 +683,11 @@ export const PROJECTS: Project[] = [
     group: 'data',
     panel: {
       kind: 'figure',
-      src: gamingKd,
-      alt: 'Scatter plot of kills per death against win rate for about 900 Valorant leaderboard players',
+      figure: {
+        src: gamingKd,
+        alt: 'Scatter plot of kills per death against win rate for about 900 Valorant leaderboard players',
+        caption: 'K/D vs. win rate',
+      },
     },
     cardDescription:
       'Scrapes ~900 players off the Valorant leaderboard and asks which of their stats actually tracks win rate. K/D does; headshot percentage does not.',
@@ -814,33 +750,14 @@ export const PROJECTS: Project[] = [
         },
       ],
       details: [
-        { label: 'Kind', value: 'Data science' },
-        { label: 'Group', value: groupLabel('data') },
         { label: 'Context', value: `CSCI 185, ${SCU}` },
         { label: 'Sample', value: '30 pages × 30 players' },
       ],
       gallery: [
         {
-          src: gamingKd,
-          alt: 'Kills per death against win rate',
-          caption: 'K/D vs. win rate',
-        },
-        {
           src: gamingScore,
           alt: 'Average score against win rate',
           caption: 'Average score vs. win rate',
-        },
-        {
-          src: gamingCorrBinned,
-          alt: 'Binned correlation bars',
-          caption: 'Correlations, binned',
-        },
-      ],
-      links: [
-        {
-          label: 'evch1204/Gaming-Statistic-Web-Scrapping-Analysis',
-          href: `${GITHUB_URL}/Gaming-Statistic-Web-Scrapping-Analysis`,
-          kind: 'repo',
         },
       ],
     },
@@ -848,7 +765,7 @@ export const PROJECTS: Project[] = [
 ];
 
 export const FEATURED_PROJECT = PROJECTS.find((p) => p.id === FEATURED_PROJECT_ID)!;
-export const GRID_PROJECTS = PROJECTS.filter((p) => p.id !== FEATURED_PROJECT_ID);
+const GRID_PROJECTS = PROJECTS.filter((p) => p.id !== FEATURED_PROJECT_ID);
 
 /** Grid projects for one group, in declaration order. */
 export const projectsInGroup = (group: ProjectGroup) =>

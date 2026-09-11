@@ -24,18 +24,13 @@ export default function Section({
       transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
       className="w-full"
     >
-      {actions ? (
-        <div className="mb-7 flex items-center justify-between gap-4">
-          <SectionHeading as="h2" className="mb-0">
-            {title}
-          </SectionHeading>
-          {actions}
-        </div>
-      ) : (
-        <SectionHeading as="h2" className="mb-7">
+      {/* The same row with or without actions: an empty flex row is just the heading. */}
+      <div className="mb-7 flex items-center justify-between gap-4">
+        <SectionHeading as="h2" className="mb-0">
           {title}
         </SectionHeading>
-      )}
+        {actions}
+      </div>
       {children}
     </motion.section>
   );
