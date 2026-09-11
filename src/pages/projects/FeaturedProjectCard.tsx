@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Eyebrow from '@/components/Eyebrow';
 import Tag from '@/components/Tag';
@@ -8,12 +9,19 @@ import ProjectPanel from './ProjectPanel';
 export default function FeaturedProjectCard({
   project,
   onOpen,
+  layoutId,
+  ref,
 }: {
   project: Project;
   onOpen: () => void;
+  /** Shared with the page hero, so the window grows into it. */
+  layoutId?: string;
+  /** The card itself: focus comes back to it when the page closes. */
+  ref?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onOpen}
       className="group w-full max-w-none text-left rounded-[2rem] border border-zinc-100 bg-white/80 backdrop-blur-sm px-5 py-5 sm:px-7 sm:py-6 md:px-9 md:py-6 lg:px-10 lg:py-7 shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 hover:bg-white hover:shadow-[0_28px_60px_rgba(0,0,0,0.07)] hover:border-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
@@ -47,6 +55,7 @@ export default function FeaturedProjectCard({
         <ProjectPanel
           panel={project.panel}
           title={project.cardTitle}
+          layoutId={layoutId}
           className="h-[220px] w-full shrink-0 sm:h-[250px] lg:h-[270px]"
         />
       </div>

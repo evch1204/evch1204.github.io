@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Eyebrow from '@/components/Eyebrow';
 import Tag from '@/components/Tag';
@@ -21,17 +22,29 @@ const ProjectLink = ({ project }: { project: Project }) => {
 export default function ProjectCard({
   project,
   onOpen,
+  layoutId,
+  ref,
 }: {
   project: Project;
   onOpen: () => void;
+  /** Shared with the page hero, so the window grows into it. */
+  layoutId?: string;
+  /** The card itself: focus comes back to it when the page closes. */
+  ref?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onOpen}
       className="group relative flex w-full flex-col text-left p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
     >
-      <ProjectPanel panel={project.panel} title={project.cardTitle} className="mb-6 h-[180px] sm:h-[200px]" />
+      <ProjectPanel
+        panel={project.panel}
+        title={project.cardTitle}
+        layoutId={layoutId}
+        className="mb-6 h-[180px] sm:h-[200px]"
+      />
       <Eyebrow className="mb-2.5">{project.kind}</Eyebrow>
       <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-black transition-colors tracking-tight mb-3">
         {project.cardTitle}
