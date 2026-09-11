@@ -9,6 +9,12 @@ function companyInitials(company: string) {
 }
 
 /**
+ * The ring is the page background, so the mark reads as sitting on top of the
+ * list rather than in it; the soft shadow lifts it the rest of the way.
+ */
+const FRAME = 'shrink-0 rounded-[10px] ring-4 ring-[#FAFAFA] shadow-[0_4px_12px_rgba(0,0,0,0.05)]';
+
+/**
  * Loads a mark via Google’s public favicon service from the organization’s website domain.
  * LinkedIn does not provide stable, hotlinkable logo URLs to third parties.
  * Pass logoDomain="" for initials-only (no network).
@@ -29,7 +35,7 @@ export default function CompanyLogo({
   const initials = companyInitials(company);
   const box = (
     <div
-      className="flex shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-[10px] font-bold tracking-tight text-zinc-600"
+      className={`${FRAME} flex items-center justify-center border border-zinc-200 bg-white text-[10px] font-bold tracking-tight text-zinc-600`}
       style={{ width: size, height: size }}
       aria-hidden
     >
@@ -48,7 +54,7 @@ export default function CompanyLogo({
       width={size}
       height={size}
       style={{ width: size, height: size }}
-      className="shrink-0 rounded-lg border border-zinc-100 bg-white object-contain p-1"
+      className={`${FRAME} border border-zinc-200 bg-white object-contain p-1`}
       loading="lazy"
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}

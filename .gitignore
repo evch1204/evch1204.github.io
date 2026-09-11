@@ -39,3 +39,6 @@ pnpm-debug.log*
 
 # Local overrides
 *.local
+
+# Local layout screenshots (headless-Chrome verification)
+.shots/
