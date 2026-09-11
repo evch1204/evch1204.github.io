@@ -1,7 +1,7 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react';
 import { flushSync } from 'react-dom';
 import { ArrowRight } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useIsPresent, useReducedMotion, type HTMLMotionProps } from 'motion/react';
 import Section from '@/components/Section';
 import { FEATURED_PROJECT, PROJECTS, PROJECT_GROUPS, projectsInGroup, type Figure, type Project } from '@/content/projects';
 import { GITHUB_URL } from '@/content/site';
@@ -107,6 +107,17 @@ const preload = (figure: Figure) =>
 const SETTLE_MS = 700;
 
 /**
+ * One of the tab's two views, laid out `offset` px below its natural place
+ * (see the scroll hand-off). On its way out it is out of the pointer's reach:
+ * a second click on the card that just opened, or on the page that is closing,
+ * must not start the swap over. `ref` is what `popLayout` measures by.
+ */
+function View({ offset, ref, ...rest }: HTMLMotionProps<'div'> & { offset: number; ref?: Ref<HTMLDivElement> }) {
+  const present = useIsPresent();
+  return <motion.div ref={ref} {...rest} style={{ marginTop: offset }} className={present ? 'w-full' : 'w-full pointer-events-none'} />;
+}
+
+/**
  * The Projects tab: the grid, and the project page it opens into. The page
  * takes the grid's place with a shared-element animation from the card, has a
  * history entry of its own (Back returns to the grid), and hands the scroll
@@ -114,6 +125,10 @@ const SETTLE_MS = 700;
  */
 export default function ProjectsPage() {
   const reduced = useReducedMotion();
+  /** False once the tab is on its way out (App swaps tabs with `mode="wait"`, so the exit takes a beat). */
+  const present = useIsPresent();
+  const presentRef = useRef(true);
+  presentRef.current = present;
   const [selected, setSelected] = useState<Project | null>(null);
   const [arrival, setArrival] = useState<'grid' | 'page'>('grid');
   /*
@@ -121,11 +136,12 @@ export default function ProjectsPage() {
    * changing the scroll position while the hero is in flight would put its
    * start point off screen. Instead, the incoming view is offset so that it
    * is laid out exactly where the viewport already is; once the animation has
-   * settled, the offset is dropped and the scroll set in the same frame, and
-   * nothing on screen moves.
+   * settled, the offset is dropped and the scroll moved by the same amount in
+   * the same frame, and nothing on screen moves — whether or not the reader
+   * scrolled in the meantime.
    */
   const [offset, setOffset] = useState(0);
-  const settle = useRef<{ target: number; timer: number } | null>(null);
+  const settle = useRef<{ shift: number; timer: number } | null>(null);
   const pending = useRef<{ target: number; shift: number } | null>(null);
   /** Where the grid was scrolled to when a project opened, to go back to. */
   const gridScroll = useRef(0);
@@ -134,15 +150,28 @@ export default function ProjectsPage() {
   const cards = useRef(new Map<string, HTMLButtonElement>());
   const selectedRef = useRef<Project | null>(null);
   selectedRef.current = selected;
+  /** Set while the tab is mounted: `open` waits on a decode and must not carry on after it is gone. */
+  const alive = useRef(true);
+  /** The project whose hero `open` is waiting on, so a second click on its card does not start over. */
+  const opening = useRef<string | null>(null);
+  /** Set between our `history.back()` and its popstate, so a second Back in that gap does not leave the site. */
+  const leaving = useRef(false);
 
   const settleNow = useCallback(() => {
     const s = settle.current;
     if (!s) return;
     settle.current = null;
     clearTimeout(s.timer);
+    // A tab on its way out must not scroll the one coming in.
+    if (!presentRef.current) return;
     flushSync(() => setOffset(0));
-    window.scrollTo(0, s.target);
+    // Dropping the offset moves the content by exactly `shift`; scroll by the same and what is on screen stays.
+    window.scrollTo(0, window.scrollY - s.shift);
   }, []);
+
+  useEffect(() => {
+    if (!present) settleNow();
+  }, [present, settleNow]);
 
   /** Shows `next` (or the grid), laid out for `target` scroll. `shared`: the hero travels, so hold the viewport. */
   const swapView = useCallback(
@@ -164,27 +193,35 @@ export default function ProjectsPage() {
     if (p.shift === 0) {
       window.scrollTo(0, p.target);
     } else {
-      settle.current = { target: p.target, timer: window.setTimeout(settleNow, SETTLE_MS) };
+      settle.current = { shift: p.shift, timer: window.setTimeout(settleNow, SETTLE_MS) };
     }
     if (!selected && openerId.current) cards.current.get(openerId.current)?.focus({ preventScroll: true });
   }, [selected, settleNow]);
 
   const open = useCallback(
     async (project: Project) => {
+      // Already open, or on its way: a double click is one click.
+      if (selectedRef.current?.id === project.id || opening.current === project.id) return;
+      opening.current = project.id;
       openerId.current = project.id;
+      // The grid may still be arriving, offset: read its place only once it is settled.
+      settleNow();
       gridScroll.current = window.scrollY;
       await preload(project.caseStudy.hero);
+      if (opening.current === project.id) opening.current = null;
+      if (!alive.current) return;
       // Guard against a double entry: a second open before the first was left just replaces it.
       if (projectInHistory()) history.replaceState({ project: project.id }, '');
       else history.pushState({ project: project.id }, '');
       swapView(project, 0, true);
     },
-    [swapView],
+    [settleNow, swapView],
   );
 
   /** Prev / next: the same history entry, retargeted. */
   const select = useCallback(
     (project: Project) => {
+      if (leaving.current) return;
       if (projectInHistory()) history.replaceState({ project: project.id }, '');
       else history.pushState({ project: project.id }, '');
       swapView(project, 0, false);
@@ -194,14 +231,19 @@ export default function ProjectsPage() {
 
   const goBack = useCallback(() => {
     const current = selectedRef.current;
-    if (!current) return;
+    if (!current || leaving.current) return;
     // Our entry is on top: let the browser pop it, and popstate does the rest.
-    if (projectInHistory() === current.id) history.back();
-    else swapView(null, gridScroll.current, true);
+    if (projectInHistory() === current.id) {
+      leaving.current = true;
+      history.back();
+    } else {
+      swapView(null, gridScroll.current, true);
+    }
   }, [swapView]);
 
   useEffect(() => {
     const onPop = () => {
+      leaving.current = false;
       const id = projectInHistory();
       const current = selectedRef.current;
       const next = id ? byId(id) : null;
@@ -209,8 +251,9 @@ export default function ProjectsPage() {
       if (!next) {
         swapView(null, gridScroll.current, true);
       } else if (!current) {
-        // Forward, back onto a page: it opens from wherever its card is now.
+        // Forward, back onto a page: it opens from wherever its card is now, once the grid has settled.
         openerId.current = next.id;
+        settleNow();
         gridScroll.current = window.scrollY;
         swapView(next, 0, true);
       } else {
@@ -219,19 +262,22 @@ export default function ProjectsPage() {
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [swapView]);
+  }, [settleNow, swapView]);
 
   useEffect(() => {
+    alive.current = true;
     // The browser would restore the grid's scroll position the instant our entry pops — before the grid is back.
     const restoration = history.scrollRestoration;
     history.scrollRestoration = 'manual';
     // An entry left over from before a reload opens nothing.
     if (projectInHistory()) history.replaceState(null, '');
     return () => {
+      alive.current = false;
       history.scrollRestoration = restoration;
       // Leaving the tab with a page open: the entry stays, but it no longer opens anything.
       if (projectInHistory()) history.replaceState(null, '');
       if (settle.current) clearTimeout(settle.current.timer);
+      settle.current = null;
     };
   }, []);
 
@@ -271,7 +317,7 @@ export default function ProjectsPage() {
       <div className="relative flex w-full flex-col">
         <AnimatePresence mode="popLayout" initial={false}>
           {selected ? (
-            <motion.div key="page" style={{ marginTop: offset }} className="w-full">
+            <View key="page" offset={offset}>
               <ProjectPage
                 key={selected.id}
                 project={selected}
@@ -281,18 +327,17 @@ export default function ProjectsPage() {
                 onBack={goBack}
                 onSelect={select}
               />
-            </motion.div>
+            </View>
           ) : (
-            <motion.div
+            <View
               key="grid"
-              style={{ marginTop: offset }}
-              className="w-full"
+              offset={offset}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: 0.25 } }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
             >
               <ProjectGrid shared={!reduced} onOpen={open} registerCard={registerCard} />
-            </motion.div>
+            </View>
           )}
         </AnimatePresence>
       </div>

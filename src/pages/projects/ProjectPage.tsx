@@ -307,8 +307,13 @@ export default function ProjectPage({
     exit: { opacity: 0, transition: { duration: 0.2 } },
   };
   // The hero has no entrance of its own when it is the shared element in flight; otherwise it fades like the rest.
+  // On the way out its band fades quickly, so it does not sit over the grid while the frame shrinks back to the card.
   const shared = !reduced;
-  const heroFade = { initial: shared && arrival === 'grid' ? false : { opacity: 0 }, animate: { opacity: 1, transition: { duration: 0.35, ease: EASE } } };
+  const heroFade = {
+    initial: shared && arrival === 'grid' ? false : { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.35, ease: EASE } },
+    exit: { opacity: 0, transition: { duration: 0.2 } },
+  };
 
   let figureCount = 0;
   const blocks = caseStudy.sections.map((section, i) => {
