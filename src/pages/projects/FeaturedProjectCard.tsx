@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
+import { PanelWindow } from './ProjectCard';
 
 /** The one project that opens the page, on its own wide card. */
 export default function FeaturedProjectCard({
@@ -26,14 +27,12 @@ export default function FeaturedProjectCard({
             {project.cardDescription}
           </p>
           {project.reportPreview && (
-            <div className="rounded-xl border border-zinc-100 bg-zinc-50/90 px-4 py-3 md:px-4 md:py-3.5 mb-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Report preview</p>
-              <p className="text-xs sm:text-sm text-zinc-600 leading-snug font-medium">
-                {project.reportPreview}
-              </p>
+            <div className="mb-4 max-w-[600px] border-l-2 border-zinc-200 pl-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">From the report</p>
+              <p className="line-clamp-3 text-[13px] leading-[1.55] text-zinc-600 font-medium">{project.reportPreview}</p>
             </div>
           )}
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {project.cardTags.map((tag) => (
               <Tag key={tag}>
                 {tag}
@@ -44,14 +43,8 @@ export default function FeaturedProjectCard({
             View project details <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
           </span>
         </div>
-        <div className="relative flex w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50 min-h-[200px] sm:min-h-[220px] lg:min-h-[240px] lg:max-h-[300px] p-2 sm:p-3">
-          {project.heroImage ? (
-            <img
-              src={project.heroImage}
-              alt="Illustration for ergonomic risk and muscle-activation research"
-              className="max-h-[min(280px,42vw)] w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.02]"
-            />
-          ) : null}
+        <div className="flex h-[220px] w-full shrink-0 items-end overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 px-[18px] pt-[18px] sm:h-[250px] lg:h-[270px]">
+          <PanelWindow panel={project.panel} title={project.cardTitle} />
         </div>
       </div>
     </button>

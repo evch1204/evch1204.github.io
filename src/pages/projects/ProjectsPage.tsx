@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Section from '@/components/Section';
-import { FEATURED_PROJECT, PROJECT_GROUPS, projectsInGroup, type Project } from '@/content/projects';
+import { FEATURED_PROJECT, PROJECTS, PROJECT_GROUPS, projectsInGroup, type Project } from '@/content/projects';
 import { GITHUB_URL } from '@/content/site';
 import FeaturedProjectCard from './FeaturedProjectCard';
 import ProjectCard from './ProjectCard';
@@ -50,7 +50,12 @@ export default function ProjectsPage() {
         </a>
       </div>
 
-      <ProjectDetailModal project={detailProject} onClose={() => setDetailProject(null)} />
+      <ProjectDetailModal
+        project={detailProject}
+        projects={PROJECTS}
+        onClose={() => setDetailProject(null)}
+        onSelect={setDetailProject}
+      />
     </Section>
   );
 }

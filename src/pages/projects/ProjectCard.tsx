@@ -1,25 +1,40 @@
 import { ArrowRight, ExternalLink, Github } from 'lucide-react';
 import Tag from '@/components/Tag';
-import type { Project } from '@/content/projects';
+import type { CardPanel, Project } from '@/content/projects';
 import { hostLabel, repoLabel } from '@/lib/url';
-import ProjectGlyph from './ProjectGlyph';
+import { Illustration } from './ProjectFigure';
 
 /**
- * Card panel: a screenshot when the project has a live page to show, and a
- * line-art mark when it does not (research, embedded and CLI work).
+ * A window rising out of the panel: 1px zinc-200 frame, rounded top corners,
+ * cropped by the panel's bottom edge. A screenshot fills it from the top; a
+ * figure or drawing sits in it whole.
  */
+export function PanelWindow({ panel, title }: { panel: CardPanel; title: string }) {
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-t-[10px] border border-b-0 border-zinc-200 bg-white shadow-[0_12px_32px_rgba(0,0,0,0.06)] transition-transform duration-700 group-hover:-translate-y-0.5">
+      <div className="flex h-[18px] shrink-0 items-center justify-center border-b border-zinc-100" aria-hidden>
+        <span className="block h-[5px] w-[72px] rounded-[3px] bg-zinc-100" />
+      </div>
+      {panel.kind === 'screenshot' ? (
+        <img
+          src={panel.src}
+          alt={`Screenshot of ${title}`}
+          loading="lazy"
+          decoding="async"
+          className="min-h-0 w-full flex-1 object-cover object-top"
+        />
+      ) : panel.kind === 'figure' ? (
+        <img src={panel.src} alt={panel.alt} loading="lazy" decoding="async" className="min-h-0 w-full flex-1 object-contain object-top p-2" />
+      ) : (
+        <Illustration id={panel.id} className="min-h-0 w-full flex-1" />
+      )}
+    </div>
+  );
+}
+
 const ProjectPanel = ({ project }: { project: Project }) => (
-  <div className="mb-6 h-[180px] sm:h-[200px] overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 flex items-center justify-center">
-    {project.screenshot ? (
-      <img
-        src={project.screenshot}
-        alt={`Screenshot of ${project.cardTitle}`}
-        loading="lazy"
-        className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
-      />
-    ) : (
-      <ProjectGlyph name={project.glyph} />
-    )}
+  <div className="mb-6 flex h-[180px] items-end overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 px-[18px] pt-[18px] sm:h-[200px]">
+    <PanelWindow panel={project.panel} title={project.cardTitle} />
   </div>
 );
 
