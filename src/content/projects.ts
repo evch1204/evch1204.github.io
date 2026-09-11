@@ -50,21 +50,21 @@ export type CaseStudySection = {
 };
 
 export type CaseStudy = {
-  /** The first thing the modal shows. */
+  /** The picture the page opens on — the one the card's window grows into. */
   hero: Figure;
   /** One or two sentences under the title. */
   summary: string;
   /** Three to five: why, how it works, results, what was learned. */
   sections: CaseStudySection[];
   /**
-   * The register on the right, after the Kind and Group rows the modal adds
-   * from the project itself: context, data, year when known.
+   * The page's meta strip, after the Kind and Group rows the page adds from
+   * the project itself: context, data, year when known.
    */
   details: { label: string; value: string }[];
   /**
    * Real pictures only, and only ones not already shown as the hero or a
-   * section figure: the modal's gallery lists those first, in reading order,
-   * then these.
+   * section figure: the page's gallery lists those first, in reading order,
+   * then these — and only appears when there is something here.
    */
   gallery: Figure[];
 };
@@ -101,7 +101,7 @@ export const groupLabel = (group: ProjectGroup) => PROJECT_GROUPS.find((g) => g.
 
 const SCU = 'Santa Clara University';
 
-/** Declaration order is the modal's prev / next order: featured, then apps, then data. */
+/** Declaration order is the page's prev / next order: featured, then apps, then data. */
 export const PROJECTS: Project[] = [
   {
     id: 'ergonomic-risk',

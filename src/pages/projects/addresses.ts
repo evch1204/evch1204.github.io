@@ -12,8 +12,7 @@ export type ProjectAddress = {
 
 /**
  * A project's real addresses, the live site first: the one derivation behind
- * the card's address, the dialog's toolbar pills, its phone action bar and its
- * Links chips.
+ * the card's address, the page's pills and the note beside its hero caption.
  */
 export function projectAddresses(project: Project): ProjectAddress[] {
   const addresses: ProjectAddress[] = [];

@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 const TAG_CLASSES = {
   /** Tag rows: project cards, the featured card, an expanded experience row. */
   default: 'text-[10px] font-bold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-500 uppercase tracking-wider',
-  /** Technology and skill chips in the project modal and the resume panel. */
+  /** Technology and skill chips in the project page's meta strip and the resume panel. */
   detail: 'inline-block rounded-full bg-zinc-100 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600',
 } as const;
 

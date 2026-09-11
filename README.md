@@ -45,8 +45,9 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 │       ├── home/        # Home screen, home-screen.css, physics/ playground
 │       ├── about/       # Profile, tech, GitHub activity, resume
 │       ├── experience/  # Journey and education lists
-│       ├── projects/    # Featured card, card grid, case-study modal, the
-│       │                # hand-tracker drawing
+│       ├── projects/    # Featured card, card grid, and the project page it
+│       │                # opens into (shared-element from the card, own
+│       │                # history entry); the hand-tracker drawing
 │       └── contact/
 ├── index.html
 ├── vite.config.ts       # `@` is an alias for src/
