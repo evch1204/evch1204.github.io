@@ -341,14 +341,9 @@ export const PROJECTS: Project[] = [
       ],
       gallery: [
         {
-          src: shotRunningMap,
-          alt: 'RunningMap planner on first open: a map of North America with a hint card that says tap the map to drop your start point',
-          caption: 'Planner, first open — the hint card explains the three gestures',
-        },
-        {
           src: runningMapHome,
-          alt: 'The planner at full window size, signed out',
-          caption: 'Planner, full window',
+          alt: 'RunningMap planner on first open, signed out: a map of North America with a hint card that says tap the map to drop your start point',
+          caption: 'Planner, first open — the hint card explains the three gestures',
         },
       ],
     },
