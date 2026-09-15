@@ -9,12 +9,16 @@ import { hostLabel } from '@/lib/url';
 export const NAME = 'Tei Chang';
 /** The wordmark, in caps. The footer adds its own full stop. */
 export const BRAND = 'TEI CHANG';
+/** The current job, as the profile and the contact register say it. */
+export const ROLE = 'Software Engineer at DeepSpace';
 export const EMAIL = 'changtei1204@gmail.com';
 export const MAILTO = `mailto:${EMAIL}`;
 export const GITHUB_URL = 'https://github.com/evch1204';
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/evan-chang1/';
 export const LOCATION = 'Santa Clara, CA';
 export const PHONE = '+1 (301) 768-8151';
+/** The phone as a dialable link: digits only, the plus kept. */
+export const TEL = `tel:${PHONE.replace(/[^\d+]/g, '')}`;
 /** Where Tei is; drives the live clock in the home screen's details list. */
 export const TIMEZONE = 'America/Los_Angeles';
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import Chip from '@/components/Chip';
 import Section from '@/components/Section';
-import { CONTACT_LINKS, NAME } from '@/content/site';
+import { CONTACT_LINKS, NAME, ROLE } from '@/content/site';
 import profilePhoto from '@/assets/images/your-photo.jpg';
 import GithubActivity from './GithubActivity';
 import ResumeModal from './ResumeModal';
@@ -34,7 +34,7 @@ export default function AboutPage() {
                 I&apos;m a Computer Science graduate and I&apos;m seeking to learn and grow along with AI. I studied at{' '}
                 <span className="font-semibold text-zinc-900">Santa Clara University</span> with a Data Science
                 specialization. I&apos;m currently a{' '}
-                <span className="font-semibold text-zinc-900">Software Engineer at DeepSpace</span>, where I
+                <span className="font-semibold text-zinc-900">{ROLE}</span>, where I
                 build full-stack products end-to-end—from system design through production deployment.
               </p>
             </div>
