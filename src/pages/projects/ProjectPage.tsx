@@ -1,35 +1,44 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion, type PanInfo } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import Eyebrow from '@/components/Eyebrow';
 import PillLink from '@/components/PillLink';
 import Tag from '@/components/Tag';
 import { groupLabel, type CaseStudy, type CaseStudySection, type Figure, type Project } from '@/content/projects';
 import { projectAddresses, type ProjectAddress } from './addresses';
 import ProjectFigure from './ProjectFigure';
-import ProjectPanel, { HERO_TRANSITION, heroLayoutId } from './ProjectPanel';
+import HeroSlider, { FRAME, pictureKey, Thumb, useSlides } from './HeroSlider';
+import ProjectPanel, { heroLayoutId } from './ProjectPanel';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
-/** The hero's picture change: the new picture comes in from the side of travel, the old one leaves the other way. */
-const slideVariants = (travel: number) => ({
-  enter: (direction: number) => ({ x: direction < 0 ? -travel : travel, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({ x: direction < 0 ? travel : -travel, opacity: 0 }),
-});
-const SLIDE = slideVariants(40);
-/** Reduced motion asks for the same swap without the travel. */
-const SLIDE_STILL = slideVariants(0);
+/** "02 / 05". */
+const counter = (current: number, total: number) => `${pad(current + 1)} / ${pad(total)}`;
 
-/** The About page's photo frame: white border, big radius, the soft shadow. Thinner and tighter on a phone. */
-const FRAME =
-  'overflow-hidden rounded-[1.25rem] border-4 border-white bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] md:rounded-[2rem] md:border-[6px] md:shadow-[0_24px_64px_rgba(0,0,0,0.12)]';
-
-/** Mono caption row under a picture: bold index, caption, and an optional right-hand note. */
-const Caption = ({ index, text, right, className = '' }: { index: number; text: string; right?: ReactNode; className?: string }) => (
-  <figcaption className={`flex justify-between gap-4 font-mono text-[10px] leading-relaxed text-zinc-400 md:text-[11px] ${className}`}>
+/**
+ * Mono caption row under a picture: bold index, caption, and an optional
+ * right-hand note. `live` has a screen reader read the row again whenever it
+ * changes — the slider's caption is what says which picture arrived.
+ */
+const Caption = ({
+  index,
+  text,
+  right,
+  live = false,
+  className = '',
+}: {
+  index: number;
+  text: string;
+  right?: string;
+  live?: boolean;
+  className?: string;
+}) => (
+  <figcaption
+    aria-live={live ? 'polite' : undefined}
+    className={`flex justify-between gap-4 font-mono text-[10px] leading-relaxed text-zinc-400 md:text-[11px] ${className}`}
+  >
     <span className="min-w-0">
       <b className="font-bold text-zinc-600">{pad(index)}</b>
       <span className="ml-2.5">{text}</span>
@@ -147,14 +156,12 @@ const MetaStrip = ({ project }: { project: Project }) => {
   );
 };
 
-/** What a picture is, for keys and de-duplication: the image path, or the drawing's id. */
-const pictureKey = (figure: Figure) => figure.src ?? figure.illustration;
-
 /**
  * Every picture the case study shows, once each, in reading order: the hero,
  * the section figures, then whatever content lists only for the gallery.
+ * This is the slider's order too.
  */
-function galleryOf(caseStudy: CaseStudy): Figure[] {
+function picturesOf(caseStudy: CaseStudy): Figure[] {
   const seen = new Set<string>();
   const pictures: Figure[] = [];
   for (const figure of [caseStudy.hero, ...caseStudy.sections.flatMap((s) => (s.figure ? [s.figure] : [])), ...caseStudy.gallery]) {
@@ -172,61 +179,6 @@ const hasExtraPictures = (caseStudy: CaseStudy) => {
   return caseStudy.gallery.some((figure) => !shown.has(pictureKey(figure)));
 };
 
-/**
- * One picture as a button at the tile ratio, the active one ringed. The
- * picture is contained rather than cropped: a card crop is more than twice as
- * wide as the tile, and filling would slice the words out of it — the room it
- * leaves is white on a white screenshot. `className` carries the size, the
- * rounding and any shadow; the filmstrip and the gallery differ there and
- * nowhere else.
- */
-const Thumb = ({
-  picture,
-  index,
-  active,
-  onPick,
-  className,
-}: {
-  picture: Figure;
-  index: number;
-  active: boolean;
-  onPick: (i: number) => void;
-  className: string;
-}) => (
-  <button
-    type="button"
-    onClick={() => onPick(index)}
-    aria-pressed={active}
-    aria-label={`Show picture ${pad(index + 1)}: ${picture.caption}`}
-    className={`block aspect-[16/10] shrink-0 overflow-hidden border border-zinc-200 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
-      active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
-    } ${className}`}
-  >
-    <ProjectFigure figure={picture} className="h-full w-full object-contain" />
-  </button>
-);
-
-/**
- * Previous / next picture: a white disc on the frame's edge, always visible —
- * touch has no hover to reveal it. From `md` it sits half outside the frame,
- * on the zinc band, rather than over the picture. `delay` holds it back while
- * the frame is still in flight, so it does not hang in the air ahead of it.
- */
-const HeroArrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; delay: number; onClick: () => void }) => (
-  <motion.button
-    type="button"
-    onClick={onClick}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1, transition: { duration: 0.3, delay, ease: EASE } }}
-    aria-label={direction === 'previous' ? 'Previous picture' : 'Next picture'}
-    className={`absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-colors hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 md:h-9 md:w-9 ${
-      direction === 'previous' ? 'left-2 md:-left-5' : 'right-2 md:-right-5'
-    }`}
-  >
-    {direction === 'previous' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
-  </motion.button>
-);
-
 const Gallery = ({
   pictures,
   current,
@@ -241,9 +193,7 @@ const Gallery = ({
   <section className={className}>
     <div className="mb-4 flex items-baseline justify-between">
       <Eyebrow as="h3">Gallery</Eyebrow>
-      <span className="font-mono text-[11px] text-zinc-400">
-        {pad(current + 1)} / {pad(pictures.length)}
-      </span>
+      <span className="font-mono text-[11px] text-zinc-400">{counter(current, pictures.length)}</span>
     </div>
     {/* Four tiles sit as two rows of two; every other count reads better in threes than with an orphan. */}
     <ul
@@ -342,14 +292,11 @@ export default function ProjectPage({
   const { caseStudy } = project;
   const addresses = projectAddresses(project);
   const primary = addresses[0];
-  const pictures = galleryOf(caseStudy);
+  const pictures = picturesOf(caseStudy);
   const showGallery = hasExtraPictures(caseStudy);
-  // Which picture the hero shows, and which way the last change travelled: the
-  // new one slides in from that side, so a pick elsewhere on the page reads as
-  // movement rather than a cut.
-  const [{ current, direction }, setSlide] = useState({ current: 0, direction: 0 });
   const many = pictures.length > 1;
-  const hero = pictures[current];
+  const slides = useSlides(pictures.length);
+  const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
 
@@ -358,31 +305,10 @@ export default function ProjectPage({
     titleRef.current?.focus({ preventScroll: true });
   }, []);
 
-  /** Show a picture by index; the slide travels the way the index moved. */
-  const show = (i: number) => setSlide((slide) => ({ current: i, direction: i > slide.current ? 1 : -1 }));
-
-  /** One step the way the arrow points, wrapping at the ends. */
-  const step = (delta: number) =>
-    setSlide((slide) => ({ current: (slide.current + delta + pictures.length) % pictures.length, direction: delta }));
-
-  // A gallery pick is far from the hero, so it still brings the hero into view.
-  const pick = (i: number) => {
-    show(i);
+  // A gallery pick is far from the hero, so it also brings the hero into view.
+  const jumpTo = (i: number) => {
+    slides.show(i);
     heroRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
-  };
-
-  // The arrow keys walk the pictures whenever the focus is anywhere in the hero.
-  const onHeroKey = (event: KeyboardEvent<HTMLElement>) => {
-    if (!many || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
-    event.preventDefault();
-    step(event.key === 'ArrowLeft' ? -1 : 1);
-  };
-
-  // Touch: a throw past ~50px of travel, momentum counted, is a step.
-  const onSwipe = (_: unknown, info: PanInfo) => {
-    const thrown = info.offset.x + info.velocity.x * 0.2;
-    if (thrown < -50) step(1);
-    else if (thrown > 50) step(-1);
   };
 
   /* Everything but the hero: fades and rises in, fades out. From the grid it waits for the hero to get going. */
@@ -394,15 +320,14 @@ export default function ProjectPage({
   // The hero has no entrance of its own when it is the shared element in flight; otherwise it fades like the rest.
   // On the way out its band fades quickly, so it does not sit over the grid while the frame shrinks back to the card.
   const shared = !reduced;
+  const inFlight = shared && arrival === 'grid';
   const heroFade = {
-    initial: shared && arrival === 'grid' ? false : { opacity: 0 },
+    initial: inFlight ? false : { opacity: 0 },
     animate: { opacity: 1, transition: { duration: 0.35, ease: EASE } },
     exit: { opacity: 0, transition: { duration: 0.2 } },
   };
-
-  // The arrows hang off the frame's final edges, so from the grid they wait for
-  // the shared element to finish flying into them.
-  const transportDelay = shared && arrival === 'grid' ? 0.45 : 0;
+  // The arrows hang off the frame's final edges, so they wait for the shared element to finish flying into them.
+  const arrowDelay = inFlight ? 0.45 : 0;
 
   let figureCount = 0;
   const blocks = caseStudy.sections.map((section, i) => {
@@ -442,100 +367,26 @@ export default function ProjectPage({
         <p className="mb-8 max-w-3xl text-base leading-relaxed text-zinc-600 text-pretty md:mb-10 md:text-lg">{caseStudy.summary}</p>
       </motion.div>
 
-      {/*
-       * Hero: from `md`, the photo frame on the card sill's zinc band, reaching
-       * a little past the content edges — as far as the gutter allows until
-       * the content is centred with room to spare. On a phone the frame takes
-       * the full width on its own.
-       *
-       * With more than one picture the frame is also the page's slider: arrows
-       * on its edges, a swipe, the arrow keys, the counter in the caption row
-       * and a filmstrip under it. The gallery further down keeps picking too —
-       * the hero now slides, so the change is visible when the page arrives.
-       */}
-      <motion.figure
+      {/* The gallery further down picks into the same slider, so a change made there is visible on arrival. */}
+      <HeroSlider
         ref={heroRef}
         {...heroFade}
-        onKeyDown={onHeroKey}
-        className="md:-mx-3 md:rounded-[2rem] md:border md:border-zinc-100 md:bg-zinc-50 md:px-8 md:pb-6 md:pt-8 lg:px-10 lg:pb-7 lg:pt-10 xl:-mx-8"
-      >
-        {/* The frame hugs the picture: a tall figure is capped in height and centred rather than letterboxed. */}
-        <div className="flex justify-center">
-          {/* Shrink-wraps the frame, so the arrows hang off the picture's edges and not the band's. */}
-          <div className="relative max-w-full">
-            <motion.div
-              layoutId={shared ? heroLayoutId(project.id) : undefined}
-              layoutDependency={project.id}
-              transition={{ layout: HERO_TRANSITION }}
-              className={`relative max-w-full ${FRAME}`}
-            >
-              {/*
-               * Only the picture inside changes: the frame is the shared element of
-               * the opening flight and keeps its identity. `popLayout` lifts the
-               * outgoing picture out of flow, so the frame lands on the incoming
-               * one's size at once instead of animating between the two.
-               */}
-              <AnimatePresence initial={false} custom={direction} mode="popLayout">
-                <motion.div
-                  key={pictureKey(hero)}
-                  custom={direction}
-                  variants={reduced ? SLIDE_STILL : SLIDE}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: reduced ? 0 : 0.4, ease: EASE }}
-                  drag={many && !reduced ? 'x' : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.15}
-                  onDragEnd={onSwipe}
-                >
-                  {/* Inert: the pointer belongs to the swipe, not to the browser's own image drag. */}
-                  <ProjectFigure
-                    figure={hero}
-                    eager
-                    className="pointer-events-none block h-auto max-h-[640px] w-auto max-w-full select-none"
-                  />
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-            {many ? (
-              <>
-                <HeroArrow direction="previous" delay={transportDelay} onClick={() => step(-1)} />
-                <HeroArrow direction="next" delay={transportDelay} onClick={() => step(1)} />
-              </>
-            ) : null}
-          </div>
-        </div>
-        {/* The right slot counts the pictures; the address pill at the top already names the host. */}
-        <Caption
-          index={current + 1}
-          text={hero.caption}
-          right={
-            many ? (
-              <span aria-live="polite">
-                {pad(current + 1)} / {pad(pictures.length)}
-              </span>
-            ) : undefined
-          }
-          className="mt-3 md:mt-5"
-        />
-        {/* The filmstrip picks without leaving the band; on a phone it scrolls sideways. */}
-        {many ? (
-          <ul className="mt-4 flex gap-2.5 overflow-x-auto py-1 [scrollbar-width:none] md:mt-5 md:justify-center [&::-webkit-scrollbar]:hidden">
-            {pictures.map((picture, i) => (
-              <li key={pictureKey(picture)}>
-                <Thumb
-                  picture={picture}
-                  index={i}
-                  active={i === current}
-                  onPick={show}
-                  className="h-14 rounded-lg md:h-16"
-                />
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </motion.figure>
+        pictures={pictures}
+        slides={slides}
+        layoutId={shared ? heroLayoutId(project.id) : undefined}
+        layoutDependency={project.id}
+        arrowDelay={arrowDelay}
+        caption={
+          // The right slot counts the pictures; the address pill at the top already names the host.
+          <Caption
+            index={slides.current + 1}
+            text={hero.caption}
+            right={many ? counter(slides.current, pictures.length) : undefined}
+            live={many}
+            className="mt-3 md:mt-5"
+          />
+        }
+      />
 
       <motion.div {...rise} className="mt-10 md:mt-12">
         <MetaStrip project={project} />
@@ -543,7 +394,7 @@ export default function ProjectPage({
         <div className="mt-12 flex flex-col gap-12">
           {blocks}
           <WhatItDoes items={project.keyFeatures} className={BLOCK} />
-          {showGallery ? <Gallery pictures={pictures} current={current} onPick={pick} className={BLOCK} /> : null}
+          {showGallery ? <Gallery pictures={pictures} current={slides.current} onPick={jumpTo} className={BLOCK} /> : null}
 
           {/* Prev / next: two cards; a missing one leaves its cell empty. */}
           <nav aria-label="Other projects" className={`${BLOCK} grid gap-6 md:grid-cols-2`}>

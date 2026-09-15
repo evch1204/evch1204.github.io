@@ -55,7 +55,7 @@ export type CaseStudySection = {
 };
 
 export type CaseStudy = {
-  /** The picture the page opens on — the one the card's window grows into. */
+  /** The picture the page opens on — the one the card's window grows into, and the first slide of its hero. */
   hero: Figure;
   /** One or two sentences under the title. */
   summary: string;
@@ -68,8 +68,10 @@ export type CaseStudy = {
   details: { label: string; value: string }[];
   /**
    * Real pictures only, and only ones not already shown as the hero or a
-   * section figure: the page's gallery lists those first, in reading order,
-   * then these — and only appears when there is something here.
+   * section figure. The page's pictures are the hero, the section figures,
+   * then these, in that order: that is the hero slider's order, and its
+   * filmstrip and gallery. With nothing here beyond what the sections show,
+   * there is no gallery — and no slider if the hero is the only picture.
    */
   gallery: Figure[];
 };
