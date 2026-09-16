@@ -7,7 +7,7 @@ import HomeFacts from './components/HomeFacts';
 import PhysBlock from './components/PhysBlock';
 import { useHomeCtas } from './useHomeCtas';
 import { usePhysicsPlayground } from './usePhysicsPlayground';
-import './home-screen.css';
+import './styles/home-screen.css';
 
 type HomeScreenProps = {
   onViewProjects?: () => void;

@@ -1,0 +1,152 @@
+/* ---- The playground button, top right ---- */
+
+.home-screen .home-playground {
+  position: absolute;
+  top: clamp(76px, 9vh, 96px);
+  right: clamp(16px, 4vw, 24px);
+  z-index: 46;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-screen .home-playground-nudge {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--home-dim);
+  white-space: nowrap;
+}
+
+.home-screen .home-playground-arrow {
+  color: #d4d4d8;
+  flex-shrink: 0;
+}
+
+.home-screen .home-playground-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--home-fg);
+  background: #ffffff;
+  border: 1.5px solid var(--home-fg);
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 0 var(--home-fg);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
+  animation: home-btn-idle 3.6s ease-in-out infinite;
+}
+
+.home-screen .home-playground-btn svg {
+  flex-shrink: 0;
+}
+
+.home-screen .home-playground-btn:hover:not(:disabled) {
+  animation: none;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 0 var(--home-fg);
+}
+
+/* Presses in, like a real key. */
+.home-screen .home-playground-btn:active:not(:disabled) {
+  animation: none;
+  transform: translateY(4px);
+  box-shadow: 0 0 0 0 var(--home-fg);
+}
+
+.home-screen .home-playground-btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+  animation: none;
+}
+
+.home-screen.home-armed .home-playground-btn {
+  color: #ffffff;
+  background: var(--home-fg);
+  animation: none;
+}
+
+/* A small tick every few seconds so the button asks to be pressed. */
+@keyframes home-btn-idle {
+  0%,
+  84%,
+  100% {
+    transform: translateY(0);
+  }
+  88% {
+    transform: translateY(-3px) rotate(-1.5deg);
+  }
+  92% {
+    transform: translateY(0) rotate(1deg);
+  }
+  96% {
+    transform: translateY(-1px) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-screen .home-playground-btn,
+  .home-screen .home-hand-svg {
+    animation: none;
+  }
+}
+
+/*
+ * Sits under the "Put it back" button, the one corner the pile never reaches —
+ * at the bottom it shared its spot with the landed blocks and read through
+ * them. The tint is for the moment a thrown block passes behind it.
+ */
+.home-screen .home-hint {
+  position: absolute;
+  top: calc(clamp(76px, 9vh, 96px) + 46px);
+  right: clamp(16px, 4vw, 24px);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--home-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s;
+  max-width: min(calc(100vw - 2rem), 22rem);
+  padding: 6px 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  text-align: right;
+  line-height: 1.4;
+}
+
+/* ---- Phone: the button and its hint stay pinned while the intro scrolls ---- */
+@media (width < 48rem) {
+  .home-screen .home-hint,
+  .home-screen .home-playground {
+    position: fixed;
+  }
+
+  .home-screen .home-playground {
+    top: 60px;
+    right: 16px;
+  }
+
+  /* No room for the nudge beside the button at this width. */
+  .home-screen .home-playground-nudge,
+  .home-screen .home-playground-arrow {
+    display: none;
+  }
+
+  /* Under the button, which sits at 60px here; wraps to two lines on narrow phones. */
+  .home-screen .home-hint {
+    top: 106px;
+    right: 16px;
+    max-width: calc(100vw - 2rem);
+    border-radius: 14px;
+  }
+}

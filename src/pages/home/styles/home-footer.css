@@ -1,0 +1,16 @@
+/* ---- Footer slot: holds the shared SiteFooter at the bottom of the screen ---- */
+
+.home-screen .home-footer-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+}
+
+@media (width < 48rem) {
+  /* The tab bar owns this edge on phones; the footer stays on every other tab. */
+  .home-screen .home-footer-slot {
+    display: none;
+  }
+}
