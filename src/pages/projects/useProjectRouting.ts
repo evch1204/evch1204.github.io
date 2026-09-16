@@ -12,6 +12,15 @@ function projectInHistory(): string | null {
 
 const byId = (id: string) => PROJECTS.find((p) => p.id === id) ?? null;
 
+/** Our entry, next to App's tab: both live in the same state, so Back from another tab returns to this page. */
+const pageState = (id: string) => ({ tab: 'projects', project: id });
+
+/** The project the entry we mount on already names — a reload, or Back onto the page from another tab. */
+function restoredProject(): Project | null {
+  const id = projectInHistory();
+  return id ? byId(id) : null;
+}
+
 /**
  * The hero's picture is measured the moment the page mounts, so it has to be
  * decoded by then or the frame the card grows into is the wrong size. Cached
@@ -43,8 +52,13 @@ export function useProjectRouting() {
   const present = useIsPresent();
   const presentRef = useRef(true);
   presentRef.current = present;
-  const [selected, setSelected] = useState<Project | null>(null);
-  const [arrival, setArrival] = useState<'grid' | 'page'>('grid');
+  /*
+   * A page named by the entry we mount on is already open: there is no card on
+   * screen for the hero to fly out of and no grid scroll to hold, so it simply
+   * fades in the way a neighbouring page does.
+   */
+  const [selected, setSelected] = useState<Project | null>(restoredProject);
+  const [arrival, setArrival] = useState<'grid' | 'page'>(() => (selected ? 'page' : 'grid'));
   /*
    * The scroll hand-off. A layout animation runs in page coordinates, so
    * changing the scroll position while the hero is in flight would put its
@@ -136,8 +150,8 @@ export function useProjectRouting() {
       opening.current = null;
       if (!alive.current) return;
       // Guard against a double entry: a second open before the first was left just replaces it.
-      if (projectInHistory()) history.replaceState({ project: project.id }, '');
-      else history.pushState({ project: project.id }, '');
+      if (projectInHistory()) history.replaceState(pageState(project.id), '');
+      else history.pushState(pageState(project.id), '');
       swapView(project, 0, true);
     },
     [settleNow, swapView],
@@ -147,8 +161,8 @@ export function useProjectRouting() {
   const select = useCallback(
     (project: Project) => {
       if (leaving.current) return;
-      if (projectInHistory()) history.replaceState({ project: project.id }, '');
-      else history.pushState({ project: project.id }, '');
+      if (projectInHistory()) history.replaceState(pageState(project.id), '');
+      else history.pushState(pageState(project.id), '');
       swapView(project, 0, false);
     },
     [swapView],
@@ -189,18 +203,12 @@ export function useProjectRouting() {
     return () => window.removeEventListener('popstate', onPop);
   }, [settleNow, swapView]);
 
+  // The entry the page writes outlives the tab: leaving with a page open and coming
+  // back with Back reopens it, and so does a reload. App owns `scrollRestoration`.
   useEffect(() => {
     alive.current = true;
-    // The browser would restore the grid's scroll position the instant our entry pops — before the grid is back.
-    const restoration = history.scrollRestoration;
-    history.scrollRestoration = 'manual';
-    // An entry left over from before a reload opens nothing.
-    if (projectInHistory()) history.replaceState(null, '');
     return () => {
       alive.current = false;
-      history.scrollRestoration = restoration;
-      // Leaving the tab with a page open: the entry stays, but it no longer opens anything.
-      if (projectInHistory()) history.replaceState(null, '');
       if (settle.current) clearTimeout(settle.current.timer);
       settle.current = null;
     };
