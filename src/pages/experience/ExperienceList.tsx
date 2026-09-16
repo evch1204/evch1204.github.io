@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import {
   ChevronsUpDown,
@@ -38,18 +38,14 @@ function startYear(org: Org) {
  * animate between — `inert` keeps its content out of the tab order when closed.
  * Closed, the header carries a one-line teaser (the first bullet) so the list
  * reads without opening anything; it folds away as the panel opens.
+ *
+ * The row's icon sits on the org's rail; the open row inks it. Each row draws
+ * its own stretch of the rail, from its top edge (under the org mark, or the
+ * row above) down through its icon to the next row — the last row stops at
+ * its icon, so the line hangs from the mark to the final position and no
+ * further.
  */
-function RoleRow({
-  role,
-  open,
-  onToggle,
-  rowRef,
-}: {
-  role: Role;
-  open: boolean;
-  onToggle: () => void;
-  rowRef: (el: HTMLDivElement | null) => void;
-}) {
+function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; last: boolean; onToggle: () => void }) {
   const Icon = ROLE_ICONS[role.icon];
   const panelId = `role-panel-${role.id}`;
   const teaser = role.bullets[0];
@@ -60,32 +56,24 @@ function RoleRow({
   const fade = (ms: number) => (reduceMotion ? 0 : ms);
 
   return (
-    <div
-      ref={rowRef}
-      className="rounded-2xl border transition-[background-color,border-color,box-shadow]"
-      style={{
-        backgroundColor: open ? '#ffffff' : 'rgba(255,255,255,0)',
-        borderColor: open ? '#f4f4f5' : 'transparent',
-        boxShadow: open ? '0 12px 32px rgba(0,0,0,0.04)' : '0 12px 32px rgba(0,0,0,0)',
-        ...timing,
-      }}
-    >
+    <div className="relative">
+      <span className={`absolute left-[13px] top-0 w-0.5 bg-zinc-200 ${last ? 'h-[26px]' : 'bottom-0'}`} aria-hidden />
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         aria-controls={panelId}
-        className="group flex w-full items-start gap-3 rounded-2xl px-3.5 py-3 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+        className="group relative flex w-full items-start gap-4 rounded-lg py-3 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-4 focus-visible:ring-offset-[#FAFAFA]"
       >
         <span
-          className={`mt-px flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg border transition-colors ${
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${
             open
               ? 'border-zinc-900 bg-zinc-900 text-white'
-              : 'border-zinc-200 bg-zinc-50 text-zinc-500 group-hover:border-zinc-300 group-hover:text-zinc-900'
+              : 'border-zinc-200 bg-zinc-50 text-zinc-500 group-hover:border-zinc-400 group-hover:text-zinc-900'
           }`}
           style={timing}
         >
-          <Icon size={13} strokeWidth={2} aria-hidden />
+          <Icon size={14} strokeWidth={2} aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[15px] font-semibold tracking-[-0.015em] text-zinc-900 text-pretty">
@@ -135,7 +123,7 @@ function RoleRow({
       >
         <div className="min-h-0 overflow-hidden">
           <div
-            className="pb-4 pl-10 sm:pl-[52px] pr-3.5 pt-0.5"
+            className="pb-5 pl-11 pt-0.5"
             style={{
               opacity: open ? 1 : 0,
               transform: open ? 'translateY(0)' : 'translateY(-6px)',
@@ -171,10 +159,9 @@ function RoleRow({
 }
 
 /**
- * One organization: the header, and its roles hanging off a rail. The rail is
- * a zinc track with an ink line over it that reaches down to the bottom of the
- * last open row (measured, so it follows the rows as they animate) and springs
- * back up as rows close.
+ * One organization: the header, and its positions strung on a rail beneath it.
+ * The rail is drawn by the rows themselves (see RoleRow), so it needs no
+ * measuring — it is just a line through the icons.
  */
 function OrgGroup({
   org,
@@ -188,36 +175,8 @@ function OrgGroup({
   onToggle: (id: string) => void;
 }) {
   const reduceMotion = useReducedMotion();
-  const rolesRef = useRef<HTMLDivElement>(null);
-  const rowEls = useRef(new Map<string, HTMLDivElement>());
-  const [ink, setInk] = useState(0);
   const first = index === 0;
   const year = startYear(org);
-  // This org's open rows in row order, as one string: a stable key for the
-  // measurement below, where the Set is a new object on every toggle.
-  const openKey = org.roles
-    .filter((role) => openIds.has(role.id))
-    .map((role) => role.id)
-    .join(' ');
-
-  useLayoutEffect(() => {
-    const roles = rolesRef.current;
-    if (!roles) return;
-    const measure = () => {
-      let bottom = 0;
-      // Row order, so the last open row wins.
-      for (const id of openKey.split(' ')) {
-        const el = rowEls.current.get(id);
-        if (el) bottom = el.offsetTop + el.offsetHeight;
-      }
-      setInk(bottom);
-    };
-    measure();
-    // Rows change height as they open, close and reflow; the container's size follows.
-    const observer = new ResizeObserver(measure);
-    observer.observe(roles);
-    return () => observer.disconnect();
-  }, [openKey]);
 
   return (
     <motion.div
@@ -241,7 +200,7 @@ function OrgGroup({
       <div className={`min-w-0 ${first ? '' : 'border-t border-zinc-100 pt-6'} pb-6`}>
         {/* Wraps on narrow screens: the location drops under the name, indented to
             line up with it, instead of squeezing the org name to nothing. */}
-        <div className="relative z-[1] mb-2.5 flex flex-wrap items-center gap-3 pl-0.5">
+        <div className="mb-1 flex flex-wrap items-center gap-3">
           <CompanyLogo domain={org.logoDomain} company={org.name} size={36} />
           <h3 className="text-[17px] font-bold tracking-[-0.025em] text-zinc-900">{org.name}</h3>
           {org.current ? (
@@ -261,26 +220,15 @@ function OrgGroup({
           ) : null}
         </div>
 
-        {/* Rail tying a company's positions together. */}
-        <div ref={rolesRef} className="relative ml-3 flex flex-col gap-0.5 pl-3 sm:ml-4 sm:pl-[17px]">
-          <span className="absolute inset-y-0 left-0 w-0.5 rounded-full bg-zinc-200" aria-hidden />
-          <motion.span
-            className="absolute left-0 top-0 w-0.5 rounded-full bg-zinc-900"
-            initial={{ height: 0 }}
-            animate={{ height: ink }}
-            transition={reduceMotion ? { duration: 0 } : { type: 'spring', bounce: 0.2, duration: 0.6 }}
-            aria-hidden
-          />
-          {org.roles.map((role) => (
+        {/* Rows indented so their icons sit centred under the org mark. */}
+        <div className="ml-1 flex flex-col">
+          {org.roles.map((role, i) => (
             <RoleRow
               key={role.id}
               role={role}
               open={openIds.has(role.id)}
+              last={i === org.roles.length - 1}
               onToggle={() => onToggle(role.id)}
-              rowRef={(el) => {
-                if (el) rowEls.current.set(role.id, el);
-                else rowEls.current.delete(role.id);
-              }}
             />
           ))}
         </div>
