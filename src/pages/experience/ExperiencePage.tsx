@@ -3,7 +3,7 @@ import PillLink from '@/components/PillLink';
 import Section from '@/components/Section';
 import { EXPERIENCE, EDUCATION } from '@/content/experience';
 import { RESUME_FILENAME, RESUME_URL } from '@/content/site';
-import ExperienceList from './ExperienceList';
+import ExperienceList from '@/pages/experience/components/ExperienceList';
 
 /**
  * One centred column holds both lists and their title rows, so the eyebrow,

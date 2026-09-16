@@ -1,19 +1,7 @@
-import { useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
-import {
-  ChevronsUpDown,
-  Code2,
-  Cpu,
-  Database,
-  GraduationCap,
-  Headset,
-  MapPin,
-  School,
-} from 'lucide-react';
+import { useReducedMotion } from 'motion/react';
+import { ChevronsUpDown, Code2, Cpu, Database, GraduationCap, Headset, School } from 'lucide-react';
 import Tag from '@/components/Tag';
-import type { Org, Role, RoleIcon } from '@/content/experience';
-import { EASE } from '@/lib/motion';
-import CompanyLogo from './CompanyLogo';
+import type { Role, RoleIcon } from '@/content/experience';
 
 /** Shared easing + duration so height, fade and chevron travel as one motion. */
 const ROW_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
@@ -28,11 +16,6 @@ const ROLE_ICONS: Record<RoleIcon, typeof Code2> = {
   school: School,
 };
 
-/** The year an org's first (most recent) role started: "MM.YYYY — …" → "YYYY". */
-function startYear(org: Org) {
-  return /^\d{2}\.(\d{4})/.exec(org.roles[0]?.period ?? '')?.[1] ?? '';
-}
-
 /**
  * One position or degree: a header that is always visible, and a panel whose
  * height animates open. The panel stays mounted so there is something to
@@ -46,7 +29,7 @@ function startYear(org: Org) {
  * its icon, so the line hangs from the mark to the final position and no
  * further.
  */
-function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; last: boolean; onToggle: () => void }) {
+export default function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; last: boolean; onToggle: () => void }) {
   const Icon = ROLE_ICONS[role.icon];
   const panelId = `role-panel-${role.id}`;
   const teaser = role.bullets[0];
@@ -155,111 +138,6 @@ function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; la
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/**
- * One organization: the header, and its positions strung on a rail beneath it.
- * The rail is drawn by the rows themselves (see RoleRow), so it needs no
- * measuring — it is just a line through the icons.
- */
-function OrgGroup({
-  org,
-  index,
-  openIds,
-  onToggle,
-}: {
-  org: Org;
-  index: number;
-  openIds: Set<string>;
-  onToggle: (id: string) => void;
-}) {
-  const reduceMotion = useReducedMotion();
-  const first = index === 0;
-  const year = startYear(org);
-
-  return (
-    <motion.div
-      className="sm:grid sm:grid-cols-[44px_minmax(0,1fr)] sm:gap-x-5"
-      {...(reduceMotion
-        ? {}
-        : {
-            initial: { opacity: 0, y: 18 },
-            whileInView: { opacity: 1, y: 0 },
-            viewport: { once: true, margin: '-10% 0px' },
-            transition: { duration: 0.7, ease: EASE, delay: index * 0.08 },
-          })}
-    >
-      {/* Year gutter: holds beside the group while it scrolls past. Hidden on phones. */}
-      <div className={`hidden sm:block ${first ? 'pt-2.5' : 'pt-[34px]'}`} aria-hidden>
-        <span className="sticky top-28 block text-right font-mono text-[11px] font-bold leading-4 text-zinc-400">
-          {year}
-        </span>
-      </div>
-
-      <div className={`min-w-0 ${first ? '' : 'border-t border-zinc-100 pt-6'} pb-6`}>
-        {/* Wraps on narrow screens: the location drops under the name, indented to
-            line up with it, instead of squeezing the org name to nothing. */}
-        <div className="mb-1 flex flex-wrap items-center gap-3">
-          <CompanyLogo domain={org.logoDomain} company={org.name} size={36} />
-          <h3 className="text-[17px] font-bold tracking-[-0.025em] text-zinc-900">{org.name}</h3>
-          {org.current ? (
-            <span
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-900"
-              title="Current"
-            >
-              <span className="block h-[7px] w-[7px] rounded-full bg-zinc-900" aria-hidden />
-              Now
-            </span>
-          ) : null}
-          {org.location ? (
-            <span className="flex basis-full items-center gap-1 pl-12 text-[11px] font-medium text-zinc-400 sm:ml-auto sm:basis-auto sm:pl-0">
-              <MapPin size={11} aria-hidden />
-              {org.location}
-            </span>
-          ) : null}
-        </div>
-
-        {/* Rows indented so their icons sit centred under the org mark. */}
-        <div className="ml-1 flex flex-col">
-          {org.roles.map((role, i) => (
-            <RoleRow
-              key={role.id}
-              role={role}
-              open={openIds.has(role.id)}
-              last={i === org.roles.length - 1}
-              onToggle={() => onToggle(role.id)}
-            />
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-export default function ExperienceList({ orgs }: { orgs: Org[] }) {
-  /** The most recent position opens by default, so the list never lands fully collapsed. */
-  const [openIds, setOpenIds] = useState<Set<string>>(() => {
-    const first = orgs[0]?.roles[0]?.id;
-    return new Set(first ? [first] : []);
-  });
-
-  const toggle = (id: string) =>
-    setOpenIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-  // From `sm` the year column hangs left of the content column's edge, into
-  // the space the page reserves for it (see ExperiencePage).
-  return (
-    <div className="sm:-ml-16">
-      {orgs.map((org, index) => (
-        <OrgGroup key={org.id} org={org} index={index} openIds={openIds} onToggle={toggle} />
-      ))}
     </div>
   );
 }

@@ -5,10 +5,10 @@ import Section from '@/components/Section';
 import { CONTACT_LINKS, NAME, ROLE } from '@/content/site';
 import { EASE } from '@/lib/motion';
 import profilePhoto from '@/assets/images/profile.jpg';
-import GithubActivity from './GithubActivity';
-import ResumeModal from './ResumeModal';
-import ResumePanel from './ResumePanel';
-import TechIWorkWith from './TechIWorkWith';
+import GithubActivity from '@/pages/about/components/GithubActivity';
+import ResumeModal from '@/pages/about/components/ResumeModal';
+import ResumePanel from '@/pages/about/components/ResumePanel';
+import TechIWorkWith from '@/pages/about/components/TechIWorkWith';
 
 export default function AboutPage() {
   const [resumeOpen, setResumeOpen] = useState(false);
