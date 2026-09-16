@@ -1,14 +1,14 @@
 import { useState, useEffect, type ComponentType } from 'react';
 import { AnimatePresence } from 'motion/react';
-import SiteFooter from '@/components/SiteFooter';
 import Header from '@/layout/Header';
+import SiteFooter from '@/layout/SiteFooter';
 import TabBar from '@/layout/TabBar';
 import type { Tab } from '@/layout/nav';
-import HomeScreen from './pages/home/HomeScreen';
-import AboutPage from './pages/about/AboutPage';
-import ExperiencePage from './pages/experience/ExperiencePage';
-import ProjectsPage from './pages/projects/ProjectsPage';
-import ContactPage from './pages/contact/ContactPage';
+import HomeScreen from '@/pages/home/HomeScreen';
+import AboutPage from '@/pages/about/AboutPage';
+import ExperiencePage from '@/pages/experience/ExperiencePage';
+import ProjectsPage from '@/pages/projects/ProjectsPage';
+import ContactPage from '@/pages/contact/ContactPage';
 
 /** Home is the deliberate exception: it stays mounted, so it is not in here. */
 const TAB_PAGES: Record<Exclude<Tab, 'home'>, ComponentType> = {
@@ -28,7 +28,7 @@ export default function App() {
   }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-zinc-900 selection:text-white overflow-x-clip">
+    <div className="min-h-screen bg-page font-sans selection:bg-zinc-900 selection:text-white overflow-x-clip">
       {/* Background Accents */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-zinc-100/50 blur-[60px] md:blur-[120px]" />
@@ -39,7 +39,7 @@ export default function App() {
 
       {/* Always mounted so home physics / block positions survive tab switches; full refresh still resets. */}
       <div
-        className={`fixed inset-0 z-0 overflow-hidden bg-[#FAFAFA] ${
+        className={`fixed inset-0 z-0 overflow-hidden bg-page ${
           isHome ? '' : 'pointer-events-none invisible'
         }`}
         aria-hidden={!isHome}

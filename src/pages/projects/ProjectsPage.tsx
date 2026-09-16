@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useIsPresent, useReducedMotion, type HTMLMotio
 import Section from '@/components/Section';
 import { FEATURED_PROJECT, PROJECTS, PROJECT_GROUPS, projectsInGroup, type Figure, type Project } from '@/content/projects';
 import { GITHUB_URL } from '@/content/site';
+import { pad2 } from '@/lib/format';
 import FeaturedProjectCard from './FeaturedProjectCard';
 import ProjectCard from './ProjectCard';
 import ProjectPage from './ProjectPage';
@@ -16,7 +17,7 @@ const GroupHeading = ({ label, count }: { label: string; count: number }) => (
     <h3 className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">{label}</h3>
     <span className="h-px flex-1 bg-zinc-200" aria-hidden />
     <span className="text-[11px] font-bold tracking-wider text-zinc-400">
-      {String(count).padStart(2, '0')}
+      {pad2(count)}
     </span>
   </div>
 );

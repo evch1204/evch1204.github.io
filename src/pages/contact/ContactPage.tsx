@@ -17,11 +17,10 @@ import {
   TEL,
   TIMEZONE,
 } from '@/content/site';
-import { readLocalClock } from '@/lib/clock';
+import { useLocalClock } from '@/hooks/useLocalClock';
 import { linkProps } from '@/lib/links';
+import { EASE } from '@/lib/motion';
 import { hostLabel } from '@/lib/url';
-
-const EASE = [0.23, 1, 0.32, 1] as const;
 
 /**
  * A row of the register: its label, what it says, and where it goes. An
@@ -128,12 +127,7 @@ function Register({ rows }: { rows: Row[] }) {
 }
 
 export default function ContactPage() {
-  const [clock, setClock] = useState(() => readLocalClock(TIMEZONE));
-
-  useEffect(() => {
-    const id = window.setInterval(() => setClock(readLocalClock(TIMEZONE)), 30_000);
-    return () => window.clearInterval(id);
-  }, []);
+  const clock = useLocalClock(TIMEZONE);
 
   const rows: Row[] = [
     { label: 'Email', value: EMAIL, href: MAILTO, copy: EMAIL, mono: true },

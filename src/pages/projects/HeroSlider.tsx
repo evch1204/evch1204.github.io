@@ -2,12 +2,10 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type R
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps, type PanInfo } from 'motion/react';
 import type { Figure } from '@/content/projects';
+import { pad2 } from '@/lib/format';
+import { EASE } from '@/lib/motion';
 import ProjectFigure from './ProjectFigure';
 import { HERO_TRANSITION } from './ProjectPanel';
-
-const pad = (n: number) => String(n).padStart(2, '0');
-
-const EASE = [0.23, 1, 0.32, 1] as const;
 
 /** The About page's photo frame: white border, big radius, the soft shadow. Thinner and tighter on a phone. */
 export const FRAME =
@@ -67,7 +65,7 @@ export const Thumb = ({
     type="button"
     onClick={() => onPick(index)}
     aria-current={active ? 'true' : undefined}
-    aria-label={`Show picture ${pad(index + 1)}: ${picture.caption}`}
+    aria-label={`Show picture ${pad2(index + 1)}: ${picture.caption}`}
     className={`block aspect-[16/10] shrink-0 overflow-hidden border border-zinc-200 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
       active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
     } ${className}`}

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
+import { EASE } from '@/lib/motion';
 import SectionHeading from './SectionHeading';
 
 /**
@@ -21,7 +22,7 @@ export default function Section({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+      transition={{ duration: 0.5, ease: EASE }}
       className="w-full"
     >
       {/* The same row with or without actions: an empty flex row is just the heading. */}

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import Chip from '@/components/Chip';
 import Section from '@/components/Section';
 import { CONTACT_LINKS, NAME, ROLE } from '@/content/site';
+import { EASE } from '@/lib/motion';
 import profilePhoto from '@/assets/images/your-photo.jpg';
 import GithubActivity from './GithubActivity';
 import ResumeModal from './ResumeModal';
@@ -53,7 +54,7 @@ export default function AboutPage() {
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+                transition={{ duration: 0.45, ease: EASE }}
                 className="relative z-10 aspect-[3/4] w-full overflow-hidden rounded-[2rem] border-[6px] border-white bg-zinc-100 shadow-[0_24px_64px_rgba(0,0,0,0.12)] sm:rounded-[2.25rem] sm:border-8"
               >
                 <img

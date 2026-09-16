@@ -12,7 +12,7 @@ function companyInitials(company: string) {
  * The ring is the page background, so the mark reads as sitting on top of the
  * list rather than in it; the soft shadow lifts it the rest of the way.
  */
-const FRAME = 'shrink-0 rounded-[10px] ring-4 ring-[#FAFAFA] shadow-[0_4px_12px_rgba(0,0,0,0.05)]';
+const FRAME = 'shrink-0 rounded-[10px] ring-4 ring-page shadow-[0_4px_12px_rgba(0,0,0,0.05)]';
 
 /**
  * Loads a mark via Google’s public favicon service from the organization’s website domain.

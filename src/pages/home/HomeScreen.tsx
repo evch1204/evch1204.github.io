@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import {
   Clock,
   CodeXml,
@@ -12,7 +12,8 @@ import {
   User,
   Zap,
 } from 'lucide-react';
-import SiteFooter from '@/components/SiteFooter';
+import { useLocalClock } from '@/hooks/useLocalClock';
+import SiteFooter from '@/layout/SiteFooter';
 import {
   EMAIL,
   GITHUB_URL,
@@ -25,7 +26,6 @@ import {
   SOCIAL_LINKS,
   TIMEZONE,
 } from '@/content/site';
-import { readLocalClock } from '@/lib/clock';
 import { triggerDownload } from '@/lib/download';
 import { usePhysicsPlayground, type CtaKind } from './usePhysicsPlayground';
 import './home-screen.css';
@@ -66,13 +66,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
     onCta: runCta,
   });
 
-  const [clock, setClock] = useState(() => readLocalClock(TIMEZONE));
-
-  useEffect(() => {
-    if (isPaused) return;
-    const id = window.setInterval(() => setClock(readLocalClock(TIMEZONE)), 30_000);
-    return () => window.clearInterval(id);
-  }, [isPaused]);
+  const clock = useLocalClock(TIMEZONE, isPaused);
 
   /**
    * At rest the buttons and social icons are ordinary controls. Once armed they

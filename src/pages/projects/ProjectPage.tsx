@@ -5,17 +5,15 @@ import Eyebrow from '@/components/Eyebrow';
 import PillLink from '@/components/PillLink';
 import Tag from '@/components/Tag';
 import { groupLabel, type CaseStudy, type CaseStudySection, type Figure, type Project } from '@/content/projects';
+import { pad2 } from '@/lib/format';
+import { EASE } from '@/lib/motion';
 import { projectAddresses, type ProjectAddress } from './addresses';
 import ProjectFigure from './ProjectFigure';
 import HeroSlider, { FRAME, pictureKey, Thumb, useSlides } from './HeroSlider';
 import ProjectPanel, { heroLayoutId } from './ProjectPanel';
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
-const EASE = [0.23, 1, 0.32, 1] as const;
-
 /** "02 / 05". */
-const counter = (current: number, total: number) => `${pad(current + 1)} / ${pad(total)}`;
+const counter = (current: number, total: number) => `${pad2(current + 1)} / ${pad2(total)}`;
 
 /**
  * Mono caption row under a picture: bold index, caption, and an optional
@@ -40,7 +38,7 @@ const Caption = ({
     className={`flex justify-between gap-4 font-mono text-[10px] leading-relaxed text-zinc-400 md:text-[11px] ${className}`}
   >
     <span className="min-w-0">
-      <b className="font-bold text-zinc-600">{pad(index)}</b>
+      <b className="font-bold text-zinc-600">{pad2(index)}</b>
       <span className="ml-2.5">{text}</span>
     </span>
     {right ? <span className="shrink-0">{right}</span> : null}
@@ -110,7 +108,7 @@ const WhatItDoes = ({ items, className }: { items: string[]; className: string }
           key={item}
           className="flex gap-4 border-b border-zinc-100 py-3.5 text-sm font-medium leading-relaxed text-zinc-600 text-pretty break-inside-avoid"
         >
-          <span className="w-[22px] shrink-0 pt-[3px] font-mono text-[11px] text-zinc-400">{pad(i + 1)}</span>
+          <span className="w-[22px] shrink-0 pt-[3px] font-mono text-[11px] text-zinc-400">{pad2(i + 1)}</span>
           <span>{item}</span>
         </li>
       ))}

@@ -12,10 +12,11 @@ import {
 } from 'lucide-react';
 import Tag from '@/components/Tag';
 import type { Org, Role, RoleIcon } from '@/content/experience';
+import { EASE } from '@/lib/motion';
 import CompanyLogo from './CompanyLogo';
 
 /** Shared easing + duration so height, fade and chevron travel as one motion. */
-const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const ROW_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const DURATION = 460;
 
 const ROLE_ICONS: Record<RoleIcon, typeof Code2> = {
@@ -52,7 +53,7 @@ function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; la
   // Reduced motion: the row still opens and closes, just without the travel.
   const reduceMotion = useReducedMotion();
   const duration = reduceMotion ? 0 : DURATION;
-  const timing = { transitionDuration: `${duration}ms`, transitionTimingFunction: EASE };
+  const timing = { transitionDuration: `${duration}ms`, transitionTimingFunction: ROW_EASE };
   const fade = (ms: number) => (reduceMotion ? 0 : ms);
 
   return (
@@ -63,7 +64,7 @@ function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; la
         onClick={onToggle}
         aria-expanded={open}
         aria-controls={panelId}
-        className="group relative flex w-full items-start gap-4 rounded-lg py-3 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-4 focus-visible:ring-offset-[#FAFAFA]"
+        className="group relative flex w-full items-start gap-4 rounded-lg py-3 text-left cursor-pointer focus-ring focus-visible:ring-offset-4 focus-visible:ring-offset-page"
       >
         <span
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${
@@ -90,7 +91,7 @@ function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; la
           {teaser ? (
             <span
               className="grid"
-              style={{ gridTemplateRows: open ? '0fr' : '1fr', transition: `grid-template-rows ${duration}ms ${EASE}` }}
+              style={{ gridTemplateRows: open ? '0fr' : '1fr', transition: `grid-template-rows ${duration}ms ${ROW_EASE}` }}
               aria-hidden
             >
               <span className="block min-h-0 overflow-hidden">
@@ -118,7 +119,7 @@ function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; la
       <div
         id={panelId}
         className="grid"
-        style={{ gridTemplateRows: open ? '1fr' : '0fr', transition: `grid-template-rows ${duration}ms ${EASE}` }}
+        style={{ gridTemplateRows: open ? '1fr' : '0fr', transition: `grid-template-rows ${duration}ms ${ROW_EASE}` }}
         {...(open ? {} : { inert: true })}
       >
         <div className="min-h-0 overflow-hidden">
@@ -127,7 +128,7 @@ function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; la
             style={{
               opacity: open ? 1 : 0,
               transform: open ? 'translateY(0)' : 'translateY(-6px)',
-              transition: `opacity ${fade(300)}ms ease, transform ${fade(300)}ms ${EASE}`,
+              transition: `opacity ${fade(300)}ms ease, transform ${fade(300)}ms ${ROW_EASE}`,
               // Content waits for the height to get going, but leaves immediately.
               transitionDelay: open ? `${fade(120)}ms` : '0ms',
             }}
@@ -187,7 +188,7 @@ function OrgGroup({
             initial: { opacity: 0, y: 18 },
             whileInView: { opacity: 1, y: 0 },
             viewport: { once: true, margin: '-10% 0px' },
-            transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1], delay: index * 0.08 },
+            transition: { duration: 0.7, ease: EASE, delay: index * 0.08 },
           })}
     >
       {/* Year gutter: holds beside the group while it scrolls past. Hidden on phones. */}
