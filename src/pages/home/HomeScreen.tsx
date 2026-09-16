@@ -1,33 +1,12 @@
-import { useState, type KeyboardEvent } from 'react';
-import {
-  Clock,
-  CodeXml,
-  Download,
-  GraduationCap,
-  Hand,
-  Mail,
-  MapPin,
-  Phone,
-  RotateCcw,
-  User,
-  Zap,
-} from 'lucide-react';
+import { useState } from 'react';
+import { Download, Hand, RotateCcw, Zap } from 'lucide-react';
 import { useLocalClock } from '@/hooks/useLocalClock';
 import SiteFooter from '@/layout/SiteFooter';
-import {
-  EMAIL,
-  GITHUB_URL,
-  LINKEDIN_URL,
-  LOCATION,
-  MAILTO,
-  PHONE,
-  RESUME_FILENAME,
-  RESUME_URL,
-  SOCIAL_LINKS,
-  TIMEZONE,
-} from '@/content/site';
-import { triggerDownload } from '@/lib/download';
-import { usePhysicsPlayground, type CtaKind } from './usePhysicsPlayground';
+import { SOCIAL_LINKS, TIMEZONE } from '@/content/site';
+import HomeFacts from './components/HomeFacts';
+import PhysBlock from './components/PhysBlock';
+import { useHomeCtas } from './useHomeCtas';
+import { usePhysicsPlayground } from './usePhysicsPlayground';
 import './home-screen.css';
 
 type HomeScreenProps = {
@@ -44,22 +23,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
   /** Physics is opt-in: nothing is grabbable until the visitor presses the button. */
   const [armed, setArmed] = useState(false);
 
-  /**
-   * What each block does when it is tapped, in one table. The falling blocks are
-   * plain DOM, so the engine only reports which kind was tapped and every
-   * address the site knows stays on this side.
-   */
-  const CTA_ACTIONS: Record<CtaKind, () => void> = {
-    projects: () => onViewProjects?.(),
-    resume: () => triggerDownload(RESUME_URL, RESUME_FILENAME),
-    github: () => window.open(GITHUB_URL, '_blank', 'noopener,noreferrer'),
-    linkedin: () => window.open(LINKEDIN_URL, '_blank', 'noopener,noreferrer'),
-    mail: () => {
-      window.location.href = MAILTO;
-    },
-  };
-
-  const runCta = (kind: CtaKind) => CTA_ACTIONS[kind]();
+  const { runCta, clickCta, keyCta } = useHomeCtas({ armed, onViewProjects });
 
   const { busy, dropAll, reset, containerRef, hintRef, rootRef, shelfRef } = usePhysicsPlayground({
     isPaused,
@@ -67,26 +31,6 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
   });
 
   const clock = useLocalClock(TIMEZONE, isPaused);
-
-  /**
-   * At rest the buttons and social icons are ordinary controls. Once armed they
-   * become physics bodies and the clone handles the press instead, so a click on
-   * the now-invisible source bails out rather than firing twice.
-   */
-  const clickCta = (kind: CtaKind) => () => {
-    if (armed) return;
-    runCta(kind);
-  };
-
-  /**
-   * The keyboard never reaches a clone, so the sources stay in the tab order and
-   * Enter/Space runs the real action whether the playground is armed or not.
-   */
-  const keyCta = (kind: CtaKind) => (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    e.preventDefault();
-    runCta(kind);
-  };
 
   const togglePlayground = () => {
     if (busy) return;
@@ -106,27 +50,13 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
       <div className="home-intro">
         <div className="home-block">
           <h1 className="home-greeting">
-            <span className="word-block greet" data-phys="1" data-phys-cls="greet">
-              Hello,
-            </span>
-            <span className="word-block greet" data-phys="1" data-phys-cls="greet">
-              I&apos;m
-            </span>
-            <span className="word-block greet" data-phys="1" data-phys-cls="greet">
-              Tei
-            </span>
-            <span className="word-block greet" data-phys="1" data-phys-cls="greet">
-              Chang
-            </span>
-            <span
-              className="word-block hand-wave-block"
-              data-phys="1"
-              data-phys-cls="hand-wave"
-              data-phys-html="1"
-              aria-hidden
-            >
+            <PhysBlock cls="greet">Hello,</PhysBlock>
+            <PhysBlock cls="greet">I&apos;m</PhysBlock>
+            <PhysBlock cls="greet">Tei</PhysBlock>
+            <PhysBlock cls="greet">Chang</PhysBlock>
+            <PhysBlock cls="hand-wave" sourceCls="hand-wave-block" rich aria-hidden>
               <Hand className="home-hand-svg" strokeWidth={2} aria-hidden />
-            </span>
+            </PhysBlock>
           </h1>
 
           {/* Stays put while everything else falls, so the pieces have a shelf to land on. */}
@@ -134,66 +64,23 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             I work in data science, software engineering and machine learning.
           </p>
 
-          <div className="home-facts">
-            <span
-              className="word-block fact fact-wide"
-              data-phys="1"
-              data-phys-cls="fact"
-              data-phys-html="1"
-            >
-              <CodeXml size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">Software Engineer at @DeepSpace</span>
-              <span className="fact-m">// open to work</span>
-            </span>
-
-            <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
-              <MapPin size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">{LOCATION}</span>
-            </span>
-            <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
-              <Clock size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">{clock.time}</span>
-              <span className="fact-m">{clock.delta}</span>
-            </span>
-
-            <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
-              <GraduationCap size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">B.S. Computer Science, SCU &apos;25</span>
-            </span>
-            <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
-              <User size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">he/him</span>
-            </span>
-
-            <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
-              <Mail size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">{EMAIL}</span>
-            </span>
-            <span className="word-block fact" data-phys="1" data-phys-cls="fact" data-phys-html="1">
-              <Phone size={16} strokeWidth={2} aria-hidden />
-              <span className="fact-v">{PHONE}</span>
-            </span>
-          </div>
+          <HomeFacts time={clock.time} delta={clock.delta} />
 
           <div className="home-actions">
-            <span
-              className="word-block action action-primary"
-              data-phys="1"
-              data-phys-cls="action action-primary"
-              data-phys-cta="projects"
+            <PhysBlock
+              cls="action action-primary"
+              cta="projects"
               role="button"
               tabIndex={0}
               onClick={clickCta('projects')}
               onKeyDown={keyCta('projects')}
             >
               View projects
-            </span>
-            <span
-              className="word-block action"
-              data-phys="1"
-              data-phys-cls="action"
-              data-phys-cta="resume"
-              data-phys-html="1"
+            </PhysBlock>
+            <PhysBlock
+              cls="action"
+              cta="resume"
+              rich
               role="button"
               tabIndex={0}
               onClick={clickCta('resume')}
@@ -201,7 +88,7 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             >
               <Download size={14} strokeWidth={2} aria-hidden />
               <span>Resume</span>
-            </span>
+            </PhysBlock>
           </div>
         </div>
       </div>
@@ -210,18 +97,17 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
 
       {/* Right-anchored on the header's own line: same top, side padding and row
           height, so these fallable icons sit exactly where the header's would. */}
-      <div
+      <nav
         className="home-floating-socials fixed top-4 md:top-8 left-0 right-0 z-[45] px-4 md:px-6 md:h-[var(--header-h)] flex items-center justify-end gap-4 md:gap-5 pointer-events-none"
         aria-label="Social links"
       >
         {SOCIAL_LINKS.map(({ id, label, Icon }) => (
-          <span
+          <PhysBlock
             key={id}
-            className="word-block home-social-fall"
-            data-phys="1"
-            data-phys-cls="social"
-            data-phys-cta={id}
-            data-phys-html="1"
+            cls="social"
+            sourceCls="home-social-fall"
+            cta={id}
+            rich
             role="link"
             tabIndex={0}
             aria-label={label}
@@ -230,9 +116,9 @@ export default function HomeScreen({ onViewProjects, isPaused = false }: HomeScr
             onKeyDown={keyCta(id)}
           >
             <Icon size={22} strokeWidth={2} className="home-social-icon" aria-hidden />
-          </span>
+          </PhysBlock>
         ))}
-      </div>
+      </nav>
 
       <div className="home-playground">
         {!armed && (
