@@ -1,0 +1,153 @@
+@import './home-blocks.css';
+@import './home-playground.css';
+@import './home-footer.css';
+
+.home-screen {
+  --home-fg: #0a0a0a;
+  --home-muted: #555550;
+  --home-hint: #aaa9a0;
+  --home-dim: #a1a1aa;
+  /* The three type scales the greeting, the details and the buttons are drawn
+     at. A source span and its falling clone read the same token, so the two can
+     never be sized apart. */
+  --home-greet-size: clamp(2.1rem, 5.4vw, 3.875rem);
+  --home-fact-size: clamp(0.75rem, 1.35vw, 0.875rem);
+  --home-action-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  /* Height of the footer strip (pt-10 + content + pb-8). Doubles as the physics
+     floor, so a dropped pile rests on the footer rule instead of burying it. */
+  --home-floor-gap: 122px;
+  background: transparent;
+  color: var(--home-fg);
+  font-family: 'Space Mono', monospace;
+  overflow: hidden;
+  height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  cursor: default;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.home-screen .grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+.home-screen .home-intro {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* Bottom padding exceeds top, so the block sits above centre and clears the footer. */
+  padding: clamp(5.5rem, 10vh, 8.5rem) clamp(16px, 6vw, 64px) clamp(9.5rem, 17vh, 13.5rem);
+  z-index: 5;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/*
+ * One column holds the whole page. The greeting, the details and the buttons
+ * share this width so they read as a single block rather than three stacked
+ * things — there is no rule or card doing that job for them.
+ */
+.home-screen .home-block {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.home-screen .home-greeting {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-family: 'DM Serif Display', serif;
+  font-size: var(--home-greet-size);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  color: var(--home-fg);
+}
+
+.home-screen .home-lede {
+  margin: clamp(12px, 2vw, 18px) 0 0;
+  max-width: 560px;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: clamp(1.05rem, 2.3vw, 1.5625rem);
+  line-height: 1.42;
+  letter-spacing: -0.02em;
+  color: var(--home-muted);
+}
+
+.home-screen .home-facts {
+  margin-top: clamp(24px, 4vw, 40px);
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(24px, 5vw, 80px);
+  row-gap: 15px;
+  justify-items: start;
+  text-align: left;
+}
+
+.home-screen .home-actions {
+  margin-top: clamp(26px, 4.5vw, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ---- Phone shell (the exact complement of Tailwind's `md`) -----------------
+ *
+ * The desktop home is one viewport-locked screen. A phone has neither the width
+ * nor the height for that, so here the intro becomes an ordinary scrolling
+ * page while the playful furniture — the physics field, the hint, the arm
+ * button — stays pinned to the viewport. The bottom tab bar replaces the footer
+ * at that edge and doubles as the floor the dropped pile lands on.
+ */
+@media (width < 48rem) {
+  .home-screen {
+    /* Blocks land on the tab bar's top edge, inset included. */
+    --home-floor-gap: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-screen .home-intro {
+    position: relative;
+    inset: auto;
+    min-height: 100%;
+    /* Top padding clears the header row and the arm button under it. */
+    padding: 7rem 1rem calc(var(--home-floor-gap) + 1.5rem);
+  }
+
+  .home-screen .home-lede {
+    max-width: 100%;
+  }
+
+  /* One detail per line, centred under the lede. */
+  .home-screen .home-facts {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 10px;
+    justify-items: center;
+    text-align: center;
+  }
+}

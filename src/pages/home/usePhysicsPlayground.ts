@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPlayground, type Playground } from './physics/playground';
 import type { CtaKind } from './physics/types';
 
@@ -59,7 +59,7 @@ export function usePhysicsPlayground({
   }, [isPaused]);
 
   /** Both buttons have the same shape: flag busy, run the flight, unflag. */
-  const runBusy = useCallback(async (flight: (p: Playground) => Promise<void>) => {
+  const runBusy = async (flight: (p: Playground) => Promise<void>) => {
     const playground = playgroundRef.current;
     if (!playground) return;
     setBusy(true);
@@ -68,10 +68,10 @@ export function usePhysicsPlayground({
     } finally {
       setBusy(false);
     }
-  }, []);
+  };
 
-  const dropAll = useCallback(() => runBusy((p) => p.dropAll()), [runBusy]);
-  const reset = useCallback(() => runBusy((p) => p.reset()), [runBusy]);
+  const dropAll = () => runBusy((p) => p.dropAll());
+  const reset = () => runBusy((p) => p.reset());
 
   return { busy, dropAll, reset, containerRef, hintRef, rootRef, shelfRef };
 }

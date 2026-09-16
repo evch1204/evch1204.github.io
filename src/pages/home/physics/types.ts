@@ -20,5 +20,5 @@ export type PhysBody = {
   homing?: boolean;
 };
 
-/** Axis-aligned obstacles (the italic shelf line, which stays put) in physics-container space. */
+/** Axis-aligned obstacles (the italic shelf line, which stays put) in `.home-physics` space. */
 export type StaticRect = { x: number; y: number; w: number; h: number };
