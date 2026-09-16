@@ -4,7 +4,7 @@ import Chip from '@/components/Chip';
 import Section from '@/components/Section';
 import { CONTACT_LINKS, NAME, ROLE } from '@/content/site';
 import { EASE } from '@/lib/motion';
-import profilePhoto from '@/assets/images/your-photo.jpg';
+import profilePhoto from '@/assets/images/profile.jpg';
 import GithubActivity from './GithubActivity';
 import ResumeModal from './ResumeModal';
 import ResumePanel from './ResumePanel';

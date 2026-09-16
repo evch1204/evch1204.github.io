@@ -3,6 +3,7 @@
  * and each position or degree under it is its own expandable row. DeepSpace has
  * two roles, so both show as separate rows rather than one merged entry.
  */
+import { SCHOOL } from '@/content/site';
 
 export type RoleIcon = 'code' | 'ai' | 'data' | 'support' | 'degree' | 'school';
 
@@ -94,7 +95,7 @@ export const EXPERIENCE: Org[] = [
   },
   {
     id: 'scu-work',
-    name: 'Santa Clara University',
+    name: SCHOOL,
     logoDomain: 'scu.edu',
     location: 'Santa Clara, CA',
     roles: [
@@ -157,7 +158,7 @@ export const EXPERIENCE: Org[] = [
 export const EDUCATION: Org[] = [
   {
     id: 'scu-edu',
-    name: 'Santa Clara University',
+    name: SCHOOL,
     logoDomain: 'scu.edu',
     location: 'Santa Clara, CA',
     roles: [

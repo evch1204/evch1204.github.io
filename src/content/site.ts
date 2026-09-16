@@ -16,6 +16,8 @@ export const MAILTO = `mailto:${EMAIL}`;
 export const GITHUB_URL = 'https://github.com/evch1204';
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/evan-chang1/';
 export const LOCATION = 'Santa Clara, CA';
+/** The alma mater, named the same way in the experience list and in the project meta. */
+export const SCHOOL = 'Santa Clara University';
 export const PHONE = '+1 (301) 768-8151';
 /** The phone as a dialable link: digits only, the plus kept. */
 export const TEL = `tel:${PHONE.replace(/[^\d+]/g, '')}`;
