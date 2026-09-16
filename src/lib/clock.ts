@@ -1,3 +1,5 @@
+import { pad2 } from '@/lib/format';
+
 /** Minutes that `tz` is offset from UTC at `at`, DST included. */
 function tzOffsetMinutes(tz: string, at: Date) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -17,10 +19,23 @@ function tzOffsetMinutes(tz: string, at: Date) {
   return Math.round((asUtc - at.getTime()) / 60000);
 }
 
+/** A gap of `minutes`, as the suffix says it: `3h`, `3.5h`, or `13:45h`. */
+function formatGap(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (rest === 0) return `${hours}h`;
+  if (rest === 30) return `${hours}.5h`;
+  return `${hours}:${pad2(rest)}h`;
+}
+
 /**
  * The wall clock in `tz`, plus how far it sits from the visitor's own — the
  * suffix is relative to whoever is reading, so it says something different in
  * every city. The zone itself is a site fact, so it arrives as an argument.
+ *
+ * The gap reads as whole hours (`3h`), a half hour as a decimal (`3.5h`) and
+ * any other quarter zone in clock form (`13:45h`) — Kathmandu sits 13:45 from
+ * California, not 13.8.
  */
 export function readLocalClock(tz: string, at = new Date()) {
   const time = new Intl.DateTimeFormat('en-US', {
@@ -32,7 +47,5 @@ export function readLocalClock(tz: string, at = new Date()) {
   const deltaMinutes = tzOffsetMinutes(tz, at) - -at.getTimezoneOffset();
   if (deltaMinutes === 0) return { time, delta: '// same time as you' };
 
-  const hours = Math.abs(deltaMinutes) / 60;
-  const rounded = Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
-  return { time, delta: `// ${rounded}h ${deltaMinutes > 0 ? 'ahead' : 'behind'}` };
+  return { time, delta: `// ${formatGap(Math.abs(deltaMinutes))} ${deltaMinutes > 0 ? 'ahead' : 'behind'}` };
 }
