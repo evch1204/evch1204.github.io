@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import type { CardPanel } from '@/content/projects';
-import { HERO_TRANSITION } from './hero';
+import { HERO_TRANSITION } from '@/pages/projects/hero';
 import ProjectFigure from './ProjectFigure';
 
 /**

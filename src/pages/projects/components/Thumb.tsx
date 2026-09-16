@@ -1,6 +1,6 @@
 import type { Figure } from '@/content/projects';
 import { pad2 } from '@/lib/format';
-import ProjectFigure from '@/pages/projects/ProjectFigure';
+import ProjectFigure from './ProjectFigure';
 
 /**
  * One picture as a button at the tile ratio, the active one ringed. The

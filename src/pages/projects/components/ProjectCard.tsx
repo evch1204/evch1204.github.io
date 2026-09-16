@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import Eyebrow from '@/components/Eyebrow';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
-import { projectAddresses } from './addresses';
+import { projectAddresses } from '@/pages/projects/addresses';
 import ProjectPanel from './ProjectPanel';
 
 /** The project's real address, in mono — the card's "go use it" affordance. */

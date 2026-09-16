@@ -3,11 +3,11 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps, type PanInfo } from 'motion/react';
 import type { Figure } from '@/content/projects';
 import { EASE } from '@/lib/motion';
-import Thumb from './components/Thumb';
-import { FRAME, HERO_TRANSITION } from './hero';
-import { pictureKey } from './pictures';
+import { FRAME, HERO_TRANSITION } from '@/pages/projects/hero';
+import { pictureKey } from '@/pages/projects/pictures';
+import type { Slides } from '@/pages/projects/useSlides';
 import ProjectFigure from './ProjectFigure';
-import type { Slides } from './useSlides';
+import Thumb from './Thumb';
 
 /** The picture in the frame: as tall as it likes up to a cap, never wider than the frame allows. */
 const PICTURE = 'block h-auto max-h-[640px] w-auto max-w-full';
