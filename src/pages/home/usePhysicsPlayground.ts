@@ -49,7 +49,7 @@ export function usePhysicsPlayground({
       playgroundRef.current = null;
       playground.destroy();
     };
-  }, []);
+  }, [onCtaRef]);
 
   useEffect(() => {
     const playground = playgroundRef.current;
