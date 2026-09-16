@@ -78,9 +78,18 @@ export function useProjectRouting() {
     clearTimeout(s.timer);
     // A tab on its way out must not scroll the one coming in.
     if (!presentRef.current) return;
-    flushSync(() => setOffset(0));
-    // Dropping the offset moves the content by exactly `shift`; scroll by the same and what is on screen stays.
-    window.scrollTo(0, window.scrollY - s.shift);
+    /*
+     * Dropping the offset moves the content up by exactly `shift`, so scrolling
+     * up by the same leaves what is on screen where it is. The scroll can only
+     * give what it has, though: a reader who flicked to the top inside the
+     * settle window has less than `shift` above them, and taking the whole
+     * shift would clamp at 0 and move the content a visible step. So take what
+     * is there and keep the rest as offset — the blank it leaves above the
+     * content is the one already on screen, and the next swap replaces it.
+     */
+    const applied = Math.min(s.shift, window.scrollY);
+    flushSync(() => setOffset(s.shift - applied));
+    window.scrollTo(0, window.scrollY - applied);
   }, []);
 
   useEffect(() => {
