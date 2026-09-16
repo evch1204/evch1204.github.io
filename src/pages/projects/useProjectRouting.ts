@@ -131,7 +131,9 @@ export function useProjectRouting() {
       settleNow();
       gridScroll.current = window.scrollY;
       await preload(project.caseStudy.hero);
-      if (opening.current === project.id) opening.current = null;
+      // A second card clicked inside the decode window took the opening over: that one swaps, not this one.
+      if (opening.current !== project.id) return;
+      opening.current = null;
       if (!alive.current) return;
       // Guard against a double entry: a second open before the first was left just replaces it.
       if (projectInHistory()) history.replaceState({ project: project.id }, '');
