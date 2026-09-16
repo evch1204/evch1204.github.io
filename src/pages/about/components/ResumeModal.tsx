@@ -4,7 +4,7 @@ import PillLink from '@/components/PillLink';
 import { NAME, RESUME_FILENAME, RESUME_URL } from '@/content/site';
 import resumePreview from '@/assets/images/resume-preview-page1.jpg';
 
-/** Enlarged, scrollable resume. Same close behaviour as the project modal. */
+/** The resume preview, enlarged and scrollable, in a dialog. */
 export default function ResumeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Modal

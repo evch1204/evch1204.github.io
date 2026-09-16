@@ -6,13 +6,6 @@ import { EASE } from '@/lib/motion';
 type ModalProps = {
   open: boolean;
   onClose: () => void;
-  /** Remounts the dialog when the thing it shows changes identity. */
-  motionKey?: string;
-  /**
-   * Changes while the dialog stays open — a different project in the same
-   * frame — scroll it back to the top and put focus on the panel again.
-   */
-  resetKey?: string;
   /** Positioning of the full-screen layer the dialog sits in. */
   overlayClassName: string;
   /** Tint and blur of the click-to-close backdrop. */
@@ -22,8 +15,6 @@ type ModalProps = {
   panelClassName: string;
   /** Name for a dialog with no visible title to point at. */
   label?: string;
-  /** id of the dialog's visible title, when it has one. */
-  labelledBy?: string;
   children: ReactNode;
 };
 
@@ -37,14 +28,11 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [ta
 export default function Modal({
   open,
   onClose,
-  motionKey,
-  resetKey,
   overlayClassName,
   backdropClassName,
   backdropLabel,
   panelClassName,
   label,
-  labelledBy,
   children,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -63,19 +51,6 @@ export default function Modal({
       opener?.focus();
     };
   }, [open]);
-
-  /*
-   * Which element scrolls depends on the layout — the panel itself as a phone
-   * sheet, the overlay around it on desktop — so both go back to the top.
-   */
-  useEffect(() => {
-    if (!open || resetKey === undefined) return;
-    const panel = panelRef.current;
-    if (!panel) return;
-    panel.scrollTop = 0;
-    if (panel.parentElement) panel.parentElement.scrollTop = 0;
-    panel.focus({ preventScroll: true });
-  }, [open, resetKey]);
 
   useEffect(() => {
     if (!open) return;
@@ -128,14 +103,13 @@ export default function Modal({
   /*
    * Rendered into <body> rather than where it is written: a page's <main> is a
    * z-10 stacking context, so a dialog nested inside one would paint under the
-   * z-50 header. This keeps the overlay above everything, exactly where it sat
-   * when App owned both modals.
+   * z-50 header. Rendering into <body> keeps the overlay above everything
+   * regardless of where the dialog is written.
    */
   return createPortal(
     <AnimatePresence>
       {open ? (
         <motion.div
-          key={motionKey}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -154,7 +128,6 @@ export default function Modal({
             role="dialog"
             aria-modal="true"
             aria-label={label}
-            aria-labelledby={labelledBy}
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
