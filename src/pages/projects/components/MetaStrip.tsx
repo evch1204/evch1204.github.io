@@ -8,15 +8,16 @@ const isMono = (value: string) => /^\d{4}\b/.test(value) || /^https?:/.test(valu
 /** The details and the stack on one hairline-bounded row: what used to be the right column. */
 export default function MetaStrip({ project }: { project: Project }) {
   // Kind and group are the project's own fields; the register lists them first, then content's rows.
+  // Content writes its own labels, so a row keyed by label alone could collide with `Kind` or `Group`.
   const rows = [
-    { label: 'Kind', value: project.kind },
-    { label: 'Group', value: groupLabel(project.group) },
-    ...project.caseStudy.details,
+    { key: 'kind', label: 'Kind', value: project.kind },
+    { key: 'group', label: 'Group', value: groupLabel(project.group) },
+    ...project.caseStudy.details.map((detail, i) => ({ key: `detail-${i}`, ...detail })),
   ];
   return (
     <dl className="grid grid-cols-2 gap-x-8 gap-y-7 border-y border-zinc-100 py-6 md:grid-cols-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,2fr)]">
       {rows.map((row) => (
-        <div key={row.label} className="min-w-0">
+        <div key={row.key} className="min-w-0">
           <Eyebrow as="dt">{row.label}</Eyebrow>
           <dd className={`mt-2 text-sm font-semibold leading-snug text-zinc-900 [overflow-wrap:anywhere]${isMono(row.value) ? ' font-mono' : ''}`}>
             {row.value}
