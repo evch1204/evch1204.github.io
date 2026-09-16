@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { flushSync } from 'react-dom';
 import { useIsPresent, useReducedMotion } from 'motion/react';
 import { PROJECTS, type Figure, type Project } from '@/content/projects';
+import { useLatest } from '@/hooks/useLatest';
 
 /** The id in our own history entry, if the current entry is one of ours. */
 function projectInHistory(): string | null {
@@ -50,8 +51,7 @@ export function useProjectRouting() {
   const reduced = useReducedMotion();
   /** False once the tab is on its way out (App swaps tabs with `mode="wait"`, so the exit takes a beat). */
   const present = useIsPresent();
-  const presentRef = useRef(true);
-  presentRef.current = present;
+  const presentRef = useLatest(present);
   /*
    * A page named by the entry we mount on is already open: there is no card on
    * screen for the hero to fly out of and no grid scroll to hold, so it simply
@@ -76,8 +76,7 @@ export function useProjectRouting() {
   /** The card that opened the page: focus returns to it. */
   const openerId = useRef<string | null>(null);
   const cards = useRef(new Map<string, HTMLButtonElement>());
-  const selectedRef = useRef<Project | null>(null);
-  selectedRef.current = selected;
+  const selectedRef = useLatest(selected);
   /** Set while the tab is mounted: `open` waits on a decode and must not carry on after it is gone. */
   const alive = useRef(true);
   /** The project whose hero `open` is waiting on, so a second click on its card does not start over. */
