@@ -32,7 +32,7 @@ const Arrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; 
     initial={{ opacity: 0 }}
     animate={{ opacity: 1, transition: { duration: 0.3, delay, ease: EASE } }}
     aria-label={direction === 'previous' ? 'Previous picture' : 'Next picture'}
-    className={`absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-colors hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 md:h-9 md:w-9 ${
+    className={`absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-colors hover:text-zinc-900 focus-ring md:h-9 md:w-9 ${
       direction === 'previous' ? 'left-2 md:-left-5' : 'right-2 md:-right-5'
     }`}
   >

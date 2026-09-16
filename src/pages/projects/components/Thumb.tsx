@@ -29,7 +29,7 @@ export default function Thumb({
       onClick={() => onPick(index)}
       aria-current={active ? 'true' : undefined}
       aria-label={`Show picture ${pad2(index + 1)}: ${picture.caption}`}
-      className={`block aspect-[16/10] shrink-0 overflow-hidden border border-zinc-200 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
+      className={`block aspect-[16/10] shrink-0 overflow-hidden border border-zinc-200 bg-white focus-ring ${
         active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
       } ${className}`}
     >

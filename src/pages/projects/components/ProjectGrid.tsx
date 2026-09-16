@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { FEATURED_PROJECT, PROJECT_GROUPS, projectsInGroup, type Project } from '@/content/projects';
 import { GITHUB_URL } from '@/content/site';
 import { pad2 } from '@/lib/format';
+import { linkProps } from '@/lib/links';
 import { heroLayoutId } from '@/pages/projects/hero';
 import FeaturedProjectCard from './FeaturedProjectCard';
 import ProjectCard from './ProjectCard';
@@ -65,8 +66,7 @@ const ProjectGrid = memo(function ProjectGrid({
       <div className="mt-16 flex justify-center">
         <a
           href={GITHUB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...linkProps(GITHUB_URL)}
           className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white border border-zinc-200 text-zinc-900 font-bold hover:border-zinc-900 transition-all duration-300"
         >
           Explore More on GitHub <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />

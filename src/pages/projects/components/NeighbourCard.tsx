@@ -19,7 +19,7 @@ export default function NeighbourCard({
     <button
       type="button"
       onClick={() => onSelect(project)}
-      className={`group flex w-full flex-col rounded-[1.5rem] border border-zinc-200 bg-white p-5 text-left transition-colors hover:border-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 sm:rounded-[2rem] sm:p-6 ${className}`}
+      className={`group flex w-full flex-col rounded-[1.5rem] border border-zinc-200 bg-white p-5 text-left transition-colors hover:border-zinc-900 focus-ring sm:rounded-[2rem] sm:p-6 ${className}`}
     >
       <Eyebrow className="mb-3 flex items-center gap-2">
         {direction === 'previous' ? (
