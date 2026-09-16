@@ -103,7 +103,7 @@ export function useProjectRouting() {
     const applied = Math.min(s.shift, window.scrollY);
     flushSync(() => setOffset(s.shift - applied));
     window.scrollTo(0, window.scrollY - applied);
-  }, []);
+  }, [presentRef]);
 
   useEffect(() => {
     if (!present) settleNow();
@@ -119,7 +119,7 @@ export function useProjectRouting() {
       setSelected(next);
       setOffset(shift);
     },
-    [reduced, settleNow],
+    [reduced, settleNow, selectedRef],
   );
 
   useLayoutEffect(() => {
@@ -153,7 +153,7 @@ export function useProjectRouting() {
       else history.pushState(pageState(project.id), '');
       swapView(project, 0, true);
     },
-    [settleNow, swapView],
+    [settleNow, swapView, selectedRef],
   );
 
   /** Prev / next: the same history entry, retargeted. */
@@ -177,7 +177,7 @@ export function useProjectRouting() {
     } else {
       swapView(null, gridScroll.current, true);
     }
-  }, [swapView]);
+  }, [swapView, selectedRef]);
 
   useEffect(() => {
     const onPop = () => {
@@ -200,7 +200,7 @@ export function useProjectRouting() {
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [settleNow, swapView]);
+  }, [settleNow, swapView, selectedRef]);
 
   // The entry the page writes outlives the tab: leaving with a page open and coming
   // back with Back reopens it, and so does a reload. App owns `scrollRestoration`.
