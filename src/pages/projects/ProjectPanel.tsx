@@ -1,12 +1,7 @@
 import { motion } from 'motion/react';
 import type { CardPanel } from '@/content/projects';
+import { HERO_TRANSITION } from './hero';
 import ProjectFigure from './ProjectFigure';
-
-/** The one `layoutId` a project's card window and its page hero share, so one grows into the other. */
-export const heroLayoutId = (projectId: string) => `project-hero-${projectId}`;
-
-/** How the shared window travels between the card and the page: a spring with a little settle, ~0.55s. */
-export const HERO_TRANSITION = { type: 'spring', bounce: 0.15, duration: 0.55 } as const;
 
 /**
  * The zinc sill at the top of a card, and the window rising out of it: 1px

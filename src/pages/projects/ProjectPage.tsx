@@ -4,16 +4,17 @@ import { motion, useReducedMotion } from 'motion/react';
 import Eyebrow from '@/components/Eyebrow';
 import PillLink from '@/components/PillLink';
 import Tag from '@/components/Tag';
-import { groupLabel, type CaseStudy, type CaseStudySection, type Figure, type Project } from '@/content/projects';
+import { groupLabel, type CaseStudySection, type Figure, type Project } from '@/content/projects';
 import { pad2 } from '@/lib/format';
 import { EASE } from '@/lib/motion';
 import { projectAddresses, type ProjectAddress } from './addresses';
+import Thumb from './components/Thumb';
+import { FRAME, heroLayoutId } from './hero';
+import { casePictures, counter, pictureKey } from './pictures';
 import ProjectFigure from './ProjectFigure';
-import HeroSlider, { FRAME, pictureKey, Thumb, useSlides } from './HeroSlider';
-import ProjectPanel, { heroLayoutId } from './ProjectPanel';
-
-/** "02 / 05". */
-const counter = (current: number, total: number) => `${pad2(current + 1)} / ${pad2(total)}`;
+import HeroSlider from './HeroSlider';
+import ProjectPanel from './ProjectPanel';
+import { useSlides } from './useSlides';
 
 /**
  * Mono caption row under a picture: bold index, caption, and an optional
@@ -154,29 +155,6 @@ const MetaStrip = ({ project }: { project: Project }) => {
   );
 };
 
-/**
- * Every picture the case study shows, once each, in reading order: the hero,
- * the section figures, then whatever content lists only for the gallery.
- * This is the slider's order too.
- */
-function picturesOf(caseStudy: CaseStudy): Figure[] {
-  const seen = new Set<string>();
-  const pictures: Figure[] = [];
-  for (const figure of [caseStudy.hero, ...caseStudy.sections.flatMap((s) => (s.figure ? [s.figure] : [])), ...caseStudy.gallery]) {
-    const key = pictureKey(figure);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    pictures.push(figure);
-  }
-  return pictures;
-}
-
-/** True when the gallery adds a picture the hero and the sections have not already shown. */
-const hasExtraPictures = (caseStudy: CaseStudy) => {
-  const shown = new Set([caseStudy.hero, ...caseStudy.sections.flatMap((s) => (s.figure ? [s.figure] : []))].map(pictureKey));
-  return caseStudy.gallery.some((figure) => !shown.has(pictureKey(figure)));
-};
-
 const Gallery = ({
   pictures,
   current,
@@ -290,8 +268,7 @@ export default function ProjectPage({
   const { caseStudy } = project;
   const addresses = projectAddresses(project);
   const primary = addresses[0];
-  const pictures = picturesOf(caseStudy);
-  const showGallery = hasExtraPictures(caseStudy);
+  const { pictures, showGallery } = casePictures(caseStudy);
   const many = pictures.length > 1;
   const slides = useSlides(pictures.length);
   const hero = pictures[slides.current];

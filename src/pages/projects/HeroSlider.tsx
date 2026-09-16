@@ -1,18 +1,13 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode, type Ref } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps, type PanInfo } from 'motion/react';
 import type { Figure } from '@/content/projects';
-import { pad2 } from '@/lib/format';
 import { EASE } from '@/lib/motion';
+import Thumb from './components/Thumb';
+import { FRAME, HERO_TRANSITION } from './hero';
+import { pictureKey } from './pictures';
 import ProjectFigure from './ProjectFigure';
-import { HERO_TRANSITION } from './ProjectPanel';
-
-/** The About page's photo frame: white border, big radius, the soft shadow. Thinner and tighter on a phone. */
-export const FRAME =
-  'overflow-hidden rounded-[1.25rem] border-4 border-white bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] md:rounded-[2rem] md:border-[6px] md:shadow-[0_24px_64px_rgba(0,0,0,0.12)]';
-
-/** What a picture is, for keys and de-duplication: the image path, or the drawing's id. */
-export const pictureKey = (figure: Figure) => figure.src ?? figure.illustration;
+import type { Slides } from './useSlides';
 
 /** The picture in the frame: as tall as it likes up to a cap, never wider than the frame allows. */
 const PICTURE = 'block h-auto max-h-[640px] w-auto max-w-full';
@@ -23,56 +18,6 @@ const SLIDE = {
   center: { x: 0, opacity: 1 },
   exit: (direction: number) => ({ x: direction < 0 ? 40 : -40, opacity: 0 }),
 };
-
-/**
- * Which picture the hero shows, and which way the last change travelled: the
- * new one slides in from that side, so a pick anywhere on the page reads as
- * movement rather than a cut.
- */
-export function useSlides(count: number) {
-  const [slide, setSlide] = useState({ current: 0, direction: 0 });
-  /** Show a picture by index; the slide travels the way the index moved. */
-  const show = (i: number) => setSlide((s) => ({ current: i, direction: Math.sign(i - s.current) || s.direction }));
-  /** One step the way the arrow points, wrapping at the ends. */
-  const step = (delta: number) => setSlide((s) => ({ current: (s.current + delta + count) % count, direction: delta }));
-  return { ...slide, show, step };
-}
-
-export type Slides = ReturnType<typeof useSlides>;
-
-/**
- * One picture as a button at the tile ratio, the active one ringed. The
- * picture is contained rather than cropped: a card crop is more than twice as
- * wide as the tile, and filling would slice the words out of it — the room it
- * leaves is white on a white screenshot. `className` carries the size, the
- * rounding and any shadow; the filmstrip and the gallery differ there and
- * nowhere else.
- */
-export const Thumb = ({
-  picture,
-  index,
-  active,
-  onPick,
-  className,
-}: {
-  picture: Figure;
-  index: number;
-  active: boolean;
-  onPick: (i: number) => void;
-  className: string;
-}) => (
-  <button
-    type="button"
-    onClick={() => onPick(index)}
-    aria-current={active ? 'true' : undefined}
-    aria-label={`Show picture ${pad2(index + 1)}: ${picture.caption}`}
-    className={`block aspect-[16/10] shrink-0 overflow-hidden border border-zinc-200 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
-      active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
-    } ${className}`}
-  >
-    <ProjectFigure figure={picture} className="h-full w-full object-contain" />
-  </button>
-);
 
 /**
  * Previous / next picture: a white disc on the frame's edge, always visible —

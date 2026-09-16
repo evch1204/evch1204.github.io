@@ -8,8 +8,8 @@ import { GITHUB_URL } from '@/content/site';
 import { pad2 } from '@/lib/format';
 import FeaturedProjectCard from './FeaturedProjectCard';
 import ProjectCard from './ProjectCard';
+import { heroLayoutId } from './hero';
 import ProjectPage from './ProjectPage';
-import { heroLayoutId } from './ProjectPanel';
 
 /** Rule + label that separates the two runs of project cards. */
 const GroupHeading = ({ label, count }: { label: string; count: number }) => (
