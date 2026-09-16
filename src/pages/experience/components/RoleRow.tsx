@@ -1,5 +1,5 @@
 import { useReducedMotion } from 'motion/react';
-import { ChevronsUpDown, Code2, Cpu, Database, GraduationCap, Headset, School } from 'lucide-react';
+import { ChevronsUpDown, Code2, Cpu, Database, GraduationCap, School } from 'lucide-react';
 import Tag from '@/components/Tag';
 import type { Role, RoleIcon } from '@/content/experience';
 
@@ -11,7 +11,6 @@ const ROLE_ICONS: Record<RoleIcon, typeof Code2> = {
   code: Code2,
   ai: Cpu,
   data: Database,
-  support: Headset,
   degree: GraduationCap,
   school: School,
 };

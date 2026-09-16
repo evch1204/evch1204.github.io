@@ -5,7 +5,7 @@
  */
 import { SCHOOL } from '@/content/site';
 
-export type RoleIcon = 'code' | 'ai' | 'data' | 'support' | 'degree' | 'school';
+export type RoleIcon = 'code' | 'ai' | 'data' | 'degree' | 'school';
 
 export type Role = {
   id: string;
