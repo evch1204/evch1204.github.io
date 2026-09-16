@@ -3,8 +3,8 @@ import { linkProps } from '@/lib/links';
 
 /**
  * The rounded pill the pages use for every real action — download, open, close.
- * It was nine hand-written class strings that had drifted a pixel apart; the two
- * looks and two sizes below are all of the variation that was ever intended.
+ * `solid` is the one thing to do on a page and `outline` the alternatives
+ * beside it; `sm` is the size for a toolbar, `md` for a page's own buttons.
  */
 const BASE = 'inline-flex items-center justify-center gap-2 rounded-full font-bold transition-colors';
 

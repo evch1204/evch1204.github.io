@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 const USER = process.argv[2] ?? 'evch1204';
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'content', 'contributions.json');
 
-const html = await fetch(`https://github.com/users/${USER}/contributions`, {
+const html = await fetch(`https://github.com/users/${encodeURIComponent(USER)}/contributions`, {
   headers: { 'User-Agent': 'evch1204-portfolio-build', 'X-Requested-With': 'XMLHttpRequest' },
 }).then((r) => {
   if (!r.ok) throw new Error(`GitHub responded ${r.status}`);

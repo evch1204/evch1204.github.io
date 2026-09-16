@@ -37,7 +37,7 @@ function Value({ row }: { row: Row }) {
       <a
         href={row.href}
         {...linkProps(row.href)}
-        className={`group inline-flex max-w-full items-center gap-1.5 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${text}`}
+        className={`group inline-flex max-w-full items-center gap-1.5 rounded-sm focus-ring ${text}`}
       >
         <span className="min-w-0">{row.value}</span>
         <ArrowUpRight size={14} className="shrink-0 text-zinc-400 transition-colors group-hover:text-zinc-900" aria-hidden />

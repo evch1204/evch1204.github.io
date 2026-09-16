@@ -21,7 +21,7 @@ export default function CopyButton({ text, label }: { text: string; label: strin
       type="button"
       onClick={copy}
       aria-label={`Copy ${label}`}
-      className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 font-mono text-[11px] text-zinc-400 transition-colors hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 sm:h-8"
+      className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 font-mono text-[11px] text-zinc-400 transition-colors hover:text-zinc-900 focus-ring sm:h-8"
     >
       {copied ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}
       <span aria-live="polite">{copied ? 'copied' : 'copy'}</span>

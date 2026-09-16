@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
 /**
- * The rounded chip, in the two sizes the pages actually use. There were five
- * hand-written class strings differing by a pixel or two of padding; those were
- * drift, not design, so they collapsed into one.
+ * The rounded chip, in the two weights the pages use: `default` for a row of
+ * tags under a heading, `detail` for the darker, slightly larger chip that
+ * carries a technology or a skill in a meta strip.
  */
 const TAG_CLASSES = {
   /** Tag rows: project cards, the featured card, an expanded experience row. */

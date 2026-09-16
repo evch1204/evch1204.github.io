@@ -21,7 +21,7 @@ export default function ResumePanel({ onExpand }: { onExpand: () => void }) {
           type="button"
           onClick={onExpand}
           aria-haspopup="dialog"
-          className="group relative block w-full cursor-pointer overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.06)] transition-shadow duration-500 hover:shadow-[0_28px_60px_rgba(0,0,0,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+          className="group relative block w-full cursor-pointer overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.06)] transition-shadow duration-500 hover:shadow-[0_28px_60px_rgba(0,0,0,0.10)] focus-ring"
         >
           <img
             src={resumePreview}
