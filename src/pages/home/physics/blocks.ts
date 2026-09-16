@@ -1,7 +1,7 @@
 import type { CtaKind, PhysBody } from './types';
 import type { World } from './world';
 
-export type PhysBlockSpec = {
+type PhysBlockSpec = {
   /** Plain text for a text-only block. */
   label: string;
   /** Space-separated `.phys-block` modifier classes. */
@@ -21,7 +21,7 @@ export type PhysBlockSpec = {
 };
 
 /** A press on a clone: the body it landed on, and the event that owns the drag. */
-export type GrabHandler = (body: PhysBody, e: PointerEvent) => void;
+type GrabHandler = (body: PhysBody, e: PointerEvent) => void;
 
 /** One fallable span, as the engine sees it before it becomes a body. */
 export type LaunchConfig = {

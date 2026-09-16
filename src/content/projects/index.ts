@@ -21,7 +21,6 @@ export type {
   Figure,
   IllustrationId,
   Project,
-  ProjectGroup,
 } from './types';
 
 const FEATURED_PROJECT_ID = 'ergonomic-risk' as const;

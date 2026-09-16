@@ -3,9 +3,9 @@ import type { Drag } from './drag';
 import type { PhysBody } from './types';
 import type { World } from './world';
 
-export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-export function easeOutCubic(t: number) {
+function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3;
 }
 

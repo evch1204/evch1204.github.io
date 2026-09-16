@@ -9,7 +9,7 @@ type LoopOptions = {
   alive: () => boolean;
 };
 
-export type Loop = {
+type Loop = {
   /** Starts the loop if it is not already running. */
   start(): void;
   pause(): void;

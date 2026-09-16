@@ -53,7 +53,7 @@ export function containerOffset(world: World, clientX: number, clientY: number) 
 }
 
 /** The shelf in container space. A box too small to stand on counts as absent. */
-export function collectShelfRect(world: World) {
+function collectShelfRect(world: World) {
   world.shelf = null;
   const el = world.shelfEl;
   if (!el) return;

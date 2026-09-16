@@ -9,7 +9,7 @@ import { STEP_MS, THROW_SAMPLE_MS, THROW_STALE_MS } from './constants';
  */
 type PointerSample = { x: number; y: number; t: number };
 
-export type PointerTracker = {
+type PointerTracker = {
   push(clientX: number, clientY: number, t: number): void;
   /** Pointer speed in px per simulation step, or zero if it has gone still. */
   velocity(now: number): { vx: number; vy: number };

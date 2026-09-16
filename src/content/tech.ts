@@ -31,7 +31,7 @@ import CursorIcon from '@/components/icons/CursorIcon';
 
 type IconProps = { className?: string };
 
-export type Tech = { name: string; Icon: ComponentType<IconProps> };
+type Tech = { name: string; Icon: ComponentType<IconProps> };
 
 /**
  * One flat list, ordered languages → frontend → infra → data → AI tooling so it
