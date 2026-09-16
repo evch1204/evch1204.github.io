@@ -11,6 +11,8 @@ export const NAME = 'Tei Chang';
 export const BRAND = 'TEI CHANG';
 /** The current job, as the profile and the contact register say it. */
 export const ROLE = 'Software Engineer at DeepSpace';
+/** The standing note beside the role, in the site's ` // comment` voice. */
+export const AVAILABILITY = '// open to work';
 export const EMAIL = 'changtei1204@gmail.com';
 export const MAILTO = `mailto:${EMAIL}`;
 export const GITHUB_URL = 'https://github.com/evch1204';

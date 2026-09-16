@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import PillLink from '@/components/PillLink';
 import Section from '@/components/Section';
 import {
+  AVAILABILITY,
   EMAIL,
   GITHUB_URL,
   LINKEDIN_URL,
@@ -29,7 +30,7 @@ export default function ContactPage() {
     { label: 'GitHub', value: hostLabel(GITHUB_URL), href: GITHUB_URL, mono: true },
     { label: 'Location', value: LOCATION },
     { label: 'Local time', value: clock.time, note: clock.delta, mono: true },
-    { label: 'Status', value: ROLE, note: '// open to work' },
+    { label: 'Status', value: ROLE, note: AVAILABILITY },
   ];
 
   return (
