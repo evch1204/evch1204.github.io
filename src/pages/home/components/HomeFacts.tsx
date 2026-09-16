@@ -1,5 +1,5 @@
 import { Clock, CodeXml, GraduationCap, Mail, MapPin, Phone, User, type LucideIcon } from 'lucide-react';
-import { EMAIL, LOCATION, PHONE } from '@/content/site';
+import { AVAILABILITY, EMAIL, LOCATION, PHONE } from '@/content/site';
 import PhysBlock from './PhysBlock';
 
 type Fact = {
@@ -26,7 +26,7 @@ export default function HomeFacts({ time, delta }: HomeFactsProps) {
       id: 'role',
       Icon: CodeXml,
       value: 'Software Engineer at @DeepSpace',
-      note: '// open to work',
+      note: AVAILABILITY,
       wide: true,
     },
     { id: 'location', Icon: MapPin, value: LOCATION },

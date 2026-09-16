@@ -49,7 +49,7 @@ export function resolveCollision(a: PhysBody, b: PhysBody, dragging: PhysBody | 
   const aFixed = a === dragging;
   const bFixed = b === dragging;
 
-  let jolted = false;
+  let jolted: boolean;
 
   if (o.x < o.y) {
     const nx = Math.sign(o.dx);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLatest } from '@/hooks/useLatest';
 import { createPlayground, type Playground } from './physics/playground';
 import type { CtaKind } from './physics/types';
 
@@ -21,8 +22,7 @@ export function usePhysicsPlayground({
 }) {
   const [busy, setBusy] = useState(false);
 
-  const onCtaRef = useRef(onCta);
-  onCtaRef.current = onCta;
+  const onCtaRef = useLatest(onCta);
 
   const playgroundRef = useRef<Playground | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
