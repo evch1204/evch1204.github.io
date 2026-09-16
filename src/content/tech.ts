@@ -27,18 +27,9 @@ import {
 // Simple Icons dropped the Java mark (trademark), so the Java cup and the
 // generic SQL database glyph come from Font Awesome instead.
 import { FaDatabase, FaJava } from 'react-icons/fa';
-import { siCursor } from 'simple-icons';
+import CursorIcon from '@/components/icons/CursorIcon';
 
 type IconProps = { className?: string };
-
-function CursorBrandIcon({ className }: IconProps) {
-  return (
-    <svg role="img" viewBox="0 0 24 24" className={className} aria-hidden>
-      <title>{siCursor.title}</title>
-      <path fill="currentColor" d={siCursor.path} />
-    </svg>
-  );
-}
 
 export type Tech = { name: string; Icon: ComponentType<IconProps> };
 
@@ -73,7 +64,7 @@ export const TECH: Tech[] = [
   { name: 'NumPy', Icon: SiNumpy },
   { name: 'OpenCV', Icon: SiOpencv },
   { name: 'MediaPipe', Icon: SiMediapipe },
-  { name: 'Cursor', Icon: CursorBrandIcon },
+  { name: 'Cursor', Icon: CursorIcon },
   { name: 'OpenAI', Icon: SiOpenai },
   { name: 'Claude', Icon: SiAnthropic },
 ];
