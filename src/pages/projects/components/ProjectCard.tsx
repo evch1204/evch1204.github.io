@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import Eyebrow from '@/components/Eyebrow';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
-import { projectAddresses } from './addresses';
+import { projectAddresses } from '@/pages/projects/addresses';
 import ProjectPanel from './ProjectPanel';
 
 /** The project's real address, in mono — the card's "go use it" affordance. */
@@ -37,7 +37,7 @@ export default function ProjectCard({
       ref={ref}
       type="button"
       onClick={onOpen}
-      className="group relative flex w-full flex-col text-left p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+      className="group relative flex w-full flex-col text-left p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus-ring"
     >
       <ProjectPanel
         panel={project.panel}
