@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Github } from 'lucide-react';
 import SectionHeading from '@/components/SectionHeading';
 import data from '@/content/contributions.json';
 import { GITHUB_URL } from '@/content/site';
+import { linkProps } from '@/lib/links';
 
 /** GitHub's own light-mode heatmap scale, level 0 → 4. */
 const LEVEL_COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
@@ -78,7 +79,29 @@ export default function GithubActivity() {
 
   // The tooltip lives outside the scroll container so it is never clipped by it.
   const frameRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const [tip, setTip] = useState<Tip | null>(null);
+
+  /*
+   * A mouse leaves the frame and the bubble goes with it. A tap never leaves,
+   * and scrolling the strip slides the cell out from under a bubble that is
+   * pinned to the frame — so a tap anywhere but a cell, and any scroll, close
+   * it too. Both listeners exist only while there is something to close.
+   */
+  useEffect(() => {
+    if (!tip) return;
+    const close = () => setTip(null);
+    const onPointerDown = (e: PointerEvent) => {
+      if (!(e.target instanceof Element) || !e.target.closest('[data-day]')) close();
+    };
+    const strip = stripRef.current;
+    strip?.addEventListener('scroll', close, { passive: true });
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      strip?.removeEventListener('scroll', close);
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [tip]);
 
   const showTip = (day: Day, el: HTMLElement) => {
     const frame = frameRef.current;
@@ -115,7 +138,7 @@ export default function GithubActivity() {
         ) : null}
 
         {/* Fills the column on wide screens; scrolls once the cells hit their floor. */}
-        <div className="overflow-x-auto pb-1 pt-7 [scrollbar-width:thin]">
+        <div ref={stripRef} className="overflow-x-auto pb-1 pt-7 [scrollbar-width:thin]">
           <div className="flex min-w-[720px] items-stretch gap-2">
             <div className="flex w-7 shrink-0 flex-col gap-[3px] pt-[18px] text-right text-[9px] font-medium text-zinc-400">
               {WEEKDAY_LABELS.map((label, i) => (
@@ -145,6 +168,7 @@ export default function GithubActivity() {
                       day ? (
                         <span
                           key={day.date}
+                          data-day
                           role="img"
                           aria-label={describe(day)}
                           className="aspect-square w-full rounded-[2px] transition-transform duration-150 hover:scale-[1.35]"
@@ -170,8 +194,7 @@ export default function GithubActivity() {
           <span className="font-bold text-zinc-900">{data.total.toLocaleString()}</span> contributions in the last year on{' '}
           <a
             href={GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...linkProps(GITHUB_URL)}
             className="inline-flex items-center gap-1 font-bold text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition-colors hover:decoration-zinc-900"
           >
             <Github size={12} /> GitHub
