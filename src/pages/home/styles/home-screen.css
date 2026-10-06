@@ -89,9 +89,18 @@
   color: var(--home-muted);
 }
 
+/* The dot is where the pen lands; it shows only once it has. */
 .home-screen .home-where-dot {
-  margin-inline: 0.75em;
-  color: var(--home-dim);
+  display: inline-block;
+  width: 1.5em;
+  text-align: center;
+  color: var(--home-fg);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.home-screen .home-where-dot.landed {
+  opacity: 1;
 }
 
 .home-screen .home-actions {

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { ArrowRight, Download } from 'lucide-react';
 import SiteFooter from '@/layout/SiteFooter';
@@ -8,12 +8,13 @@ import { EASE } from '@/lib/motion';
 import Doodles from './components/Doodles';
 import HelloIntro from './components/HelloIntro';
 import type { Destination } from './doodles';
+import { usePenTour } from './usePenTour';
 import './styles/home-screen.css';
 
 type HomeScreenProps = {
   /** Play the hello on mount. Read once: the screen runs its own sequence from there. */
   intro: boolean;
-  /** The hello has left: the chrome can come in. Must be stable. */
+  /** The hello has left the screen to the page: the chrome can come in. Must be stable. */
   onIntroDone: () => void;
   /** Where the actions and the doodles send the reader. */
   onNavigate: (to: Destination) => void;
@@ -25,6 +26,12 @@ const rise = (delay: number): Variants => ({
   shown: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.9, ease: EASE, delay } },
 });
 
+/** The line the pen lands on only fades; it must not move under the pen. */
+const fade = (delay: number): Variants => ({
+  hidden: { opacity: 0 },
+  shown: { opacity: 1, transition: { duration: 0.8, ease: EASE, delay } },
+});
+
 /** A word that climbs out of its own mask. */
 const climb = (delay: number): Variants => ({
   hidden: { y: '112%' },
@@ -32,54 +39,100 @@ const climb = (delay: number): Variants => ({
 });
 
 /**
- * The home: the name, one line and two actions, with the doodles in a ring
- * around them. On the first visit of a load the hello writes itself first
- * and everything rises as it leaves; coming back from another tab it rises
- * straight away.
+ * The home. On the first visit of a load the hello writes itself, its ink
+ * drains out through the tail of the o into a pen, the pen tours the page
+ * drawing one doodle after another while the name climbs in behind it, and
+ * it lands as the dot in the line under the name. Coming back from another
+ * tab there is no pen: everything simply rises, a beat apart.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   /* Read once: `intro` names how this mount began, not what App thinks now. */
   const [withIntro] = useState(intro);
-  const [settled, setSettled] = useState(!withIntro);
+  const [tour, setTour] = useState<'hello' | 'running' | 'done'>(withIntro ? 'hello' : 'done');
+  const [drawn, setDrawn] = useState<ReadonlySet<string>>(() => new Set());
+  const [nameUp, setNameUp] = useState(!withIntro);
+  const [whereUp, setWhereUp] = useState(!withIntro);
+
+  const heroRef = useRef<HTMLDivElement>(null);
   const helloPathRef = useRef<SVGPathElement>(null);
+  const penRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLSpanElement>(null);
+  const refs = useMemo(
+    () => ({ hero: heroRef, helloPath: helloPathRef, pen: penRef, dot: dotRef }),
+    [],
+  );
 
   const settle = useCallback(() => {
-    setSettled(true);
+    setTour('done');
+    setNameUp(true);
+    setWhereUp(true);
     onIntroDone();
   }, [onIntroDone]);
 
-  /* After the hello the pieces wait for it to start leaving; a plain visit has nothing to wait for. */
-  const lead = withIntro ? 0.2 : 0;
+  /** The word is written: the ink leaves it and the pen sets off. */
+  const startTour = useCallback(() => {
+    setTour((t) => (t === 'hello' ? 'running' : t));
+    onIntroDone();
+  }, [onIntroDone]);
+
+  usePenTour(tour === 'running', refs, {
+    onDrawn: (id) => setDrawn((prev) => new Set(prev).add(id)),
+    onNameUp: () => setNameUp(true),
+    onWhereUp: () => setWhereUp(true),
+    onDone: settle,
+  });
+
+  const settled = tour === 'done';
+  /* With no pen to time them, the pieces rise a beat apart on their own. */
+  const d = (delay: number) => (withIntro ? 0 : delay);
 
   return (
     <div className="home-screen">
       <div className="grain" aria-hidden />
 
       <AnimatePresence>
-        {!settled && <HelloIntro pathRef={helloPathRef} draining={false} onWritten={settle} onSkip={settle} />}
+        {tour !== 'done' && (
+          <HelloIntro pathRef={helloPathRef} draining={tour === 'running'} onWritten={startTour} onSkip={settle} />
+        )}
       </AnimatePresence>
 
-      <div className="home-hero">
-        <Doodles shown={settled} lead={lead} onNavigate={onNavigate} />
+      <div className="home-hero" ref={heroRef}>
+        <Doodles
+          drawn={settled ? 'all' : drawn}
+          touring={tour === 'running'}
+          stagger={!withIntro}
+          onNavigate={onNavigate}
+          penRef={penRef}
+        />
 
-        <motion.div className="home-block" initial="hidden" animate={settled ? 'shown' : 'hidden'}>
-          <h1 className="home-name">
+        <div className="home-block">
+          <motion.h1 className="home-name" initial="hidden" animate={nameUp ? 'shown' : 'hidden'}>
             {NAME.split(' ').map((word, i) => (
               <span className="home-word" key={word}>
-                <motion.span variants={climb(lead + i * 0.1)}>{word}</motion.span>
+                <motion.span variants={climb(d(i * 0.1))}>{word}</motion.span>
               </span>
             ))}
-          </h1>
+          </motion.h1>
 
-          <motion.p className="home-where" variants={rise(lead + 0.3)}>
+          <motion.p
+            className="home-where"
+            initial="hidden"
+            animate={whereUp ? 'shown' : 'hidden'}
+            variants={fade(d(0.3))}
+          >
             {ROLE}
-            <span className="home-where-dot" aria-hidden>
+            <span ref={dotRef} className={`home-where-dot${settled ? ' landed' : ''}`} aria-hidden>
               ·
             </span>
             {LOCATION}
           </motion.p>
 
-          <motion.div className="home-actions" variants={rise(lead + 0.44)}>
+          <motion.div
+            className="home-actions"
+            initial="hidden"
+            animate={settled ? 'shown' : 'hidden'}
+            variants={rise(d(0.44))}
+          >
             <button
               type="button"
               className="home-action home-action-primary focus-ring"
@@ -97,7 +150,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
               Resume
             </button>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
 
       {/* The shared footer, pinned to the bottom instead of ending a scroll. */}
@@ -105,7 +158,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
         className="home-footer-slot"
         initial="hidden"
         animate={settled ? 'shown' : 'hidden'}
-        variants={rise(lead + 0.65)}
+        variants={rise(d(0.65))}
       >
         <div className="mx-auto w-full max-w-6xl px-6">
           <SiteFooter className="pt-10 pb-8" />

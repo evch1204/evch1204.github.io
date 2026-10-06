@@ -1,6 +1,6 @@
 # Tei (Evan) Chang — Portfolio
 
-Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page opens with a hand-written hello, then settles into the name and two actions in a ring of line doodles; other sections cover profile, experience, projects, and contact.
+Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page opens with a hand-written hello whose ink drains into a pen that draws a ring of doodles round the name; other sections cover profile, experience, projects, and contact.
 
 **Live site:** [evch1204.github.io](https://evch1204.github.io/)
 
@@ -45,9 +45,12 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 │   ├── lib/             # Leaf utilities: clock, download, format, links, motion, url
 │   └── pages/           # One folder per tab; the page component at the root,
 │       │                # its parts in components/, single-use hooks beside it
-│       ├── home/        # HomeScreen: the hello intro, then the name and actions
-│       │   ├── components/   # HelloIntro (the written word), Doodles (the ring)
-│       │   ├── doodles.ts    # One entry per doodle: paths, centre, where a tap goes
+│       ├── home/        # HomeScreen: the hello is written, its ink drains into a pen
+│       │   │                # that tours the page drawing the doodles, then the name
+│       │   ├── components/   # HelloIntro (the written word), Doodles (the ring and the pen)
+│       │   ├── doodles.ts    # One entry per doodle: paths, centre, where a tap goes; in tour order
+│       │   ├── usePenTour.ts # The tour: the route, the pen each frame, when each doodle draws
+│       │   ├── route.ts      # Catmull-Rom curve through points, sampled by arc length
 │       │   └── styles/       # home-screen.css (entry) + home-intro.css + home-doodles.css
 │       ├── about/       # Profile, tech, GitHub activity, resume
 │       ├── experience/  # Journey and education lists (OrgGroup, RoleRow)

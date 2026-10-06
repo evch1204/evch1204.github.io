@@ -1,10 +1,11 @@
-/* ---- The doodles ----
+/* ---- The doodles and the pen ----
  *
  * Line drawings of the school, the company and the things built, in a ring
  * round the name. Each sits at the centre its data gives it, bobs on its own
  * clock, leans with the pointer (deeper ones more: the layer carries --mx /
  * --my), names itself and comes alive under the pointer, and is a button that
- * opens what it draws. Motion writes the strokes; everything else is here.
+ * opens what it draws. The pen that draws them lives on the same layer.
+ * Motion writes the strokes; everything else is here.
  */
 
 .home-screen .home-doodles {
@@ -32,6 +33,27 @@
   /* Centred on its point, then leaning with the pointer. */
   transform: translate(-50%, -50%) translate(calc(var(--mx) * var(--depth) * 1px), calc(var(--my) * var(--depth) * 1px));
   transition: transform 0.9s var(--home-ease);
+}
+
+/* The pen: a drop of the hello's ink, placed each frame by the tour. */
+.home-screen .home-pen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--home-fg);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--px, 0px), var(--py, 0px)) scale(var(--ps, 1));
+  transition: opacity 0.5s;
+}
+
+.home-screen .home-doodles.is-touring .home-pen {
+  opacity: 1;
 }
 
 .home-screen .home-doodle-in {

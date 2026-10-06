@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties, type RefObject } from 'react';
 import { motion, useReducedMotion, type Variants } from 'motion/react';
 import { EASE } from '@/lib/motion';
 import { DOODLES, type Destination } from '@/pages/home/doodles';
@@ -7,22 +7,25 @@ import '@/pages/home/styles/home-doodles.css';
 const PEN_EASE = [0.45, 0.02, 0.2, 1] as const;
 
 type DoodlesProps = {
-  /** Follows the hero: the doodles are written in once this is true. */
-  shown: boolean;
-  /** Seconds after the reveal starts before the first one is written. */
-  lead: number;
+  /** Which doodles the pen has reached, or every one of them. */
+  drawn: ReadonlySet<string> | 'all';
+  /** The pen is on its way round: show it. */
+  touring: boolean;
+  /** No pen this visit: the doodles arrive one after another on their own. */
+  stagger: boolean;
   /** A tap on a doodle goes where it points. */
   onNavigate: (to: Destination) => void;
+  penRef: RefObject<HTMLDivElement | null>;
 };
 
 /**
- * The ring of doodles in the white around the name. Each is written in a
- * beat after the last, bobs on its own clock, leans with the pointer (deeper
- * ones more), comes alive under the pointer and opens what it draws when
- * tapped. Motion writes the strokes and the reveal; the bob, the lean and the
- * hover life are CSS, and the pointer only writes two variables on the layer.
+ * The ring of doodles in the white around the name, and the pen that draws
+ * them. Each doodle is written in when the pen reaches it (or a beat after
+ * the last, on a visit with no pen), bobs on its own clock, leans with the
+ * pointer (deeper ones more), comes alive under the pointer and opens what it
+ * draws when tapped.
  */
-export default function Doodles({ shown, lead, onNavigate }: DoodlesProps) {
+export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }: DoodlesProps) {
   const reduced = useReducedMotion();
   const layerRef = useRef<HTMLDivElement>(null);
 
@@ -39,9 +42,10 @@ export default function Doodles({ shown, lead, onNavigate }: DoodlesProps) {
   }, [reduced]);
 
   return (
-    <motion.div ref={layerRef} className="home-doodles" initial="hidden" animate={shown ? 'shown' : 'hidden'}>
+    <div ref={layerRef} className={`home-doodles${touring ? ' is-touring' : ''}`}>
       {DOODLES.map((doodle, i) => {
-        const delay = lead + 0.55 + i * 0.07;
+        const shown = drawn === 'all' || drawn.has(doodle.id);
+        const delay = stagger ? 0.55 + i * 0.07 : 0;
         const appear: Variants = {
           hidden: { opacity: 0, scale: 0.92 },
           shown: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: EASE, delay } },
@@ -61,13 +65,15 @@ export default function Doodles({ shown, lead, onNavigate }: DoodlesProps) {
           ...(doodle.phone && { '--phone-x': `${doodle.phone.x}%`, '--phone-y': `${doodle.phone.y}%` }),
         } as CSSProperties;
         return (
-          <button
+          <motion.button
             key={doodle.id}
             type="button"
             className={`home-doodle focus-ring${doodle.phone ? ' home-doodle-phone' : ''}`}
             data-doodle={doodle.id}
             aria-label={doodle.label}
             style={style}
+            initial="hidden"
+            animate={shown ? 'shown' : 'hidden'}
             onClick={() => onNavigate(doodle.to)}
           >
             <motion.span className="home-doodle-in" variants={appear}>
@@ -82,9 +88,11 @@ export default function Doodles({ shown, lead, onNavigate }: DoodlesProps) {
                 </span>
               </span>
             </motion.span>
-          </button>
+          </motion.button>
         );
       })}
-    </motion.div>
+
+      <div ref={penRef} className="home-pen" aria-hidden />
+    </div>
   );
 }
