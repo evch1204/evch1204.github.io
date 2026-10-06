@@ -1,4 +1,5 @@
-/* ---- The hello: a full-screen sheet over everything, header included. ---- */
+/* ---- The hello: a full-screen sheet over the home. The header and the tab bar
+   sit above it in their own layer and hide themselves while it plays. ---- */
 
 .hello-intro {
   position: fixed;
@@ -7,7 +8,7 @@
   display: grid;
   place-items: center;
   padding-inline: 16px;
-  /* The page underneath must take the pen's tour, so nothing here catches the pointer. */
+  /* A tap anywhere skips, through a window listener, so the sheet itself takes no pointer. */
   pointer-events: none;
 }
 
@@ -28,7 +29,7 @@
 
 .hello-intro-mark path {
   fill: none;
-  stroke: #0a0a0a;
+  stroke: var(--home-fg);
   stroke-width: 4.2;
   stroke-linecap: round;
   stroke-linejoin: round;

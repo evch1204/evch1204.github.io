@@ -1,9 +1,9 @@
 @import './home-intro.css';
+@import './home-doodles.css';
 
 .home-screen {
   --home-fg: #0a0a0a;
   --home-muted: #555550;
-  --home-dim: #a1a1aa;
   --home-ease: cubic-bezier(0.22, 1, 0.36, 1);
   background: transparent;
   color: var(--home-fg);
@@ -103,6 +103,11 @@
   opacity: 1;
 }
 
+/* A phone breaks the line before the place, never inside it. */
+.home-screen .home-where-place {
+  white-space: nowrap;
+}
+
 .home-screen .home-actions {
   margin-top: clamp(28px, 4vw, 40px);
   display: flex;
@@ -131,7 +136,8 @@
     box-shadow 0.45s var(--home-ease);
 }
 
-.home-screen .home-action:hover {
+/* Lifted under the pointer; the keyboard's ring, also a box-shadow, wins when both apply. */
+.home-screen .home-action:hover:not(:focus-visible) {
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 }
@@ -162,6 +168,12 @@
   right: 0;
   bottom: 0;
   z-index: 6;
+  /* Only its links take the pointer: a doodle may sit over the slot's top padding on a short window. */
+  pointer-events: none;
+}
+
+.home-screen .home-footer-slot :is(a, button) {
+  pointer-events: auto;
 }
 
 /* ---- Phone shell (the exact complement of Tailwind's `md`) -----------------

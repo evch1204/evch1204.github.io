@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion, type Variants } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import { ArrowRight, Download } from 'lucide-react';
 import SiteFooter from '@/layout/SiteFooter';
 import { LOCATION, NAME, RESUME_FILENAME, RESUME_URL, ROLE } from '@/content/site';
@@ -20,24 +20,6 @@ type HomeScreenProps = {
   onNavigate: (to: Destination) => void;
 };
 
-/** A piece that fades up into place, `delay` seconds after it is told to. */
-const rise = (delay: number): Variants => ({
-  hidden: { opacity: 0, y: 14, filter: 'blur(6px)' },
-  shown: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.9, ease: EASE, delay } },
-});
-
-/** The line the pen lands on only fades; it must not move under the pen. */
-const fade = (delay: number): Variants => ({
-  hidden: { opacity: 0 },
-  shown: { opacity: 1, transition: { duration: 0.8, ease: EASE, delay } },
-});
-
-/** A word that climbs out of its own mask. */
-const climb = (delay: number): Variants => ({
-  hidden: { y: '112%' },
-  shown: { y: 0, transition: { duration: 1.15, ease: EASE, delay } },
-});
-
 /**
  * The home. On the first visit of a load the hello writes itself, its ink
  * drains out through the tail of the o into a pen, the pen tours the page
@@ -46,6 +28,7 @@ const climb = (delay: number): Variants => ({
  * tab there is no pen: everything simply rises, a beat apart.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
+  const reduced = useReducedMotion();
   /* Read once: `intro` names how this mount began, not what App thinks now. */
   const [withIntro] = useState(intro);
   const [tour, setTour] = useState<'hello' | 'running' | 'done'>(withIntro ? 'hello' : 'done');
@@ -57,10 +40,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
   const helloPathRef = useRef<SVGPathElement>(null);
   const penRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
-  const refs = useMemo(
-    () => ({ hero: heroRef, helloPath: helloPathRef, pen: penRef, dot: dotRef }),
-    [],
-  );
+  const refs = useMemo(() => ({ hero: heroRef, helloPath: helloPathRef, pen: penRef, dot: dotRef }), []);
 
   const settle = useCallback(() => {
     setTour('done');
@@ -86,6 +66,22 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
   /* With no pen to time them, the pieces rise a beat apart on their own. */
   const d = (delay: number) => (withIntro ? 0 : delay);
 
+  /* The entrances. With reduced motion nothing moves: the pieces only fade. */
+  const rise = (delay: number): Variants => ({
+    hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 14, filter: 'blur(6px)' },
+    shown: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.9, ease: EASE, delay } },
+  });
+  /* The line the pen lands on only ever fades; it must not move under the pen. */
+  const fade = (delay: number): Variants => ({
+    hidden: { opacity: 0 },
+    shown: { opacity: 1, transition: { duration: 0.8, ease: EASE, delay } },
+  });
+  /* A word that climbs out of its own mask. */
+  const climb = (delay: number): Variants => ({
+    hidden: reduced ? { opacity: 0 } : { y: '112%' },
+    shown: { opacity: 1, y: 0, transition: { duration: 1.15, ease: EASE, delay } },
+  });
+
   return (
     <div className="home-screen">
       <div className="grain" aria-hidden />
@@ -96,6 +92,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
         )}
       </AnimatePresence>
 
+      {/* Nothing here can be tapped or tabbed to before it is on screen: each piece is inert until it is. */}
       <div className="home-hero" ref={heroRef}>
         <Doodles
           drawn={settled ? 'all' : drawn}
@@ -105,7 +102,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
           penRef={penRef}
         />
 
-        <div className="home-block">
+        <div className="home-block" inert={!settled}>
           <motion.h1 className="home-name" initial="hidden" animate={nameUp ? 'shown' : 'hidden'}>
             {NAME.split(' ').map((word, i) => (
               <span className="home-word" key={word}>
@@ -121,10 +118,11 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
             variants={fade(d(0.3))}
           >
             {ROLE}
+            <span className="sr-only">, </span>
             <span ref={dotRef} className={`home-where-dot${settled ? ' landed' : ''}`} aria-hidden>
               ·
             </span>
-            {LOCATION}
+            <span className="home-where-place">{LOCATION}</span>
           </motion.p>
 
           <motion.div
@@ -159,6 +157,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
         initial="hidden"
         animate={settled ? 'shown' : 'hidden'}
         variants={rise(d(0.65))}
+        inert={!settled}
       >
         <div className="mx-auto w-full max-w-6xl px-6">
           <SiteFooter className="pt-10 pb-8" />

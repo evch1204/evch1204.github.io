@@ -1,10 +1,7 @@
 import { useEffect, useRef, type CSSProperties, type RefObject } from 'react';
 import { motion, useReducedMotion, type Variants } from 'motion/react';
-import { EASE } from '@/lib/motion';
+import { EASE, PEN_EASE } from '@/lib/motion';
 import { DOODLES, type Destination } from '@/pages/home/doodles';
-import '@/pages/home/styles/home-doodles.css';
-
-const PEN_EASE = [0.45, 0.02, 0.2, 1] as const;
 
 type DoodlesProps = {
   /** Which doodles the pen has reached, or every one of them. */
@@ -18,6 +15,10 @@ type DoodlesProps = {
   penRef: RefObject<HTMLDivElement | null>;
 };
 
+/** The spoken name: what it draws, and where a tap goes. */
+const nameOf = (label: string, to: Destination) =>
+  `${label}, opens ${to.project ? 'the project' : 'the Experience tab'}`;
+
 /**
  * The ring of doodles in the white around the name, and the pen that draws
  * them. Each doodle is written in when the pen reaches it (or a beat after
@@ -29,16 +30,25 @@ export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }:
   const reduced = useReducedMotion();
   const layerRef = useRef<HTMLDivElement>(null);
 
+  /* The lean: a mouse writes two variables on the layer, at most once a frame. A finger does not lean. */
   useEffect(() => {
     if (reduced) return;
     const layer = layerRef.current;
     if (!layer) return;
-    const onMove = (e: MouseEvent) => {
-      layer.style.setProperty('--mx', (e.clientX / window.innerWidth - 0.5).toFixed(3));
-      layer.style.setProperty('--my', (e.clientY / window.innerHeight - 0.5).toFixed(3));
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        layer.style.setProperty('--mx', (e.clientX / window.innerWidth - 0.5).toFixed(3));
+        layer.style.setProperty('--my', (e.clientY / window.innerHeight - 0.5).toFixed(3));
+      });
     };
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
+    window.addEventListener('pointermove', onMove);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onMove);
+    };
   }, [reduced]);
 
   return (
@@ -47,7 +57,7 @@ export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }:
         const shown = drawn === 'all' || drawn.has(doodle.id);
         const delay = stagger ? 0.55 + i * 0.07 : 0;
         const appear: Variants = {
-          hidden: { opacity: 0, scale: 0.92 },
+          hidden: { opacity: 0, scale: reduced ? 1 : 0.92 },
           shown: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: EASE, delay } },
         };
         /* Every stroke of a drawing is written in the same window, so the scene arrives as one. */
@@ -70,10 +80,12 @@ export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }:
             type="button"
             className={`home-doodle focus-ring${doodle.phone ? ' home-doodle-phone' : ''}`}
             data-doodle={doodle.id}
-            aria-label={doodle.label}
+            aria-label={nameOf(doodle.label, doodle.to)}
             style={style}
             initial="hidden"
             animate={shown ? 'shown' : 'hidden'}
+            /* Until it is drawn there is nothing to tap, or to land on with Tab. */
+            inert={!shown}
             onClick={() => onNavigate(doodle.to)}
           >
             <motion.span className="home-doodle-in" variants={appear}>
