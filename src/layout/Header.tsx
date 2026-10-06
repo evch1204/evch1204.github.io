@@ -3,12 +3,7 @@ import { linkProps } from '@/lib/links';
 import NavPill from './NavPill';
 import type { Tab } from './nav';
 
-/**
- * Navigation + social links, on one row on every page. On home the links are
- * left out entirely: the home screen draws its own copies there, because they
- * have to be able to fall. The row keeps its height either way, so the two sets
- * land on the same line.
- */
+/** Navigation + social links, on one row on every page. */
 export default function Header({
   activeTab,
   onSelect,
@@ -29,19 +24,17 @@ export default function Header({
       </div>
       <NavPill activeTab={activeTab} onSelect={onSelect} />
       <div className="flex-1 min-w-0 flex justify-end items-center gap-4 md:gap-5">
-        {activeTab === 'home'
-          ? null
-          : SOCIAL_LINKS.map(({ id, label, href, Icon }) => (
-              <a
-                key={id}
-                href={href}
-                {...linkProps(href)}
-                className="text-black hover:opacity-75 transition-all hover:scale-110 p-1"
-                aria-label={label}
-              >
-                <Icon size={22} />
-              </a>
-            ))}
+        {SOCIAL_LINKS.map(({ id, label, href, Icon }) => (
+          <a
+            key={id}
+            href={href}
+            {...linkProps(href)}
+            className="text-black hover:opacity-75 transition-all hover:scale-110 p-1"
+            aria-label={label}
+          >
+            <Icon size={22} />
+          </a>
+        ))}
       </div>
     </header>
   );

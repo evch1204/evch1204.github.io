@@ -1,6 +1,6 @@
 # Tei (Evan) Chang — Portfolio
 
-Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page features an interactive physics-style experience; other sections cover profile, experience, projects, and contact.
+Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page is the name and two actions; other sections cover profile, experience, projects, and contact.
 
 **Live site:** [evch1204.github.io](https://evch1204.github.io/)
 
@@ -45,11 +45,8 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 │   ├── lib/             # Leaf utilities: clock, download, format, links, motion, url
 │   └── pages/           # One folder per tab; the page component at the root,
 │       │                # its parts in components/, single-use hooks beside it
-│       ├── home/        # HomeScreen, useHomeCtas, usePhysicsPlayground,
-│       │   ├── components/   # PhysBlock, HomeFacts
-│       │   ├── physics/      # The DOM playground: world, solver, collisions,
-│       │   │                 # drag, blocks, loop, flights, playground (root)
-│       │   └── styles/       # home-screen.css (entry) + blocks, playground, footer
+│       ├── home/        # HomeScreen: the name, one line and two actions
+│       │   └── styles/       # home-screen.css
 │       ├── about/       # Profile, tech, GitHub activity, resume
 │       ├── experience/  # Journey and education lists (OrgGroup, RoleRow)
 │       ├── projects/    # Grid and the project page it opens into;
@@ -65,8 +62,7 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 
 Conventions: `@/` for any import that crosses a folder boundary, `./` for a
 sibling, never `../` (the linter enforces it). Components default-export,
-modules named-export. Layering is `lib → content → components → layout → pages → App`;
-`physics/` imports nothing from React.
+modules named-export. Layering is `lib → content → components → layout → pages → App`.
 
 ## Scripts
 
@@ -113,7 +109,7 @@ a reload returns to the same place.
 - **Page title & meta:** `index.html`
 - **Name, role, email, links, resume filename:** `src/content/site.ts`
 - **Tabs:** `src/layout/nav.ts`; the pages themselves live in `src/pages/`
-- **Home interaction:** `src/pages/home/` (`HomeScreen.tsx`, `styles/`, `physics/`)
+- **Home hero:** `src/pages/home/` (`HomeScreen.tsx`, `styles/`)
 - **Projects & featured content:** `src/content/projects/`
 - **Experience & education:** `src/content/experience.ts`
 - **Resume file:** add or replace `public/resume.pdf` (linked from the app)
