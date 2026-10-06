@@ -9,16 +9,15 @@ const GRID = 'sketchbook-grid.png';
 /** The portrait collage of six screens, 1214 × 1295. The paper plane and the hand marks come from it. */
 const MONO = 'monochrome-collage.png';
 
-/** Lettering on the home map that the page types itself, the plane, and the desk the old sketch had under the map. */
+/** Lettering on the home map that the page types itself, and the desk the old sketch had under the map. */
 const MAP_MASKS = [
   [525, 365, 650, 440],
   [1405, 415, 1490, 455],
-  [955, 335, 1035, 385],
   [895, 655, 1230, 720],
   [1150, 700, 1300, 720],
 ];
 /** The map and everything drawn over it. Coasts are meant to wander, so the hand evens them out less than a ruled line. */
-const MAP_REGION = { src: HOME, box: [500, 210, 1500, 720], thr: 227, k: 3, mask: MAP_MASKS, minLen: 9, smooth: 1.0, fit: 0.45, straight: 0.3, cornerAngle: 58, weight: 0.9, minW: 1.2, maxW: 2.2, tone: 1, hatchBelow: 1.35, dedupe: 1.9 };
+const MAP_REGION = { src: HOME, box: [500, 210, 1500, 720], thr: 227, k: 3, mask: MAP_MASKS, minLen: 9, smooth: 1.0, fit: 0.45, straight: 0.3, cornerAngle: 58, weight: 0.9, minW: 1.2, maxW: 2.2, tone: 1, hatchBelow: 1.35, dedupe: 1.9, fills: 4 };
 
 /**
  * The flight between Taiwan and Santa Clara, as the page flies it: a curve fitted to the sketch's
@@ -30,7 +29,7 @@ const ROUTE = Array.from({ length: 240 }, (_, i) => {
   return [u * u * 706 + 2 * u * t * 1036.5 + t * t * 1367, u * u * 403 + 2 * u * t * 288.5 + t * t * 476];
 });
 const fromRoute = ([x, y]) => ROUTE.reduce((min, [rx, ry]) => Math.min(min, Math.hypot(rx - x, ry - y)), Infinity);
-const isDash = (stroke) => stroke.len < 36 && stroke.pts.every((p) => fromRoute(p) < 7);
+const isDash = (stroke) => stroke.len < 40 && stroke.pts.every((p) => fromRoute(p) < 13);
 
 // ---- The person at the desk --------------------------------------------------------------------
 /**
@@ -106,7 +105,8 @@ export const OUTPUTS = [
       {
         name: 'MAP',
         about: 'The world in pencil, coast by coast.',
-        regions: [{ ...MAP_REGION, order: 'west', pick: (b, stroke) => !stroke || !isDash(stroke) }],
+        // The plane and the pins are solid, and are lifted out of the map as shapes; the page draws its own.
+        regions: [{ ...MAP_REGION, order: 'west', pick: (b, stroke) => !!stroke && !isDash(stroke) }],
       },
       {
         name: 'FLIGHT',
@@ -116,7 +116,8 @@ export const OUTPUTS = [
       {
         name: 'PLANE',
         about: 'The plane on the flight, where the sketch has it over the Atlantic.',
-        regions: [{ src: HOME, box: [955, 335, 1035, 385], thr: 150, k: 4, fills: 2.5, minLen: 99, smooth: 0.7, fit: 0.3 }],
+        // Only the plane itself: the dashes in front of it are thick enough to be shapes too, but far smaller.
+        regions: [{ src: HOME, box: [955, 335, 1035, 385], thr: 150, k: 4, fills: 3.5, minLen: 99, smooth: 0.7, fit: 0.3, pick: (b, stroke) => !stroke && b.x1 - b.x0 > 30 }],
       },
       {
         name: 'PERSON',
