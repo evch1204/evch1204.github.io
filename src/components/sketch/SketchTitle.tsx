@@ -18,7 +18,7 @@ export default function SketchTitle({
   return (
     <Heading className={`sk-title ${className}`}>
       <span className="sk-title-words">{children}</span>
-      <Sketch drawing={UNDERLINE} stretch duration={0.5} delay={0.2} weight={0.85} className="sk-title-line" />
+      <Sketch drawing={UNDERLINE} stretch duration={0.5} delay={0.2} weight={1.5} className="sk-title-line" />
     </Heading>
   );
 }

@@ -174,10 +174,11 @@
     transform-origin: left bottom;
   }
 
+  /* Stretched to the words, at a fixed height: a long title gets a longer stroke, not a thicker one. */
   .sk-title-line {
-    width: 112%;
-    height: auto;
-    margin-top: -0.36em;
+    width: 106%;
+    height: 0.4em;
+    margin-top: -0.3em;
   }
 
   /* A smaller heading inside a page: the words, and a short stroke under them. */

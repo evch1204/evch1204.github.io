@@ -11,7 +11,7 @@ import ExperiencePage from '@/pages/experience/ExperiencePage';
 import ProjectsPage from '@/pages/projects/ProjectsPage';
 import ContactPage from '@/pages/contact/ContactPage';
 
-/** Home is the exception: it is a viewport-locked screen, not a scrolling page, so it is not in here. */
+/** Home is the exception: it opens under the hello and scrolls inside its own layer, so it is not in here. */
 const TAB_PAGES: Record<Exclude<Tab, 'home'>, ComponentType> = {
   about: AboutPage,
   experience: ExperiencePage,

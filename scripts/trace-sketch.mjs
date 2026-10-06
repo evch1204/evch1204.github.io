@@ -1,9 +1,11 @@
 // Traces the line art of the reference sketches into the drawings the site writes with its pen.
 //
 // For each region of a reference sheet: upsample (the references are small), threshold, lift out
-// the solid areas (hair, a pin, a plane) as filled outlines, thin what is left to a one-pixel
-// skeleton (Zhang-Suen), walk the skeleton into strokes, weigh each stroke by how thick and how
-// dark the ink was, simplify (Douglas-Peucker) and round the corners a pen would round.
+// the solid areas (hair, a plane) as filled outlines, and thin what is left to a one-pixel skeleton
+// (Zhang-Suen). The skeleton is walked into strokes, and each stroke is then redrawn the way a
+// steady hand would have drawn it: the pixel jitter is smoothed out along its length, real corners
+// are kept, and clean Bézier curves are fitted to what remains (Schneider's algorithm). Each stroke
+// keeps how thick and how dark the ink was.
 //
 // Usage: node scripts/trace-sketch.mjs [preview-dir]
 //   Writes the generated modules listed in OUTPUTS; with a directory, also an SVG of each for the eye.
@@ -135,7 +137,8 @@ function walk(img, w, h) {
       if (!n.length) break;
       let best = n[0];
       if (pts.length > 1 && n.length > 1) {
-        const [px, py] = pts[Math.max(0, pts.length - 4)];
+        // Straight on at a fork: the heading is read over the last few pixels, not the last one.
+        const [px, py] = pts[Math.max(0, pts.length - 6)];
         const hx = cx - px, hy = cy - py;
         best = n.reduce((b, c) => ((c[0] - cx) * hx + (c[1] - cy) * hy > (b[0] - cx) * hx + (b[1] - cy) * hy ? c : b), n[0]);
       }
@@ -195,24 +198,14 @@ function outlines(mask, w, h) {
   return loops;
 }
 
-const dist2ToSegment = (p, a, b) => {
-  const dx = b[0] - a[0], dy = b[1] - a[1];
-  const L = dx * dx + dy * dy || 1;
-  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L));
-  const ex = a[0] + t * dx - p[0], ey = a[1] + t * dy - p[1];
-  return ex * ex + ey * ey;
-};
-function simplify(pts, tol) {
-  if (pts.length < 3) return pts;
-  let idx = 0, max = 0;
-  for (let i = 1; i < pts.length - 1; i++) {
-    const d = dist2ToSegment(pts[i], pts[0], pts[pts.length - 1]);
-    if (d > max) { max = d; idx = i; }
-  }
-  if (max > tol * tol) return [...simplify(pts.slice(0, idx + 1), tol).slice(0, -1), ...simplify(pts.slice(idx), tol)];
-  return [pts[0], pts[pts.length - 1]];
-}
-const lengthOf = (pts) => pts.reduce((n, p, i) => (i ? n + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0), 0);
+// ---- Geometry -------------------------------------------------------------------------------
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const mul = (a, s) => [a[0] * s, a[1] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+const norm = (a) => Math.hypot(a[0], a[1]);
+const unit = (a) => { const n = norm(a) || 1; return [a[0] / n, a[1] / n]; };
+const lengthOf = (pts) => pts.reduce((n, p, i) => (i ? n + norm(sub(p, pts[i - 1])) : 0), 0);
 const bounds = (pts) => {
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
   return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
@@ -220,41 +213,174 @@ const bounds = (pts) => {
 const f = (n) => String(Math.round(n * 10) / 10);
 
 /**
- * A polyline as a path a pen could have drawn: Catmull-Rom curves through the points, kept sharp
- * wherever the line turns hard, and never bulging past a third of a segment.
+ * Smooths a chain along its own length with a Gaussian `sigma` points wide. The ends stay where
+ * they are (the window narrows towards them), so a stroke keeps its reach and a corner, once the
+ * chain is cut there, keeps its point. A closed chain is smoothed all the way round.
  */
-function penPath(pts, closed = false) {
-  const n = pts.length;
-  if (n < 3) return 'M' + pts.map((p) => f(p[0]) + ' ' + f(p[1])).join('L') + (closed ? 'Z' : '');
-  const get = (i) => (closed ? pts[(i + n) % n] : pts[Math.max(0, Math.min(n - 1, i))]);
-  const sharp = (i) => {
-    if (!closed && (i <= 0 || i >= n - 1)) return true;
-    const a = get(i - 1), b = get(i), c = get(i + 1);
-    const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
-    const cos = (ux * vx + uy * vy) / ((Math.hypot(ux, uy) || 1) * (Math.hypot(vx, vy) || 1));
-    return cos < 0.55; // a turn of more than ~57 degrees is a corner, not a curve
-  };
-  const tangent = (i) => {
-    if (sharp(i)) return [0, 0];
-    const a = get(i - 1), c = get(i + 1);
-    return [(c[0] - a[0]) / 6, (c[1] - a[1]) / 6];
-  };
-  let d = 'M' + f(pts[0][0]) + ' ' + f(pts[0][1]);
-  const segments = closed ? n : n - 1;
-  for (let i = 0; i < segments; i++) {
-    const p = get(i), q = get(i + 1);
-    const seg = Math.hypot(q[0] - p[0], q[1] - p[1]);
-    const clamp = ([tx, ty]) => {
-      const m = Math.hypot(tx, ty);
-      const cap = seg / 3;
-      return m > cap ? [(tx / m) * cap, (ty / m) * cap] : [tx, ty];
-    };
-    const t1 = clamp(tangent(i)), t2 = clamp(tangent(i + 1));
-    if (!t1[0] && !t1[1] && !t2[0] && !t2[1]) d += 'L' + f(q[0]) + ' ' + f(q[1]);
-    else d += 'C' + [p[0] + t1[0], p[1] + t1[1], q[0] - t2[0], q[1] - t2[1], q[0], q[1]].map(f).join(' ');
+function smoothChain(pts, sigma, closed = false) {
+  if (sigma <= 0 || pts.length < 4) return pts;
+  const n = pts.length, reach = Math.ceil(sigma * 3);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const r = closed ? reach : Math.min(reach, i, n - 1 - i);
+    if (r === 0) { out.push(pts[i]); continue; }
+    const s = closed ? sigma : Math.min(sigma, r / 2 + 0.01);
+    let x = 0, y = 0, total = 0;
+    for (let j = -r; j <= r; j++) {
+      const p = pts[closed ? (i + j + n * 8) % n : i + j];
+      const wgt = Math.exp(-(j * j) / (2 * s * s));
+      x += p[0] * wgt; y += p[1] * wgt; total += wgt;
+    }
+    out.push([x / total, y / total]);
   }
-  return d + (closed ? 'Z' : '');
+  return out;
 }
+
+/** Where a chain turns hard: indices of real corners, found on a lightly smoothed copy over a window of `span` points. */
+function corners(pts, span, degrees) {
+  const calm = smoothChain(pts, span / 3);
+  const n = calm.length, limit = Math.cos((degrees * Math.PI) / 180);
+  const turn = new Float32Array(n).fill(1);
+  for (let i = span; i < n - span; i++) turn[i] = dot(unit(sub(calm[i], calm[i - span])), unit(sub(calm[i + span], calm[i])));
+  const found = [];
+  for (let i = span; i < n - span; i++) {
+    if (turn[i] > limit) continue;
+    let sharpest = true;
+    for (let j = Math.max(span, i - span); j <= Math.min(n - span - 1, i + span); j++) if (turn[j] < turn[i]) { sharpest = false; break; }
+    if (sharpest && (!found.length || i - found[found.length - 1] > span)) found.push(i);
+  }
+  return found;
+}
+
+// ---- Schneider's curve fitting: a run of points as the fewest cubic Béziers within `error` -----
+const bez = (c, t) => {
+  const u = 1 - t;
+  return [u * u * u * c[0][0] + 3 * u * u * t * c[1][0] + 3 * u * t * t * c[2][0] + t * t * t * c[3][0], u * u * u * c[0][1] + 3 * u * u * t * c[1][1] + 3 * u * t * t * c[2][1] + t * t * t * c[3][1]];
+};
+const bezD1 = (c, t) => {
+  const u = 1 - t;
+  return add(add(mul(sub(c[1], c[0]), 3 * u * u), mul(sub(c[2], c[1]), 6 * u * t)), mul(sub(c[3], c[2]), 3 * t * t));
+};
+const bezD2 = (c, t) => add(mul(add(sub(c[2], mul(c[1], 2)), c[0]), 6 * (1 - t)), mul(add(sub(c[3], mul(c[2], 2)), c[1]), 6 * t));
+
+function fitCubic(pts, t1, t2, error) {
+  const first = pts[0], last = pts[pts.length - 1];
+  if (pts.length === 2) {
+    const d = norm(sub(last, first)) / 3;
+    return [[first, add(first, mul(t1, d)), add(last, mul(t2, d)), last]];
+  }
+  // Chord-length parameters.
+  let u = [0];
+  for (let i = 1; i < pts.length; i++) u.push(u[i - 1] + norm(sub(pts[i], pts[i - 1])));
+  const total = u[u.length - 1] || 1;
+  u = u.map((v) => v / total);
+
+  const generate = (params) => {
+    let c00 = 0, c01 = 0, c11 = 0, x0 = 0, x1 = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const t = params[i], s = 1 - t;
+      const b0 = s * s * s, b1 = 3 * s * s * t, b2 = 3 * s * t * t, b3 = t * t * t;
+      const a1 = mul(t1, b1), a2 = mul(t2, b2);
+      c00 += dot(a1, a1); c01 += dot(a1, a2); c11 += dot(a2, a2);
+      const tmp = sub(pts[i], add(mul(first, b0 + b1), mul(last, b2 + b3)));
+      x0 += dot(a1, tmp); x1 += dot(a2, tmp);
+    }
+    const det = c00 * c11 - c01 * c01;
+    let al = Math.abs(det) > 1e-9 ? (x0 * c11 - x1 * c01) / det : 0;
+    let ar = Math.abs(det) > 1e-9 ? (c00 * x1 - c01 * x0) / det : 0;
+    const seg = norm(sub(last, first));
+    // A degenerate or runaway solution falls back to the plain third-of-the-chord handles.
+    if (al < seg * 1e-3 || ar < seg * 1e-3 || al > seg * 2.5 || ar > seg * 2.5) al = ar = seg / 3;
+    return [first, add(first, mul(t1, al)), add(last, mul(t2, ar)), last];
+  };
+  const worst = (curve, params) => {
+    let max = 0, at = Math.floor(pts.length / 2);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const d = sub(bez(curve, params[i]), pts[i]);
+      const e = dot(d, d);
+      if (e > max) { max = e; at = i; }
+    }
+    return [max, at];
+  };
+
+  let curve = generate(u);
+  let [max, split] = worst(curve, u);
+  if (max < error * error) return [curve];
+  if (max < error * error * 16) {
+    for (let pass = 0; pass < 4; pass++) {
+      // Newton-Raphson: move each parameter towards the nearest point of the curve.
+      u = u.map((t, i) => {
+        const d = sub(bez(curve, t), pts[i]), d1 = bezD1(curve, t), d2 = bezD2(curve, t);
+        const den = dot(d1, d1) + dot(d, d2);
+        return Math.abs(den) < 1e-9 ? t : Math.max(0, Math.min(1, t - dot(d, d1) / den));
+      });
+      curve = generate(u);
+      [max, split] = worst(curve, u);
+      if (max < error * error) return [curve];
+    }
+  }
+  const centre = unit(sub(pts[Math.max(0, split - 1)], pts[Math.min(pts.length - 1, split + 1)]));
+  return [...fitCubic(pts.slice(0, split + 1), t1, centre, error), ...fitCubic(pts.slice(split), mul(centre, -1), t2, error)];
+}
+
+/** Evenly spaced points along a chain, `step` apart, ends included. */
+function resample(pts, step) {
+  const out = [pts[0]];
+  let carried = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const seg = norm(sub(pts[i], pts[i - 1]));
+    let at = step - carried;
+    while (at <= seg) {
+      out.push(add(pts[i - 1], mul(sub(pts[i], pts[i - 1]), at / seg)));
+      at += step;
+    }
+    carried = (carried + seg) % step;
+  }
+  const last = pts[pts.length - 1];
+  if (norm(sub(out[out.length - 1], last)) > step * 0.3) out.push(last);
+  else out[out.length - 1] = last;
+  return out;
+}
+
+/**
+ * A walked chain as a steady hand would have drawn it. The chain is cut at its real corners;
+ * each run between them is smoothed, and is then either a straight line (if it never strays from
+ * one by more than `straight`) or the fewest cubic curves that stay within `fit` of it.
+ * Returns segments: `[a, b]` for a line, `[a, c1, c2, b]` for a curve.
+ */
+function steady(pts, { smooth, fit, straight, cornerSpan, cornerAngle }) {
+  const cuts = [0, ...corners(pts, cornerSpan, cornerAngle), pts.length - 1];
+  const segs = [];
+  for (let c = 0; c < cuts.length - 1; c++) {
+    let run = pts.slice(cuts[c], cuts[c + 1] + 1);
+    if (run.length < 2) continue;
+    run = smoothChain(run, smooth);
+    const a = run[0], b = run[run.length - 1];
+    const chord = norm(sub(b, a)) || 1;
+    let stray = 0;
+    for (const p of run) stray = Math.max(stray, Math.abs((p[0] - a[0]) * (b[1] - a[1]) - (p[1] - a[1]) * (b[0] - a[0])) / chord);
+    if (stray <= straight || run.length < 4) { segs.push([a, b]); continue; }
+    const even = resample(run, Math.max(1, fit * 1.5));
+    if (even.length < 3) { segs.push([a, b]); continue; }
+    const lead = Math.min(3, even.length - 1);
+    segs.push(...fitCubic(even, unit(sub(even[lead], even[0])), unit(sub(even[even.length - 1 - lead], even[even.length - 1])), fit));
+  }
+  return segs;
+}
+
+const segsPath = (segs) => {
+  let d = '';
+  let at = null;
+  for (const s of segs) {
+    const a = s[0], b = s[s.length - 1];
+    if (!at || Math.abs(at[0] - a[0]) > 0.05 || Math.abs(at[1] - a[1]) > 0.05) d += 'M' + f(a[0]) + ' ' + f(a[1]);
+    d += s.length === 2 ? 'L' + f(b[0]) + ' ' + f(b[1]) : 'C' + [s[1][0], s[1][1], s[2][0], s[2][1], b[0], b[1]].map(f).join(' ');
+    at = b;
+  }
+  return d;
+};
+/** Points along the fitted segments: for a stroke's length, its box, and where it starts and ends. */
+const segsPoints = (segs) => segs.flatMap((s) => (s.length === 2 ? [s[0], s[1]] : Array.from({ length: 9 }, (_, i) => bez(s, i / 8))));
 
 /**
  * One region of a sheet, traced. Options, all in the sheet's own pixels:
@@ -262,15 +388,22 @@ function penPath(pts, closed = false) {
  *   thr                 how dark a pixel must be to count as ink (0-255)
  *   k                   enlargement before tracing (default 4)
  *   mask                boxes or polygons to leave out (lettering that is typed instead, a neighbour)
+ *   keep                boxes or polygons: when given, only ink inside one of them is traced
  *   fills               lift areas thicker than this many pixels out as filled shapes (default off)
  *   minLen              drop strokes shorter than this (default 1.6)
- *   tol                 simplification tolerance (default 0.28)
+ *   smooth              how far along a stroke the hand evens out its wobble (default 1.1)
+ *   fit                 how far a fitted curve may sit from the smoothed stroke (default 0.4)
+ *   straight            a run that strays less than this from a ruler is a straight line (default 0.45)
+ *   cornerAngle         a turn sharper than this many degrees is a corner and is kept (default 48)
  *   to                  { x, y, scale }: where the box's corner lands, and how much bigger, in the drawing
  *   weight              multiplies the measured stroke widths (default 1)
  *   maxW                the widest a stroke may be drawn (default 2.6)
  */
 function trace(region) {
-  const { src, box, thr, k = 4, mask = [], fills = 0, minLen = 1.6, tol = 0.28, to = { x: box[0], y: box[1], scale: 1 }, weight = 1, maxW = 2.6 } = region;
+  const {
+    src, box, thr, k = 4, mask = [], keep, fills = 0, minLen = 1.6, smooth = 1.1, fit = 0.4, straight = 0.45, cornerAngle = 48,
+    to = { x: box[0], y: box[1], scale: 1 }, weight = 1, maxW = 2.6,
+  } = region;
   const S = sheet(src);
   const { w, h, px } = enlarge(S, box, k);
   const [x0, y0] = box;
@@ -278,12 +411,14 @@ function trace(region) {
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     if (px[y * w + x] >= thr) continue;
     if (mask.some((m) => masked(m, x / k + x0, y / k + y0))) continue;
+    if (keep && !keep.some((m) => masked(m, x / k + x0, y / k + y0))) continue;
     ink[y * w + x] = 1;
   }
   const paper = new Uint8Array(w * h);
   for (let i = 0; i < ink.length; i++) paper[i] = ink[i] ? 0 : 1;
   const depth = distance(paper, w, h); // how deep in the ink each ink pixel sits: half the local stroke width
   const place = ([x, y]) => [(x / k) * to.scale + to.x, (y / k) * to.scale + to.y];
+  const hand = { smooth: smooth * k, fit: fit * k, straight: straight * k, cornerSpan: Math.round(2.4 * k), cornerAngle };
 
   // Solid areas: the cores deeper than half the fill width, grown back out to the ink's own edge.
   const shapes = [];
@@ -323,10 +458,15 @@ function trace(region) {
           for (let i = 0; i < one.length; i++) if (one[i]) ink[i] = 1;
           continue;
         }
+        // A shape's edge is smoothed all the way round and fitted like any other line.
         const loops = outlines(one, w, h)
-          .map((loop) => simplify([...loop, loop[0]], tol * k).slice(0, -1))
-          .filter((loop) => loop.length > 2)
-          .map((loop) => loop.map(place));
+          .filter((loop) => loop.length > 8)
+          .map((loop) => {
+            const round = smoothChain(loop, hand.smooth * 0.4, true);
+            const even = resample([...round, round[0]], Math.max(1, hand.fit * 1.5));
+            const tangent = unit(sub(even[Math.min(2, even.length - 1)], even[even.length - 3] ?? even[0]));
+            return fitCubic(even, tangent, mul(tangent, -1), hand.fit).map((s) => s.map(place));
+          });
         if (loops.length) shapes.push({ loops, c: place([cx / area, cy / area]) });
       }
     }
@@ -340,10 +480,10 @@ function trace(region) {
     const depths = chain.map(([x, y]) => depth[y * w + x]).sort((a, b) => a - b);
     const width = ((2 * depths[Math.floor(depths.length / 2)]) / k) * to.scale * weight;
     const lum = chain.reduce((n, [x, y]) => n + px[y * w + x], 0) / chain.length;
-    const pts = simplify(chain, tol * k).map(([x, y]) => place([x + 0.5, y + 0.5]));
+    const segs = steady(chain.map(([x, y]) => [x + 0.5, y + 0.5]), hand).map((s) => s.map(place));
+    if (!segs.length) continue;
     strokes.push({
-      pts,
-      len: lengthOf(pts),
+      segs,
       w: Math.min(maxW, Math.max(0.8, Math.round(width * 10) / 10)),
       o: Math.max(0.35, Math.min(1, Math.round(((255 - lum) / 175) * 20) / 20)),
     });
@@ -351,15 +491,27 @@ function trace(region) {
   return { strokes, shapes };
 }
 
+/** Strokes a script made rather than traced (see sketch-bridge.mjs): polylines, fitted like the rest. */
+function made({ strokes }) {
+  const hand = { smooth: 0.6, fit: 0.25, straight: 0.3, cornerSpan: 3, cornerAngle: 50 };
+  return {
+    strokes: strokes.map((s) => ({ segs: steady(resample(s.pts, 0.6), hand), w: s.w, o: s.o })).filter((s) => s.segs.length),
+    shapes: [],
+  };
+}
+
 // ---- Ordering: the way a hand would go about a drawing -------------------------------------
+const startOf = (s) => s.segs[0][0];
+const endOf = (s) => { const last = s.segs[s.segs.length - 1]; return last[last.length - 1]; };
 const ORDERS = {
   /** Left to right across the sheet. */
-  west: (a, b) => a.pts[0][0] - b.pts[0][0],
+  west: (a, b) => startOf(a)[0] - startOf(b)[0],
   /** The long outlines first, the details after. */
   longest: (a, b) => b.len - a.len,
   /** Top to bottom. */
-  north: (a, b) => a.pts[0][1] - b.pts[0][1],
+  north: (a, b) => startOf(a)[1] - startOf(b)[1],
 };
+const reversed = (s) => ({ ...s, segs: s.segs.map((seg) => [...seg].reverse()).reverse() });
 /** Each stroke picked up where the last one was put down: for dashes that follow one another along a trail. */
 function trail(strokes, from) {
   const left = [...strokes], out = [];
@@ -367,56 +519,70 @@ function trail(strokes, from) {
   while (left.length) {
     let best = 0, bestD = Infinity, flip = false;
     left.forEach((s, i) => {
-      const a = s.pts[0], b = s.pts[s.pts.length - 1];
-      const da = Math.hypot(a[0] - at[0], a[1] - at[1]), db = Math.hypot(b[0] - at[0], b[1] - at[1]);
+      const da = norm(sub(startOf(s), at)), db = norm(sub(endOf(s), at));
       if (da < bestD) { bestD = da; best = i; flip = false; }
       if (db < bestD) { bestD = db; best = i; flip = true; }
     });
     const [s] = left.splice(best, 1);
-    if (flip) s.pts.reverse();
-    out.push(s);
-    at = s.pts[s.pts.length - 1];
+    out.push(flip ? reversed(s) : s);
+    at = endOf(out[out.length - 1]);
   }
   return out;
+}
+
+/** A stroke turned the way a right hand draws it: left to right, or top to bottom if it is more upright than level. */
+function byHand(s) {
+  const a = startOf(s), b = endOf(s);
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  return (Math.abs(dx) >= Math.abs(dy) ? dx < 0 : dy < 0) ? reversed(s) : s;
+}
+
+/** A region is traced once, however many drawings pick their strokes out of it. */
+const traced = new Map();
+function traceOnce(region) {
+  const key = JSON.stringify(region, (_, v) => (typeof v === 'function' ? undefined : v));
+  if (!traced.has(key)) traced.set(key, trace(region));
+  return traced.get(key);
 }
 
 /** A drawing's regions, traced (or made), filtered and put in the order the pen takes them. */
 function arrange(drawing) {
   const parts = drawing.regions.map((region) => {
-    const t = typeof region.make === 'function' ? region.make() : trace(region);
-    let { strokes, shapes } = t;
+    const t = typeof region.make === 'function' ? made(region.make()) : traceOnce(region);
+    let strokes = t.strokes.map((s) => { const pts = segsPoints(s.segs); return { ...s, pts, len: lengthOf(pts) }; });
+    let shapes = t.shapes;
     if (region.pick) {
-      strokes = strokes.filter((s) => region.pick(bounds(s.pts)));
-      shapes = shapes.filter((s) => region.pick(bounds(s.loops.flat())));
+      strokes = strokes.filter((s) => region.pick(bounds(s.pts), s));
+      shapes = shapes.filter((s) => region.pick(bounds(s.loops.flat(2)), null));
     }
     if (region.order === 'trail') strokes = trail(strokes, region.from);
-    else if (region.order !== 'made') strokes.sort(ORDERS[region.order ?? 'longest']);
+    else if (region.order !== 'made') strokes = strokes.map(byHand).sort(ORDERS[region.order ?? 'longest']);
     return { strokes, shapes };
   });
-  const strokes = parts.flatMap((p) => p.strokes);
+  let strokes = parts.flatMap((p) => p.strokes);
   const total = strokes.reduce((n, s) => n + s.len, 0) || 1;
   // A shape is inked in when the pen reaches the stroke nearest to it.
   let run = 0;
   const starts = strokes.map((s) => { const at = run / total; run += s.len; return at; });
-  const shapes = parts.flatMap((p) => p.shapes).map((shape) => {
+  let shapes = parts.flatMap((p) => p.shapes).map((shape) => {
     let best = 0, bestD = Infinity;
     strokes.forEach((s, i) => {
       for (const p of s.pts) {
-        const d = Math.hypot(p[0] - shape.c[0], p[1] - shape.c[1]);
+        const d = norm(sub(p, shape.c));
         if (d < bestD) { bestD = d; best = i; }
       }
     });
     return { loops: shape.loops, at: Math.round((starts[best] ?? 0) * 100) / 100 };
   });
   // The drawing's own box; a mark the page places itself is moved to the origin.
-  const all = [...strokes.map((s) => s.pts), ...shapes.flatMap((s) => s.loops)].flat();
+  const all = [...strokes.flatMap((s) => s.pts), ...shapes.flatMap((s) => s.loops.flat(2))];
   const b = bounds(all.length ? all : [[0, 0]]);
   const pad = 2;
   const box = [Math.floor(b.x0 - pad), Math.floor(b.y0 - pad), Math.ceil(b.x1 - b.x0 + pad * 2), Math.ceil(b.y1 - b.y0 + pad * 2)];
   if (drawing.origin) {
-    const move = (pts) => pts.forEach((pt) => { pt[0] -= box[0]; pt[1] -= box[1]; });
-    strokes.forEach((s) => move(s.pts));
-    shapes.forEach((s) => s.loops.forEach(move));
+    const move = (p) => [p[0] - box[0], p[1] - box[1]];
+    strokes = strokes.map((s) => ({ ...s, segs: s.segs.map((seg) => seg.map(move)) }));
+    shapes = shapes.map((s) => ({ ...s, loops: s.loops.map((loop) => loop.map((seg) => seg.map(move))) }));
     box[0] = 0;
     box[1] = 0;
   }
@@ -424,10 +590,10 @@ function arrange(drawing) {
 }
 
 // ---- Writing the modules --------------------------------------------------------------------
-const shapePath = (shape) => shape.loops.map((loop) => penPath(loop, true)).join('');
+const shapePath = (shape) => shape.loops.map((loop) => segsPath(loop) + 'Z').join('');
 const list = (rows) => (rows.length ? '\n' + rows.join('\n') + '\n  ' : '');
 function emitDrawing({ strokes, shapes, box }) {
-  const lines = strokes.map((s) => "    { d: '" + penPath(s.pts) + "', len: " + f(s.len) + ', w: ' + s.w + (s.o < 1 ? ', o: ' + s.o : '') + ' },');
+  const lines = strokes.map((s) => "    { d: '" + segsPath(s.segs) + "', len: " + f(s.len) + ', w: ' + s.w + (s.o < 1 ? ', o: ' + s.o : '') + ' },');
   const solids = shapes.map((s) => "    { d: '" + shapePath(s) + "', at: " + s.at + ' },');
   return '{\n  box: [' + box.join(', ') + '],\n  strokes: [' + list(lines) + '],\n  fills: [' + list(solids) + '],\n}';
 }
@@ -451,7 +617,7 @@ for (const output of OUTPUTS) {
     const [bx, by, bw, bh] = result.box;
     box = { x0: Math.min(box.x0, bx + dx), y0: Math.min(box.y0, by), x1: Math.max(box.x1, bx + dx + bw), y1: Math.max(box.y1, by + bh) };
     svg.push('<g transform="translate(' + dx + ' 0)">');
-    for (const s of result.strokes) svg.push('<path d="' + penPath(s.pts) + '" stroke-width="' + s.w + '" stroke-opacity="' + s.o + '"/>');
+    for (const s of result.strokes) svg.push('<path d="' + segsPath(s.segs) + '" stroke-width="' + s.w + '" stroke-opacity="' + s.o + '"/>');
     for (const s of result.shapes) svg.push('<path d="' + shapePath(s) + '" fill="#1f1f22" fill-rule="evenodd" stroke="none"/>');
     svg.push('</g>');
   }

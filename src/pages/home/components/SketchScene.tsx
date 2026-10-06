@@ -3,10 +3,7 @@ import { animate } from 'motion';
 import { motion, useReducedMotion } from 'motion/react';
 import Pen from '@/components/sketch/Pen';
 import { EASE } from '@/lib/motion';
-import { DESK, MAP, PLANE } from '@/pages/home/sketch';
-
-/** Seconds each drawing takes to write. */
-const DURATION = { map: 2.4, desk: 1.9 } as const;
+import { DESK, FLIGHT, MAP, PLANE } from '@/pages/home/sketch';
 
 /** The two ends of the route on the sheet, and the arc the plane flies between them, fitted to the sketch's dashes. */
 const SANTA_CLARA = { x: 706, y: 403 };
@@ -17,33 +14,45 @@ const PLANE_AT = 0.44;
 /** Where the traced plane sits on the sheet: the centre it is turned about and moved from. */
 const PLANE_HOME = { x: PLANE.box[0] + PLANE.box[2] / 2, y: PLANE.box[1] + PLANE.box[3] / 2 };
 
+/**
+ * The scene's own clock, in seconds from the moment the ink lands on Santa
+ * Clara. The map spreads out from the pin; the flight leaves a beat later and
+ * its dashes reach Taiwan as the far coasts are finishing; the plane rides the
+ * front of the dashes as far as its place over the Atlantic; the desk is
+ * drawn once the map is well under way.
+ */
+const T = {
+  map: { at: 0.05, spread: 1.7 },
+  flight: { at: 0.35, seconds: 1.35 },
+  desk: { at: 1.0, seconds: 1.8 },
+} as const;
+
 type SketchSceneProps = {
-  /** Which drawings the ink has reached, or every one of them. */
-  drawn: ReadonlySet<string> | 'all';
-  /** No drops this visit: the drawings arrive one after another on their own. */
-  stagger: boolean;
+  /** The ink has landed on Santa Clara: draw. */
+  drawn: boolean;
+  /** Seconds to hold everything back by, for a visit with no drop to wait for. */
+  lead: number;
 };
 
 /**
  * The right-hand sheet: the world map with the flight from Santa Clara to
- * Taiwan, and under its south-east corner the person at the desk. Every
- * line is a traced stroke of the sketches, written in when its drop lands.
- * The plane takes off once the map is drawn and flies out to where the
- * sketch has it; the labels come up once there is a coast to pin them to.
+ * Taiwan, and under its south-east corner the person at the desk. Every line
+ * is a traced stroke of the sketches. The hello's drop of ink lands as the
+ * pin at Santa Clara, and everything is drawn from there: the coasts
+ * outwards from the pin, the flight across them to the pin at Taiwan, and
+ * then the desk.
  */
-export default function SketchScene({ drawn, stagger }: SketchSceneProps) {
+export default function SketchScene({ drawn, lead }: SketchSceneProps) {
   const reduced = useReducedMotion();
   const routeRef = useRef<SVGPathElement>(null);
   const planeRef = useRef<SVGGElement>(null);
-  const has = (id: string) => drawn === 'all' || drawn.has(id);
-  const d = (delay: number) => (stagger ? delay : 0);
-  const mapDrawn = has('map');
+  const flightEnd = lead + T.flight.at + T.flight.seconds;
 
-  /* The plane: off the ground as the last coastline is written, settling into its place over the Atlantic. */
+  /* The plane: off the ground with the first dash, settling into its place over the Atlantic. */
   useEffect(() => {
     const route = routeRef.current;
     const plane = planeRef.current;
-    if (!route || !plane || !mapDrawn) return;
+    if (!route || !plane || !drawn) return;
     const length = route.getTotalLength();
     const heading = (t: number) => {
       const p = route.getPointAtLength(length * t);
@@ -69,26 +78,26 @@ export default function SketchScene({ drawn, stagger }: SketchSceneProps) {
     const takeoff = window.setTimeout(
       () => {
         plane.style.opacity = '1';
-        controls = animate(0, PLANE_AT, { duration: 1.8, ease: EASE, onUpdate: place });
+        controls = animate(0, PLANE_AT, { duration: T.flight.seconds * 0.8, ease: EASE, onUpdate: place });
       },
-      (d(0.6) + DURATION.map * 0.85) * 1000,
+      (lead + T.flight.at) * 1000,
     );
     return () => {
       window.clearTimeout(takeoff);
       controls?.stop();
     };
-    // `stagger` is read once with the first draw; nothing re-flies.
-  }, [mapDrawn, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+    // `lead` is read once with the first draw; nothing re-flies.
+  }, [drawn, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pin = (shown: boolean, delay: number) => ({
+  const pin = (delay: number) => ({
     initial: { scale: 0, opacity: 0 },
-    animate: shown ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 },
-    transition: { duration: reduced ? 0 : 0.5, ease: EASE, delay: shown ? delay : 0 },
+    animate: drawn ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 },
+    transition: { duration: reduced ? 0 : 0.45, ease: EASE, delay: drawn ? delay : 0 },
   });
-  const fade = (shown: boolean, delay: number) => ({
+  const fade = (delay: number) => ({
     initial: { opacity: 0 },
-    animate: { opacity: shown ? 1 : 0 },
-    transition: { duration: reduced ? 0 : 0.6, ease: EASE, delay: shown ? delay : 0 },
+    animate: { opacity: drawn ? 1 : 0 },
+    transition: { duration: reduced ? 0 : 0.6, ease: EASE, delay: drawn ? delay : 0 },
   });
 
   return (
@@ -99,18 +108,31 @@ export default function SketchScene({ drawn, stagger }: SketchSceneProps) {
       role="img"
       aria-label="A hand-drawn world map with a flight from Santa Clara, California to Taiwan, and under it a person in a hoodie working at a laptop, a mug and a book beside them"
     >
-      <g data-ink="map" data-ink-at="0">
-        <Pen drawing={MAP} drawn={mapDrawn} duration={DURATION.map} delay={d(0.5)} />
-      </g>
+      <Pen drawing={MAP} drawn={drawn} delay={lead + T.map.at} wave={{ ...SANTA_CLARA, seconds: T.map.spread }} />
 
-      {/* The flight: the pins at either end, their labels, and the plane on its arc. */}
+      {/* The flight: its dashes in the order they are flown, the pins at either end, their labels, and the plane on its arc. */}
       <path ref={routeRef} className="home-route" d={ROUTE} aria-hidden />
+      <Pen drawing={FLIGHT} drawn={drawn} duration={T.flight.seconds} delay={lead + T.flight.at} />
+
+      {/* Where the hello's drop lands; the pin is the drop, and the ring is the mark it makes landing. */}
+      <circle data-ink-target cx={SANTA_CLARA.x} cy={SANTA_CLARA.y} r="1" fill="none" aria-hidden />
+      {reduced ? null : (
+        <motion.circle
+          className="home-ripple"
+          cx={SANTA_CLARA.x}
+          cy={SANTA_CLARA.y}
+          initial={{ r: 5, opacity: 0 }}
+          animate={drawn ? { r: 30, opacity: [0, 0.55, 0] } : { r: 5, opacity: 0 }}
+          transition={{ duration: 0.9, ease: 'easeOut', delay: drawn ? lead : 0 }}
+          aria-hidden
+        />
+      )}
       <motion.circle
         className="home-pin"
         cx={SANTA_CLARA.x}
         cy={SANTA_CLARA.y}
         r="5"
-        {...pin(mapDrawn, d(0.5) + DURATION.map * 0.3)}
+        {...pin(lead)}
         style={{ transformOrigin: `${SANTA_CLARA.x}px ${SANTA_CLARA.y}px` }}
       />
       <motion.circle
@@ -118,10 +140,10 @@ export default function SketchScene({ drawn, stagger }: SketchSceneProps) {
         cx={TAIWAN.x}
         cy={TAIWAN.y}
         r="5"
-        {...pin(mapDrawn, d(0.5) + DURATION.map * 0.95)}
+        {...pin(flightEnd - 0.1)}
         style={{ transformOrigin: `${TAIWAN.x}px ${TAIWAN.y}px` }}
       />
-      <motion.g className="home-label" transform="rotate(-9 640 400)" {...fade(mapDrawn, d(0.5) + DURATION.map * 0.4)}>
+      <motion.g className="home-label" transform="rotate(-9 640 400)" {...fade(lead + 0.3)}>
         <text x="641" y="395" textAnchor="end">
           Santa Clara
         </text>
@@ -129,7 +151,7 @@ export default function SketchScene({ drawn, stagger }: SketchSceneProps) {
           (California)
         </text>
       </motion.g>
-      <motion.g className="home-label" transform="rotate(-9 1415 445)" {...fade(mapDrawn, d(0.5) + DURATION.map)}>
+      <motion.g className="home-label" transform="rotate(-9 1415 445)" {...fade(flightEnd)}>
         <text x="1416" y="449">Taiwan</text>
       </motion.g>
       <g ref={planeRef} className="sk-pen" style={{ opacity: 0 }} aria-hidden>
@@ -139,9 +161,7 @@ export default function SketchScene({ drawn, stagger }: SketchSceneProps) {
       </g>
 
       {/* The person at the desk. */}
-      <g data-ink="desk" data-ink-at="1">
-        <Pen drawing={DESK} drawn={has('desk')} duration={DURATION.desk} delay={d(0.9)} />
-      </g>
+      <Pen drawing={DESK} drawn={drawn} duration={T.desk.seconds} delay={lead + T.desk.at} />
     </svg>
   );
 }

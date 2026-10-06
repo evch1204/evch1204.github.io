@@ -43,7 +43,7 @@ function smooth(pts: Point[]) {
  * the top-left. `wander` is how far the line strays, in px. Closed with `Z`
  * for a shape to be filled; left open, with the pen's overshoot, for a line.
  */
-export function boxOutline(w: number, h: number, radius: number, seed: number, { wander = 0.9, closed = false } = {}) {
+export function boxOutline(w: number, h: number, radius: number, seed: number, { wander = 0.55, closed = false } = {}) {
   const r = Math.max(0, Math.min(radius, w / 2, h / 2));
   const rnd = seeded(seed);
   const stray = (scale = 1) => (rnd() - 0.5) * 2 * wander * scale;

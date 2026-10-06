@@ -54,7 +54,7 @@ export default function Frame({ r = 14, weight = 1.5, tone = 0.85, fill = false,
           {fill ? <path className="sk-frame-fill" d={boxOutline(size.w, size.h, r, seed, { closed: true })} /> : null}
           {double ? (
             <path
-              d={boxOutline(size.w, size.h, r, seed + 7, { wander: 1.5 })}
+              d={boxOutline(size.w, size.h, r, seed + 7, { wander: 1 })}
               style={{ strokeWidth: weight * 0.7, strokeOpacity: written ? tone * 0.32 : 0, transition: 'stroke-opacity 0.5s 0.45s' }}
               transform="translate(1.5 2)"
             />
