@@ -2,7 +2,7 @@
 // Boxes, masks and picks are in the sheet's own pixels; see `trace` in trace-sketch.mjs for the options.
 import { goldenGate } from './sketch-bridge.mjs';
 
-/** The first sketch: one home screen, 1536 × 1024. The map, the tools and the mouse come from it. */
+/** The first sketch: one home screen, 1536 × 1024. The map, the tools, the mug and the mouse come from it. */
 const HOME = 'home-sketch.png';
 /** The landscape grid of five screens, 1536 × 1024. The person at the desk and the window come from it. */
 const GRID = 'sketchbook-grid.png';
@@ -21,9 +21,9 @@ const MAP_MASKS = [
 const MAP_REGION = { src: HOME, box: [500, 210, 1500, 720], thr: 228, k: 2, mask: MAP_MASKS, minLen: 3, smooth: 0.8, fit: 0.4, straight: 0.3, cornerAngle: 58, weight: 0.85 };
 
 /**
- * The flight from Santa Clara to Taiwan, as the page flies it: a curve fitted to the sketch's dashes
- * (the same one SketchScene moves the plane along). A short stroke that lies along it is a dash of
- * the flight; everything else in the region is the map.
+ * The flight between Taiwan and Santa Clara, as the page flies it: a curve fitted to the sketch's
+ * dashes (the same one SketchScene moves the plane along). A short stroke that lies along it is a
+ * dash of the flight; everything else in the region is the map.
  */
 const ROUTE = Array.from({ length: 240 }, (_, i) => {
   const t = i / 239, u = 1 - t;
@@ -32,16 +32,53 @@ const ROUTE = Array.from({ length: 240 }, (_, i) => {
 const fromRoute = ([x, y]) => ROUTE.reduce((min, [rx, ry]) => Math.min(min, Math.hypot(rx - x, ry - y)), Infinity);
 const isDash = (stroke) => stroke.len < 36 && stroke.pts.every((p) => fromRoute(p) < 7);
 
+// ---- The person at the desk --------------------------------------------------------------------
 /**
- * The person at the desk sits under the map's south-east corner, as the grid's home screen has it.
- * The grid's home is about half the size of the first sketch, so its strokes are scaled up to the
- * first sketch's coordinates: the grid's map starts near (300, 115) and the first sketch's near (620, 220).
+ * The desk sits under the map's south-east corner, as the grid's home screen has it. The grid's
+ * home is about half the size of the first sketch, so its strokes are scaled up to the first
+ * sketch's coordinates: the grid's map starts near (300, 115) and the first sketch's near (620, 220).
  */
 const DESK_SCALE = 1.99;
-const deskTo = (x, y) => ({ x: 620 + (x - 300) * DESK_SCALE, y: 220 + (y - 115) * DESK_SCALE, scale: DESK_SCALE });
+const onDesk = (x, y) => [620 + (x - 300) * DESK_SCALE, 220 + (y - 115) * DESK_SCALE];
+const deskTo = (x, y) => ({ x: onDesk(x, y)[0], y: onDesk(x, y)[1], scale: DESK_SCALE });
+/** A box of the grid sheet, as it lies on the desk: for sorting the traced strokes into things. */
+const deskBox = ([x0, y0, x1, y1]) => [...onDesk(x0, y0), ...onDesk(x1, y1)];
+const within = (b, [x0, y0, x1, y1]) => b.x0 >= x0 && b.x1 <= x1 && b.y0 >= y0 && b.y1 <= y1;
+const centred = (b, [x0, y0, x1, y1]) => (b.x0 + b.x1) / 2 >= x0 && (b.x0 + b.x1) / 2 <= x1 && (b.y0 + b.y1) / 2 >= y0 && (b.y0 + b.y1) / 2 <= y1;
+
+const DESK_BOX = [492, 326, 748, 446];
 /** The head is traced on its own, so the hair, curls and all, is lifted out as one solid shape. */
 const HEAD = [566, 327, 609, 361];
-const DESK_HAND = { src: GRID, thr: 208, k: 4, weight: 0.6, maxW: 3, smooth: 1.3, fit: 0.4, straight: 0.5 };
+/** The grid's own mug is small and smudged; the first sketch's mug, drawn large, stands in its place. */
+const GRID_MUG = [664, 389, 693, 419];
+const DESK_MASKS = [[636, 300, 760, 349], HEAD, GRID_MUG];
+/**
+ * The desk is traced twice. The first pass takes only the dark ink, so lines that run close
+ * together (a screen's bezel, a keyboard's edge) stay apart; the second takes the faint lines the
+ * first left behind: the writing on the screen, the hatching, the edge of the desk.
+ */
+const DESK_INK = { src: GRID, box: DESK_BOX, thr: 150, k: 6, mask: DESK_MASKS, to: deskTo(DESK_BOX[0], DESK_BOX[1]), weight: 0.78, maxW: 3, smooth: 1.2, fit: 0.35, straight: 0.5 };
+const DESK_PENCIL = { ...DESK_INK, thr: 208, clearOf: { thr: 150, by: 2.2 }, weight: 0.6, minLen: 2.4 };
+const DESK_HEAD = { src: GRID, box: [560, 324, 614, 364], thr: 208, k: 4, keep: [HEAD], fills: 3.2, to: deskTo(560, 324), weight: 0.6, maxW: 3, smooth: 1.3, fit: 0.4 };
+
+const LAPTOP = deskBox([603, 357, 669, 421]);
+const SCREEN = deskBox([611, 365, 661, 404]);
+const BOOK = deskBox([677, 407, 730, 434]);
+const PERSON = deskBox([520, 326, 634, 447]);
+const isLaptop = (b) => within(b, LAPTOP);
+const isBook = (b) => !isLaptop(b) && centred(b, BOOK);
+const isPerson = (b) => !isLaptop(b) && !isBook(b) && centred(b, PERSON);
+const isSurface = (b) => !isLaptop(b) && !isBook(b) && !isPerson(b);
+
+/** The first sketch's mug, set down where the grid's mug stood, at half size. Its steam is its own drawing. */
+const MUG_BOX = [1300, 708, 1390, 832];
+const MUG_AT = { x: onDesk(668.5, 0)[0] - (1307 - MUG_BOX[0]) * 0.5, y: onDesk(0, 414.5)[1] - (822 - MUG_BOX[1]) * 0.5, scale: 0.5 };
+const MUG_REGION = { src: HOME, box: MUG_BOX, thr: 150, k: 3, fills: 4, smooth: 1.4, fit: 0.35, to: MUG_AT, weight: 1.1, maxW: 2.4 };
+const mugY = (y) => MUG_AT.y + (y - MUG_BOX[1]) * MUG_AT.scale;
+const mugX = (x) => MUG_AT.x + (x - MUG_BOX[0]) * MUG_AT.scale;
+const isSteam = (b) => b.y1 < mugY(747);
+/** The shadow hatched on the old desk under the mug stays on the old desk: it runs out past the cup, or lies below it. */
+const isHatch = (b) => b.y0 > mugY(811) && (b.x0 < mugX(1306) || b.x1 > mugX(1357) || b.y0 > mugY(823));
 
 const TOOL_REGION = { src: HOME, box: [80, 695, 440, 755], thr: 150, k: 3, weight: 0.8, smooth: 1.2, fit: 0.35 };
 const tool = (name, about, from, to) => ({
@@ -73,8 +110,8 @@ export const OUTPUTS = [
       },
       {
         name: 'FLIGHT',
-        about: 'The dashes of the flight across the map, from Santa Clara to Taiwan in the order they are flown.',
-        regions: [{ ...MAP_REGION, order: 'west', pick: (b, stroke) => !!stroke && isDash(stroke) }],
+        about: 'The dashes of the flight across the map, from Taiwan to Santa Clara in the order they are flown.',
+        regions: [{ ...MAP_REGION, order: 'east', pick: (b, stroke) => !!stroke && isDash(stroke) }],
       },
       {
         name: 'PLANE',
@@ -82,12 +119,52 @@ export const OUTPUTS = [
         regions: [{ src: HOME, box: [955, 335, 1035, 385], thr: 150, k: 4, fills: 2.5, minLen: 99, smooth: 0.7, fit: 0.3 }],
       },
       {
-        name: 'DESK',
-        about: 'The person at the desk: the chair, the hoodie, the laptop, the mug and the book.',
+        name: 'PERSON',
+        about: 'The person at the desk, in a hoodie, on a chair.',
         regions: [
-          { ...DESK_HAND, box: [492, 326, 748, 446], mask: [[636, 300, 760, 349], HEAD], to: deskTo(492, 326), order: 'west' },
-          { ...DESK_HAND, box: [560, 324, 614, 364], keep: [HEAD], fills: 3.2, to: deskTo(560, 324), order: 'longest' },
+          { ...DESK_INK, order: 'west', pick: isPerson },
+          { ...DESK_HEAD, order: 'longest' },
+          { ...DESK_PENCIL, order: 'west', pick: isPerson },
         ],
+      },
+      {
+        name: 'LAPTOP',
+        about: 'The laptop they are typing on.',
+        regions: [
+          { ...DESK_INK, order: 'longest', pick: isLaptop },
+          { ...DESK_PENCIL, order: 'north', pick: (b) => isLaptop(b) && !within(b, SCREEN) },
+        ],
+      },
+      {
+        name: 'SCREEN',
+        about: 'What is on its screen: a few lines of writing, top to bottom.',
+        regions: [{ ...DESK_PENCIL, order: 'north', pick: (b) => within(b, SCREEN) }],
+      },
+      {
+        name: 'BOOK',
+        about: 'The book lying on the desk.',
+        regions: [
+          { ...DESK_INK, order: 'longest', pick: isBook },
+          { ...DESK_PENCIL, order: 'west', pick: isBook },
+        ],
+      },
+      {
+        name: 'SURFACE',
+        about: 'The desk itself: its far edge and a few strokes of its top.',
+        regions: [
+          { ...DESK_INK, order: 'west', pick: isSurface },
+          { ...DESK_PENCIL, order: 'west', pick: isSurface },
+        ],
+      },
+      {
+        name: 'MUG',
+        about: 'The mug of coffee.',
+        regions: [{ ...MUG_REGION, order: 'longest', pick: (b) => !isSteam(b) && !isHatch(b) }],
+      },
+      {
+        name: 'STEAM',
+        about: 'The steam off the coffee, each wisp from the cup upwards.',
+        regions: [{ ...MUG_REGION, order: 'west', pick: (b) => isSteam(b) }],
       },
       {
         name: 'ROLE_LINE',
@@ -128,8 +205,8 @@ export const OUTPUTS = [
             smooth: 1.3,
             fit: 0.4,
             straight: 0.55,
-            // The note is typed by the page (its underline stays), and the bridge takes the low buildings' plot.
-            mask: [[[1200, 136], [1296, 136], [1296, 200], [1205, 224]], BRIDGE_PLOT],
+            // The sheet's note and its underline are left out, and the bridge takes the low buildings' plot.
+            mask: [[1196, 132, 1300, 240], BRIDGE_PLOT],
             order: 'north',
           },
           {

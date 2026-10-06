@@ -149,6 +149,26 @@
     stroke-opacity: 1 !important;
   }
 
+  /* ---- A drawing kept alive: its lines boil, flipped between three nudges a few times a second ---- */
+
+  .sk-alive {
+    animation: sk-boil 0.36s steps(1, end) infinite;
+  }
+
+  @keyframes sk-boil {
+    0% {
+      filter: url(#sk-boil-a);
+    }
+
+    33.4% {
+      filter: url(#sk-boil-b);
+    }
+
+    66.7% {
+      filter: url(#sk-boil-c);
+    }
+  }
+
   /* ---- A photograph or a screenshot as a pencil drawing of itself (see SketchDefs) ---- */
 
   .sk-photo {
@@ -220,6 +240,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sk-alive {
+    animation: none;
+  }
+
   .sk-card,
   .sk-btn {
     transition: none;

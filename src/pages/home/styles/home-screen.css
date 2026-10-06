@@ -46,6 +46,17 @@
   /* The top padding is the header's row. */
   padding: 96px clamp(16px, 4vw, 56px) 12px;
   box-sizing: border-box;
+  /* The pointer is a pencil here (the library's pencil, its point at the hotspot); the controls keep their own. */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 24 24' fill='%23fafafa' stroke='%231f1f22' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E")
+      3 27,
+    crosshair;
+}
+
+/* While a stroke is being drawn nothing on the sheet is for selecting. */
+.home-screen .home-hero.is-drawing,
+.home-screen .home-hero.is-drawing * {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ---- The name beside the scene ---- */
@@ -111,9 +122,34 @@
   gap: 18px;
 }
 
+.home-screen .home-tool {
+  position: relative;
+}
+
 .home-screen .home-tools svg {
   height: 42px;
   width: auto;
+}
+
+/* A tool's name, written under it while the pencil is over it. */
+.home-screen .home-tool-name {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  translate: -50% 0;
+  rotate: -6deg;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-ink);
+  opacity: 0;
+  transition: opacity 0.25s ease, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.home-screen .home-tool:hover .home-tool-name {
+  opacity: 1;
+  translate: -50% 3px;
 }
 
 /* ---- The scene: the map, the flight, the desk ---- */
@@ -134,6 +170,45 @@
 .home-screen .home-scene .home-pin {
   fill: var(--home-fg);
   stroke: none;
+}
+
+/* ---- The things that come alive under the pencil ---- */
+
+/* Each thing's patch of the sheet: there, but unseen, so a thin line is easy to find with the pointer. */
+.home-screen .home-scene .home-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+
+.home-screen .home-thing.is-alive .sk-pen {
+  animation: sk-boil 0.36s steps(1, end) infinite;
+}
+
+/* The steam rises off the coffee while the mug is alive, written afresh each time it has gone. */
+.home-screen .home-thing.is-alive .home-steam {
+  animation: home-steam 1.5s ease-out infinite;
+}
+
+@keyframes home-steam {
+  0% {
+    translate: 0 0;
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    translate: 0 -8px;
+    opacity: 0;
+  }
+}
+
+.home-screen .home-plane {
+  cursor: pointer;
+  transition: opacity 0.25s ease;
 }
 
 /* The mark the drop makes as it lands. */
@@ -213,6 +288,61 @@
   margin: 2px 0 0 14px;
 }
 
+/* ---- The pencil's own marks: what the reader draws, and the note that says they can ---- */
+
+.home-screen .home-doodles {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.home-screen .home-doodles path {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.3;
+  stroke-opacity: 0.88;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-screen .home-pencil-note {
+  position: absolute;
+  right: clamp(16px, 5vw, 76px);
+  bottom: 30px;
+  margin: 0;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: right;
+  rotate: 5deg;
+}
+
+.home-screen .home-pencil-note svg {
+  display: inline-block;
+  vertical-align: -3px;
+}
+
+.home-screen button.home-pencil-note {
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+/* No pencil without a pointer to hold it: a finger scrolls. */
+@media (hover: none), (pointer: coarse) {
+  .home-screen .home-pencil-note,
+  .home-screen .home-doodles {
+    display: none;
+  }
+}
+
 /* ---- The drop: the hello's ink, placed, sized and faded every frame by its flight ---- */
 
 .home-screen .home-drops {
@@ -285,7 +415,8 @@
     padding-top: 20px;
   }
 
-  .home-screen .home-note {
+  .home-screen .home-note,
+  .home-screen .home-pencil-note {
     display: none;
   }
 
@@ -294,15 +425,18 @@
   }
 }
 
-/* A short window has no corner to spare for the note. */
+/* A short window has no corner to spare for the notes. */
 @media (height < 46rem) {
-  .home-screen .home-note {
+  .home-screen .home-note,
+  .home-screen .home-pencil-note {
     display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-screen .home-hint-arrow {
+  .home-screen .home-hint-arrow,
+  .home-screen .home-thing.is-alive .sk-pen,
+  .home-screen .home-thing.is-alive .home-steam {
     animation: none;
   }
 }

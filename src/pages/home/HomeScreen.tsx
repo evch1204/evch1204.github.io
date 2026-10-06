@@ -1,10 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { Eraser, Pencil } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import Pen from '@/components/sketch/Pen';
+import type { Drawing } from '@/components/sketch/drawing';
 import { ARROW_LONG } from '@/components/sketch/marks';
 import { NAME, ROLE } from '@/content/site';
 import type { Tab } from '@/layout/nav';
 import { EASE, PEN_EASE } from '@/lib/motion';
+import DoodlePad from './components/DoodlePad';
 import HelloIntro from './components/HelloIntro';
 import HomeFeatured from './components/HomeFeatured';
 import ScrollHint from './components/ScrollHint';
@@ -43,24 +46,43 @@ const BLURB = 'I build full-stack applications, solve real-world problems, and t
  */
 const T = { hi: 0, name: 0.25, role: 0.8, line: 1.25, blurb: 1.4, tools: 1.65, foot: 2.5 } as const;
 
+/** One of the tools: drawn in its turn, and drawn again, with its name, whenever the pencil passes over it. */
+function Tool({ name, drawing, drawn, delay }: { name: string; drawing: Drawing; drawn: boolean; delay: number }) {
+  const [beat, setBeat] = useState(0);
+  return (
+    <li className="home-tool" onPointerEnter={() => setBeat((b) => b + 1)}>
+      <svg className="sk-art" viewBox={drawing.box.join(' ')} role="img" aria-label={name}>
+        <Pen key={beat} drawing={drawing} drawn={drawn} duration={beat ? 0.55 : 0.4} delay={beat ? 0 : delay} weight={0.9} />
+      </svg>
+      <span className="home-tool-name" aria-hidden>
+        {name}
+      </span>
+    </li>
+  );
+}
+
 /**
  * The home, the first sheet of the sketchbook: a map of the world with the
- * flight home drawn across it, a person at a desk under it, the name beside
+ * flight here drawn across it, a person at a desk under it, the name beside
  * them, and the featured projects on the spread below.
  *
  * On the first visit of a load the hello writes itself. Its ink then drains
  * out through the tail of the o and gathers into one drop, which arcs across
- * the sheet and lands as the pin at Santa Clara. While it is in the air the
- * name is written out on the left, a line at a time; when it lands the map
- * spreads out from the pin, the flight runs across it to Taiwan with the
- * plane at its head, and the desk is drawn. Coming back from another tab
+ * the sheet and lands as the pin at Taiwan. While it is in the air the name
+ * is written out on the left, a line at a time; when it lands the map
+ * spreads out from the pin, the flight runs across it to Santa Clara with
+ * the plane at its head, and the desk is drawn. Coming back from another tab
  * there is no hello and no drop: the same sequence simply runs.
+ *
+ * Then the sheet is the reader's. Their pointer is a pencil: the drawings
+ * come alive under it, and pressed to the page it draws.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   const reduced = useReducedMotion();
   /* Read once: `intro` names how this mount began, not what App thinks now. */
   const [withIntro] = useState(intro);
   const [ink, setInk] = useState<'hello' | 'drop' | 'done'>(withIntro ? 'hello' : 'done');
+  const [doodles, setDoodles] = useState<string[]>([]);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const helloPathRef = useRef<SVGPathElement>(null);
@@ -134,11 +156,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
             </motion.p>
             <ul className="home-tools" aria-label="Tools">
               {TOOLS.map(({ name, drawing }, i) => (
-                <li key={name} title={name}>
-                  <svg className="sk-art" viewBox={drawing.box.join(' ')} role="img" aria-label={name}>
-                    <Pen drawing={drawing} drawn={written} duration={0.4} delay={at(T.tools) + i * 0.12} weight={0.9} />
-                  </svg>
-                </li>
+                <Tool key={name} name={name} drawing={drawing} drawn={written} delay={at(T.tools) + i * 0.12} />
               ))}
             </ul>
           </div>
@@ -164,7 +182,23 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
           </svg>
         </motion.p>
 
-        {/* The hello's ink, gathered into one drop and thrown at Santa Clara; placed each frame by the flight. */}
+        {/* The other corner: that the pencil works, until it has been used; then the way to rub it out. */}
+        {doodles.length ? (
+          <button type="button" className="home-pencil-note sk-note focus-ring" onClick={() => setDoodles([])}>
+            <Eraser size={18} strokeWidth={1.8} aria-hidden /> Rub it out
+          </button>
+        ) : (
+          <motion.p className="home-pencil-note sk-note" initial="hidden" animate={settled ? 'shown' : 'hidden'} variants={rise(at(T.foot) + 0.3)}>
+            Psst, the pencil works.
+            <br />
+            Draw on the page <Pencil size={17} strokeWidth={1.8} aria-hidden />
+          </motion.p>
+        )}
+
+        {/* What the reader has drawn, and the stroke in hand. */}
+        <DoodlePad sheet={heroRef} enabled={settled} strokes={doodles} onStroke={(d) => setDoodles((all) => [...all, d])} />
+
+        {/* The hello's ink, gathered into one drop and thrown at Taiwan; placed each frame by the flight. */}
         <div className="home-drops" aria-hidden>
           <span ref={dropRef} className="home-drop" />
         </div>

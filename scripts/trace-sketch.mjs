@@ -389,6 +389,8 @@ const segsPoints = (segs) => segs.flatMap((s) => (s.length === 2 ? [s[0], s[1]] 
  *   k                   enlargement before tracing (default 4)
  *   mask                boxes or polygons to leave out (lettering that is typed instead, a neighbour)
  *   keep                boxes or polygons: when given, only ink inside one of them is traced
+ *   clearOf             { thr, by }: leave out ink within `by` pixels of anything darker than `thr`; for a
+ *                       second, lighter pass that picks up the faint lines a darker pass left behind
  *   fills               lift areas thicker than this many pixels out as filled shapes (default off)
  *   minLen              drop strokes shorter than this (default 1.6)
  *   smooth              how far along a stroke the hand evens out its wobble (default 1.1)
@@ -401,7 +403,7 @@ const segsPoints = (segs) => segs.flatMap((s) => (s.length === 2 ? [s[0], s[1]] 
  */
 function trace(region) {
   const {
-    src, box, thr, k = 4, mask = [], keep, fills = 0, minLen = 1.6, smooth = 1.1, fit = 0.4, straight = 0.45, cornerAngle = 48,
+    src, box, thr, k = 4, mask = [], keep, clearOf, fills = 0, minLen = 1.6, smooth = 1.1, fit = 0.4, straight = 0.45, cornerAngle = 48,
     to = { x: box[0], y: box[1], scale: 1 }, weight = 1, maxW = 2.6,
   } = region;
   const S = sheet(src);
@@ -413,6 +415,12 @@ function trace(region) {
     if (mask.some((m) => masked(m, x / k + x0, y / k + y0))) continue;
     if (keep && !keep.some((m) => masked(m, x / k + x0, y / k + y0))) continue;
     ink[y * w + x] = 1;
+  }
+  if (clearOf) {
+    const dark = new Uint8Array(w * h);
+    for (let i = 0; i < dark.length; i++) dark[i] = px[i] < clearOf.thr ? 1 : 0;
+    const fromDark = distance(dark, w, h);
+    for (let i = 0; i < ink.length; i++) if (fromDark[i] <= clearOf.by * k) ink[i] = 0;
   }
   const paper = new Uint8Array(w * h);
   for (let i = 0; i < ink.length; i++) paper[i] = ink[i] ? 0 : 1;
@@ -506,6 +514,8 @@ const endOf = (s) => { const last = s.segs[s.segs.length - 1]; return last[last.
 const ORDERS = {
   /** Left to right across the sheet. */
   west: (a, b) => startOf(a)[0] - startOf(b)[0],
+  /** Right to left: each stroke is turned to run westwards, too. */
+  east: (a, b) => startOf(b)[0] - startOf(a)[0],
   /** The long outlines first, the details after. */
   longest: (a, b) => b.len - a.len,
   /** Top to bottom. */
@@ -556,6 +566,7 @@ function arrange(drawing) {
       shapes = shapes.filter((s) => region.pick(bounds(s.loops.flat(2)), null));
     }
     if (region.order === 'trail') strokes = trail(strokes, region.from);
+    else if (region.order === 'east') strokes = strokes.map(byHand).map(reversed).sort(ORDERS.east);
     else if (region.order !== 'made') strokes = strokes.map(byHand).sort(ORDERS[region.order ?? 'longest']);
     return { strokes, shapes };
   });
