@@ -89,8 +89,8 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-zinc-100/50 blur-[60px] md:blur-[120px]" />
       </div>
 
-      {/* The chrome sits under the hello and drops in as it leaves. */}
-      <Header activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying} />
+      {/* The chrome sits under the hello and drops in as it leaves. The home draws its own, the sketch's, so this one stays out of sight there. */}
+      <Header activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying && !isHome} />
 
       {isHome ? (
         <div className="fixed inset-0 z-0 overflow-hidden bg-page">
@@ -109,7 +109,7 @@ export default function App() {
         </main>
       )}
 
-      <TabBar activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying} />
+      <TabBar activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying && !isHome} />
     </div>
   );
 }

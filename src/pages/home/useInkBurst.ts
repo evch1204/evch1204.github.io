@@ -5,7 +5,7 @@ import { useLatest } from '@/hooks/useLatest';
 type Point = [number, number];
 
 type BurstRefs = {
-  /** The hero: where the doodles, the drops and the dot are found. */
+  /** The hero: where the drawings, the drops and the dot are found. */
   hero: RefObject<HTMLDivElement | null>;
   /** The hello's stroke; the drops set off from its tail. */
   helloPath: RefObject<SVGPathElement | null>;
@@ -14,7 +14,7 @@ type BurstRefs = {
 };
 
 type BurstEvents = {
-  /** A drop has reached this doodle: draw it. */
+  /** A drop has reached this drawing: write it. */
   onDrawn: (id: string) => void;
   onNameUp: () => void;
   onWhereUp: () => void;
@@ -32,7 +32,7 @@ const FLIGHT_MIN = 650;
 const FLIGHT_MAX = 1000;
 /** ms a drop presses on arrival before its ink is the drawing's. */
 const DAB = 160;
-/** ms after the last doodle drop has landed before the dot's drop does. */
+/** ms after the last drawing's drop has landed before the dot's drop does. */
 const DOT_AFTER = 260;
 /** The dot's drop at landing: the dot it becomes is smaller than a drop. */
 const LANDED_SCALE = 0.45;
@@ -55,10 +55,11 @@ const centreIn = (el: Element, base: DOMRect): Point => {
 
 /**
  * The burst. While `active`, the ink that drained out of the hello leaves
- * its tail as a scatter of drops, one for every doodle on screen and one
- * more for the dot under the name. Each drop bows out along its own curve,
- * presses on arrival and gives its ink to the drawing, which starts the
- * moment it lands, so every doodle is written in at once. The name rises
+ * its tail as a scatter of drops, one for every drawing on screen (anything
+ * with a `data-ink`, in the order its `data-ink-at` gives) and one more for
+ * the dot under the name. Each drop bows out along its own curve, presses on
+ * arrival and gives its ink to the drawing, which starts the moment it
+ * lands, so the whole sheet is written in at once. The name rises
  * while the drops are in the air; the dot's drop lands last and becomes the
  * dot. A tap, Enter, Space or Escape skips to the end, and so does a change
  * of window width, since the flights were measured for the old one. The
@@ -88,9 +89,9 @@ export function useInkBurst(active: boolean, refs: BurstRefs, events: BurstEvent
     }
     // The drops are placed within their own layer, so that is the box everything is measured in.
     const base = (dotDrop.offsetParent ?? hero).getBoundingClientRect();
-    const nodes = Array.from(hero.querySelectorAll<HTMLElement>('[data-doodle]')).filter(
-      (el) => getComputedStyle(el).display !== 'none',
-    );
+    const nodes = Array.from(hero.querySelectorAll<HTMLElement | SVGElement>('[data-ink]'))
+      .filter((el) => getComputedStyle(el).display !== 'none')
+      .sort((a, b) => Number(a.dataset.inkAt ?? 0) - Number(b.dataset.inkAt ?? 0));
     const tailLocal = helloPath.getPointAtLength(helloPath.getTotalLength());
     const m = helloPath.getScreenCTM();
     const tail: Point = m
@@ -110,13 +111,13 @@ export function useInkBurst(active: boolean, refs: BurstRefs, events: BurstEvent
     };
     const flights: Flight[] = [];
     nodes.forEach((node, i) => {
-      const el = drops.get(node.dataset.doodle ?? '');
-      if (el) flights.push(flight(el, node.dataset.doodle ?? '', centreIn(node, base), DEPART + i * STAGGER, i));
+      const el = drops.get(node.dataset.ink ?? '');
+      if (el) flights.push(flight(el, node.dataset.ink ?? '', centreIn(node, base), DEPART + i * STAGGER, i));
     });
     const lastLanding = flights.reduce((t, f) => Math.max(t, f.arrive), DEPART);
     const dotFlight = flight(dotDrop, 'dot', centreIn(dot, base), DEPART + STAGGER * 2, flights.length, lastLanding + DOT_AFTER - (DEPART + STAGGER * 2));
     flights.push(dotFlight);
-    // Hidden drops for doodles not on this screen.
+    // Hidden drops for drawings not on this screen.
     for (const [id, el] of drops) if (!flights.some((f) => f.id === id)) el.style.setProperty('--po', '0');
 
     const place = (el: HTMLElement, [x, y]: Point, scale: number, opacity: number) => {
