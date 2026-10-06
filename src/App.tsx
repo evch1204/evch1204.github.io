@@ -41,6 +41,9 @@ export default function App() {
   const finishIntro = useCallback(() => setIntroPending(false), []);
 
   const isHome = activeTab === 'home';
+  /* Leaving Home during the hello spends it too: a Back or Forward in the middle of the word must not replay it. */
+  if (!isHome && introPending) setIntroPending(false);
+
   const introPlaying = isHome && introPending;
   const Page = isHome ? null : TAB_PAGES[activeTab];
 
@@ -62,14 +65,17 @@ export default function App() {
 
   /**
    * The one way into a tab: the header, the phone tab bar and the home screen's
-   * own links all come through here. A `project` names a page on the projects
-   * tab; it rides in the same entry, which is how `useProjectRouting` opens it.
+   * own links all come through here. A `project` opens that page on the
+   * projects tab, from another tab: it rides in the entry `useProjectRouting`
+   * reads on mount, with the grid's own entry pushed under it so that Back,
+   * or the page's "All creations", lands on the grid and not back here.
    */
   const selectTab = useCallback(
     (tab: Tab, project?: string) => {
       // Already here: no second entry for the tab the reader is on.
-      if (tab === activeTab && !project) return;
-      history.pushState(project ? { tab, project } : { tab }, '');
+      if (tab === activeTab) return;
+      history.pushState({ tab }, '');
+      if (project) history.pushState({ tab, project }, '');
       setActiveTab(tab);
     },
     [activeTab],
