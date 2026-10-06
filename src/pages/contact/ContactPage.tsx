@@ -16,7 +16,7 @@ import {
   TEL,
   TIMEZONE,
 } from '@/content/site';
-import { useLocalClock } from '@/hooks/useLocalClock';
+import { useLocalClock } from './useLocalClock';
 import { hostLabel } from '@/lib/url';
 import Register, { type Row } from '@/pages/contact/components/Register';
 
