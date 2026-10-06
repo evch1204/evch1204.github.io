@@ -1,10 +1,10 @@
-/* ---- The doodles and the pen ----
+/* ---- The doodles and the drops of ink ----
  *
  * Line drawings of the school, the company and the things built, in a ring
  * round the name. Each sits still at the centre its data gives it, like ink
  * on the page; it names itself and comes alive only under the pointer, and is
- * a button that opens what it draws. The pen that draws them lives on the
- * same layer. Motion writes the strokes; everything else is here.
+ * a button that opens what it draws. The drops that fly out to draw them
+ * live on the same layer. Motion writes the strokes; everything else is here.
  */
 
 .home-screen .home-doodles {
@@ -35,10 +35,11 @@
   transform: translate(-50%, -50%);
 }
 
-/* The pen: a drop of the hello's ink, placed each frame by the tour. Last in
-   its layer, so it passes over the doodles; the layer itself sits under the
-   name, so the pen slips behind the text on its way to the dot. */
-.home-screen .home-pen {
+/* The drops: the hello's ink, one per doodle and one for the dot, each placed,
+   sized and faded every frame by the burst. Last in the layer, so they pass
+   over the doodles; the layer sits under the name, so a drop slips behind the
+   text on its way to the dot. */
+.home-screen .home-drop {
   position: absolute;
   left: 0;
   top: 0;
@@ -50,11 +51,10 @@
   opacity: 0;
   pointer-events: none;
   transform: translate(var(--px, 0px), var(--py, 0px)) scale(var(--ps, 1));
-  transition: opacity 0.5s;
 }
 
-.home-screen .home-doodles.is-touring .home-pen {
-  opacity: 1;
+.home-screen .home-doodles.is-bursting .home-drop {
+  opacity: var(--po, 0);
 }
 
 .home-screen .home-doodle-in {

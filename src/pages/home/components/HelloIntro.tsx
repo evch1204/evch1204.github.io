@@ -24,7 +24,7 @@ const DRAIN = 1.1;
 const DRAIN_EASE = [0.5, 0, 0.75, 0.4] as const;
 
 type HelloIntroProps = {
-  /** The stroke, for the tour to read where its tail is. */
+  /** The stroke, for the burst to read where its tail is. */
   pathRef: RefObject<SVGPathElement | null>;
   /** True once the word should drain out through its tail. */
   draining: boolean;
@@ -36,9 +36,9 @@ type HelloIntroProps = {
 
 /**
  * The Mac's first-boot hello: one stroke written in real time, held a beat,
- * then drained out through the tail of the o, where the pen tour picks the
- * ink up. The sheet behind it lifts as the drain starts, so the page is there
- * for the pen to draw on. Nothing here takes the pointer; the page's own
+ * then drained out through the tail of the o, where the burst picks the ink
+ * up as drops. The sheet behind it lifts as the drain starts, so the page is
+ * there for the drops to draw on. Nothing here takes the pointer; the page's own
  * controls are kept inert until they are shown.
  */
 export default function HelloIntro({ pathRef, draining, onWritten, onSkip }: HelloIntroProps) {

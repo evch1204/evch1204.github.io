@@ -1,6 +1,6 @@
 # Tei (Evan) Chang — Portfolio
 
-Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page opens with a hand-written hello whose ink drains into a pen that draws a ring of doodles round the name; other sections cover profile, experience, projects, and contact.
+Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page opens with a hand-written hello whose ink bursts into drops that draw a ring of doodles round the name; other sections cover profile, experience, projects, and contact.
 
 **Live site:** [evch1204.github.io](https://evch1204.github.io/)
 
@@ -45,12 +45,11 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 │   ├── lib/             # Leaf utilities: clock, download, format, links, motion, url
 │   └── pages/           # One folder per tab; the page component at the root,
 │       │                # its parts in components/, single-use hooks beside it
-│       ├── home/        # HomeScreen: the hello is written, its ink drains into a pen
-│       │   │                # that tours the page drawing the doodles, then the name
-│       │   ├── components/   # HelloIntro (the written word), Doodles (the ring and the pen)
+│       ├── home/        # HomeScreen: the hello is written, its ink bursts into drops
+│       │   │                # that draw the doodles all at once, then the name
+│       │   ├── components/   # HelloIntro (the written word), Doodles (the ring and the drops)
 │       │   ├── doodles.ts    # One entry per doodle: paths, centre, where a tap goes; in tour order
-│       │   ├── usePenTour.ts # The tour: the route, the pen each frame, when each doodle draws
-│       │   ├── route.ts      # Catmull-Rom curve through points, sampled by arc length
+│       │   ├── useInkBurst.ts # The burst: every drop's flight, each frame, and when each doodle draws
 │       │   └── styles/       # home-screen.css (entry) + home-intro.css + home-doodles.css
 │       ├── about/       # Profile, tech, GitHub activity, resume
 │       ├── experience/  # Journey and education lists (OrgGroup, RoleRow)

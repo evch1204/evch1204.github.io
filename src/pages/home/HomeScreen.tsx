@@ -8,7 +8,7 @@ import { EASE } from '@/lib/motion';
 import Doodles from './components/Doodles';
 import HelloIntro from './components/HelloIntro';
 import type { Destination } from './doodles';
-import { usePenTour } from './usePenTour';
+import { useInkBurst } from './useInkBurst';
 import './styles/home-screen.css';
 
 type HomeScreenProps = {
@@ -22,49 +22,49 @@ type HomeScreenProps = {
 
 /**
  * The home. On the first visit of a load the hello writes itself, its ink
- * drains out through the tail of the o into a pen, the pen tours the page
- * drawing one doodle after another while the name climbs in behind it, and
- * it lands as the dot in the line under the name. Coming back from another
- * tab there is no pen: everything simply rises, a beat apart. Once drawn,
- * the doodles stay put, ink on the page.
+ * drains out through the tail of the o and bursts into drops, one for every
+ * doodle and one more for the dot under the name. The drops fan out at once;
+ * each doodle is written in the moment its drop lands, the name climbs in
+ * while they are in the air, and the last drop lands as the dot. Coming back
+ * from another tab there are no drops: everything simply rises, a beat
+ * apart. Once drawn, the doodles stay put, ink on the page.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   const reduced = useReducedMotion();
   /* Read once: `intro` names how this mount began, not what App thinks now. */
   const [withIntro] = useState(intro);
-  const [tour, setTour] = useState<'hello' | 'running' | 'done'>(withIntro ? 'hello' : 'done');
+  const [ink, setInk] = useState<'hello' | 'burst' | 'done'>(withIntro ? 'hello' : 'done');
   const [drawn, setDrawn] = useState<ReadonlySet<string>>(() => new Set());
   const [nameUp, setNameUp] = useState(!withIntro);
   const [whereUp, setWhereUp] = useState(!withIntro);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const helloPathRef = useRef<SVGPathElement>(null);
-  const penRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
-  const refs = useMemo(() => ({ hero: heroRef, helloPath: helloPathRef, pen: penRef, dot: dotRef }), []);
+  const refs = useMemo(() => ({ hero: heroRef, helloPath: helloPathRef, dot: dotRef }), []);
 
   const settle = useCallback(() => {
-    setTour('done');
+    setInk('done');
     setNameUp(true);
     setWhereUp(true);
     onIntroDone();
   }, [onIntroDone]);
 
-  /** The word is written: the ink leaves it and the pen sets off. */
-  const startTour = useCallback(() => {
-    setTour((t) => (t === 'hello' ? 'running' : t));
+  /** The word is written: the ink leaves it and the drops set off. */
+  const burst = useCallback(() => {
+    setInk((t) => (t === 'hello' ? 'burst' : t));
     onIntroDone();
   }, [onIntroDone]);
 
-  usePenTour(tour === 'running', refs, {
+  useInkBurst(ink === 'burst', refs, {
     onDrawn: (id) => setDrawn((prev) => new Set(prev).add(id)),
     onNameUp: () => setNameUp(true),
     onWhereUp: () => setWhereUp(true),
     onDone: settle,
   });
 
-  const settled = tour === 'done';
-  /* With no pen to time them, the pieces rise a beat apart on their own. */
+  const settled = ink === 'done';
+  /* With no drops to time them, the pieces rise a beat apart on their own. */
   const d = (delay: number) => (withIntro ? 0 : delay);
 
   /* The entrances. With reduced motion nothing moves: the pieces only fade. */
@@ -72,7 +72,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
     hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 14, filter: 'blur(6px)' },
     shown: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.9, ease: EASE, delay } },
   });
-  /* The line the pen lands on only ever fades; it must not move under the pen. */
+  /* The line the last drop lands on only ever fades; it must not move under the drop. */
   const fade = (delay: number): Variants => ({
     hidden: { opacity: 0 },
     shown: { opacity: 1, transition: { duration: 0.8, ease: EASE, delay } },
@@ -88,8 +88,8 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
       <div className="grain" aria-hidden />
 
       <AnimatePresence>
-        {tour !== 'done' && (
-          <HelloIntro pathRef={helloPathRef} draining={tour === 'running'} onWritten={startTour} onSkip={settle} />
+        {ink !== 'done' && (
+          <HelloIntro pathRef={helloPathRef} draining={ink === 'burst'} onWritten={burst} onSkip={settle} />
         )}
       </AnimatePresence>
 
@@ -97,10 +97,9 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
       <div className="home-hero" ref={heroRef}>
         <Doodles
           drawn={settled ? 'all' : drawn}
-          touring={tour === 'running'}
+          bursting={ink === 'burst'}
           stagger={!withIntro}
           onNavigate={onNavigate}
-          penRef={penRef}
         />
 
         <div className="home-block" inert={!settled}>

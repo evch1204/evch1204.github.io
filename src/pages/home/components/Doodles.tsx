@@ -1,18 +1,17 @@
-import { type CSSProperties, type RefObject } from 'react';
+import type { CSSProperties } from 'react';
 import { motion, useReducedMotion, type Variants } from 'motion/react';
 import { EASE, PEN_EASE } from '@/lib/motion';
 import { DOODLES, type Destination } from '@/pages/home/doodles';
 
 type DoodlesProps = {
-  /** Which doodles the pen has reached, or every one of them. */
+  /** Which doodles a drop has reached, or every one of them. */
   drawn: ReadonlySet<string> | 'all';
-  /** The pen is on its way round: show it. */
-  touring: boolean;
-  /** No pen this visit: the doodles arrive one after another on their own. */
+  /** The drops are in the air: show them. */
+  bursting: boolean;
+  /** No drops this visit: the doodles arrive one after another on their own. */
   stagger: boolean;
   /** A tap on a doodle goes where it points. */
   onNavigate: (to: Destination) => void;
-  penRef: RefObject<HTMLDivElement | null>;
 };
 
 /** The spoken name: what it draws, and where a tap goes. */
@@ -20,17 +19,18 @@ const nameOf = (label: string, to: Destination) =>
   `${label}, opens ${to.project ? 'the project' : 'the Experience tab'}`;
 
 /**
- * The ring of doodles in the white around the name, and the pen that draws
- * them. Each doodle is written in when the pen reaches it (or a beat after
- * the last, on a visit with no pen) and then stays where the pen left it,
- * ink on the page: it only comes alive under the pointer, and opens what it
- * draws when tapped.
+ * The ring of doodles in the white around the name, and the drops of ink
+ * that draw them: one for each doodle and one for the dot under the name,
+ * moved by the burst. Each doodle is written in when its drop lands (or a
+ * beat after the last, on a visit with no drops) and then stays where the
+ * ink left it, on the page: it only comes alive under the pointer, and opens
+ * what it draws when tapped.
  */
-export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }: DoodlesProps) {
+export default function Doodles({ drawn, bursting, stagger, onNavigate }: DoodlesProps) {
   const reduced = useReducedMotion();
 
   return (
-    <div className={`home-doodles${touring ? ' is-touring' : ''}`}>
+    <div className={`home-doodles${bursting ? ' is-bursting' : ''}`}>
       {DOODLES.map((doodle, i) => {
         const shown = drawn === 'all' || drawn.has(doodle.id);
         const delay = stagger ? 0.55 + i * 0.07 : 0;
@@ -79,7 +79,10 @@ export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }:
         );
       })}
 
-      <div ref={penRef} className="home-pen" aria-hidden />
+      {DOODLES.map((doodle) => (
+        <span key={doodle.id} className="home-drop" data-drop={doodle.id} aria-hidden />
+      ))}
+      <span className="home-drop" data-drop="dot" aria-hidden />
     </div>
   );
 }

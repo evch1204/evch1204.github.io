@@ -28,8 +28,8 @@ type Doodle = {
  * Line drawings of the school, the company and the things built: the Mission
  * Church, DeepSpace's four-point star in its orbit, and one scene per project.
  * Each is data: a few paths in the pen of the hello, a place on the page, and
- * where a tap goes. The order is the pen's route: clockwise round the name
- * from the tail of the hello, so it never doubles back.
+ * where a tap goes. The order is the order the drops leave in: clockwise
+ * round the name from the tail of the hello.
  */
 export const DOODLES: Doodle[] = [
   {
