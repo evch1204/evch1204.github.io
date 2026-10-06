@@ -399,12 +399,17 @@ const segsPoints = (segs) => segs.flatMap((s) => (s.length === 2 ? [s[0], s[1]] 
  *   cornerAngle         a turn sharper than this many degrees is a corner and is kept (default 48)
  *   to                  { x, y, scale }: where the box's corner lands, and how much bigger, in the drawing
  *   weight              multiplies the measured stroke widths (default 1)
- *   maxW                the widest a stroke may be drawn (default 2.6)
+ *   minW, maxW          the narrowest and widest a stroke may be drawn (default 0.8 and 2.6)
+ *   tone                one darkness for every stroke, instead of the darkness measured off the sheet; the
+ *                       sheet's own greys read as patchy once they are lines
+ *   hatchBelow          a stroke narrower than this is hatching, drawn at half tone
+ *   dedupe              drop a stroke that lies within this many pixels of a longer one all along its length:
+ *                       the pencil went over the same line twice
  */
 function trace(region) {
   const {
     src, box, thr, k = 4, mask = [], keep, clearOf, fills = 0, minLen = 1.6, smooth = 1.1, fit = 0.4, straight = 0.45, cornerAngle = 48,
-    to = { x: box[0], y: box[1], scale: 1 }, weight = 1, maxW = 2.6,
+    to = { x: box[0], y: box[1], scale: 1 }, weight = 1, minW = 0.8, maxW = 2.6, tone, hatchBelow = 0, dedupe = 0,
   } = region;
   const S = sheet(src);
   const { w, h, px } = enlarge(S, box, k);
@@ -490,13 +495,27 @@ function trace(region) {
     const lum = chain.reduce((n, [x, y]) => n + px[y * w + x], 0) / chain.length;
     const segs = steady(chain.map(([x, y]) => [x + 0.5, y + 0.5]), hand).map((s) => s.map(place));
     if (!segs.length) continue;
-    strokes.push({
-      segs,
-      w: Math.min(maxW, Math.max(0.8, Math.round(width * 10) / 10)),
-      o: Math.max(0.35, Math.min(1, Math.round(((255 - lum) / 175) * 20) / 20)),
-    });
+    const drawnW = Math.min(maxW, Math.max(minW, Math.round(width * 10) / 10));
+    const measured = Math.max(0.35, Math.min(1, Math.round(((255 - lum) / 175) * 20) / 20));
+    const o = drawnW < hatchBelow ? (tone ?? 1) * 0.5 : tone ?? measured;
+    strokes.push({ segs, w: drawnW, o: Math.round(o * 100) / 100 });
   }
-  return { strokes, shapes };
+  return { strokes: dedupe ? deduped(strokes, dedupe * to.scale) : strokes, shapes };
+}
+
+/** Strokes with the duplicates taken out: the shorter of two that run together is the pencil going over a line again. */
+function deduped(strokes, within) {
+  const withPts = strokes.map((s) => ({ s, pts: segsPoints(s.segs), len: lengthOf(segsPoints(s.segs)) })).sort((a, b) => b.len - a.len);
+  const kept = [];
+  for (const c of withPts) {
+    const twin = kept.some((k) => {
+      let near = 0;
+      for (const p of c.pts) if (k.pts.some((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) <= within)) near++;
+      return near >= c.pts.length * 0.85;
+    });
+    if (!twin) kept.push(c);
+  }
+  return kept.map((k) => k.s);
 }
 
 /** Strokes a script made rather than traced (see sketch-bridge.mjs): polylines, fitted like the rest. */

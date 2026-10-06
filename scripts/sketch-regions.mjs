@@ -18,7 +18,7 @@ const MAP_MASKS = [
   [1150, 700, 1300, 720],
 ];
 /** The map and everything drawn over it. Coasts are meant to wander, so the hand evens them out less than a ruled line. */
-const MAP_REGION = { src: HOME, box: [500, 210, 1500, 720], thr: 228, k: 2, mask: MAP_MASKS, minLen: 3, smooth: 0.8, fit: 0.4, straight: 0.3, cornerAngle: 58, weight: 0.85 };
+const MAP_REGION = { src: HOME, box: [500, 210, 1500, 720], thr: 227, k: 3, mask: MAP_MASKS, minLen: 9, smooth: 1.0, fit: 0.45, straight: 0.3, cornerAngle: 58, weight: 0.9, minW: 1.2, maxW: 2.2, tone: 1, hatchBelow: 1.35, dedupe: 1.9 };
 
 /**
  * The flight between Taiwan and Santa Clara, as the page flies it: a curve fitted to the sketch's
@@ -57,9 +57,9 @@ const DESK_MASKS = [[636, 300, 760, 349], HEAD, GRID_MUG];
  * together (a screen's bezel, a keyboard's edge) stay apart; the second takes the faint lines the
  * first left behind: the writing on the screen, the hatching, the edge of the desk.
  */
-const DESK_INK = { src: GRID, box: DESK_BOX, thr: 150, k: 6, mask: DESK_MASKS, to: deskTo(DESK_BOX[0], DESK_BOX[1]), weight: 0.78, maxW: 3, smooth: 1.2, fit: 0.35, straight: 0.5 };
-const DESK_PENCIL = { ...DESK_INK, thr: 208, clearOf: { thr: 150, by: 2.2 }, weight: 0.6, minLen: 2.4 };
-const DESK_HEAD = { src: GRID, box: [560, 324, 614, 364], thr: 208, k: 4, keep: [HEAD], fills: 3.2, to: deskTo(560, 324), weight: 0.6, maxW: 3, smooth: 1.3, fit: 0.4 };
+const DESK_INK = { src: GRID, box: DESK_BOX, thr: 150, k: 6, mask: DESK_MASKS, to: deskTo(DESK_BOX[0], DESK_BOX[1]), weight: 0.78, minW: 1.4, maxW: 2.8, smooth: 1.3, fit: 0.35, straight: 0.5, tone: 1, dedupe: 2.4 };
+const DESK_PENCIL = { ...DESK_INK, thr: 208, clearOf: { thr: 150, by: 2.2 }, weight: 0.7, minW: 1.1, maxW: 1.6, minLen: 3, tone: 0.75, dedupe: 2.4 };
+const DESK_HEAD = { src: GRID, box: [560, 324, 614, 364], thr: 208, k: 4, keep: [HEAD], fills: 3.2, to: deskTo(560, 324), weight: 0.6, minW: 1.4, maxW: 2.8, smooth: 1.3, fit: 0.4, tone: 1 };
 
 const LAPTOP = deskBox([603, 357, 669, 421]);
 const SCREEN = deskBox([611, 365, 661, 404]);
@@ -73,14 +73,14 @@ const isSurface = (b) => !isLaptop(b) && !isBook(b) && !isPerson(b);
 /** The first sketch's mug, set down where the grid's mug stood, at half size. Its steam is its own drawing. */
 const MUG_BOX = [1300, 708, 1390, 832];
 const MUG_AT = { x: onDesk(668.5, 0)[0] - (1307 - MUG_BOX[0]) * 0.5, y: onDesk(0, 414.5)[1] - (822 - MUG_BOX[1]) * 0.5, scale: 0.5 };
-const MUG_REGION = { src: HOME, box: MUG_BOX, thr: 150, k: 3, fills: 4, smooth: 1.4, fit: 0.35, to: MUG_AT, weight: 1.1, maxW: 2.4 };
+const MUG_REGION = { src: HOME, box: MUG_BOX, thr: 150, k: 3, fills: 4, smooth: 1.4, fit: 0.35, to: MUG_AT, weight: 1.1, minW: 1.4, maxW: 2.6, tone: 1 };
 const mugY = (y) => MUG_AT.y + (y - MUG_BOX[1]) * MUG_AT.scale;
 const mugX = (x) => MUG_AT.x + (x - MUG_BOX[0]) * MUG_AT.scale;
 const isSteam = (b) => b.y1 < mugY(747);
 /** The shadow hatched on the old desk under the mug stays on the old desk: it runs out past the cup, or lies below it. */
 const isHatch = (b) => b.y0 > mugY(811) && (b.x0 < mugX(1306) || b.x1 > mugX(1357) || b.y0 > mugY(823));
 
-const TOOL_REGION = { src: HOME, box: [80, 695, 440, 755], thr: 150, k: 3, weight: 0.8, smooth: 1.2, fit: 0.35 };
+const TOOL_REGION = { src: HOME, box: [80, 695, 440, 755], thr: 150, k: 3, weight: 0.8, smooth: 1.2, fit: 0.35, tone: 1 };
 const tool = (name, about, from, to) => ({
   name,
   about,
@@ -89,13 +89,13 @@ const tool = (name, about, from, to) => ({
 });
 
 /** A hand mark the pages place themselves: traced where it is, then moved to its own origin. */
-const mark = (name, about, region) => ({ name, about, origin: true, regions: [{ k: 5, thr: 185, weight: 0.8, smooth: 1.6, fit: 0.4, straight: 0.6, ...region }] });
+const mark = (name, about, region) => ({ name, about, origin: true, regions: [{ k: 5, thr: 185, weight: 0.8, smooth: 1.6, fit: 0.4, straight: 0.6, tone: 1, ...region }] });
 
 /** In the window, the low buildings west of Taipei 101 make room for the bridge. */
 const BRIDGE_PLOT = [1376, 208, 1426, 262];
 
 /** The paper plane and its trail share a region; the plane is the knot of strokes at the top of it. */
-const PLANE_REGION = { src: MONO, box: [1078, 812, 1200, 945], thr: 205, k: 5, weight: 0.8, smooth: 1.2, fit: 0.35 };
+const PLANE_REGION = { src: MONO, box: [1078, 812, 1200, 945], thr: 205, k: 5, weight: 0.8, smooth: 1.2, fit: 0.35, tone: 1 };
 const isPlane = (b) => b.x0 > 1100 && b.x1 < 1136 && b.y1 < 846;
 
 export const OUTPUTS = [
@@ -111,7 +111,7 @@ export const OUTPUTS = [
       {
         name: 'FLIGHT',
         about: 'The dashes of the flight across the map, from Taiwan to Santa Clara in the order they are flown.',
-        regions: [{ ...MAP_REGION, order: 'east', pick: (b, stroke) => !!stroke && isDash(stroke) }],
+        regions: [{ ...MAP_REGION, minLen: 3, order: 'east', pick: (b, stroke) => !!stroke && isDash(stroke) }],
       },
       {
         name: 'PLANE',
@@ -170,7 +170,7 @@ export const OUTPUTS = [
         name: 'ROLE_LINE',
         about: 'The stroke under the role.',
         origin: true,
-        regions: [{ src: HOME, box: [82, 474, 472, 500], thr: 170, k: 3, weight: 0.85, smooth: 3, fit: 0.5, straight: 0.2 }],
+        regions: [{ src: HOME, box: [82, 474, 472, 500], thr: 170, k: 3, weight: 0.85, smooth: 3, fit: 0.5, straight: 0.2, tone: 1 }],
       },
       tool('TOOL_TYPESCRIPT', 'The tools under the blurb, left to right: TypeScript.', 80, 135),
       tool('TOOL_REACT', 'React.', 145, 205),
@@ -181,7 +181,7 @@ export const OUTPUTS = [
         name: 'MOUSE',
         about: 'The mouse over `Scroll to explore`.',
         origin: true,
-        regions: [{ src: HOME, box: [740, 875, 800, 925], thr: 150, k: 3, weight: 0.8, smooth: 1.4, fit: 0.35 }],
+        regions: [{ src: HOME, box: [740, 875, 800, 925], thr: 150, k: 3, weight: 0.8, smooth: 1.4, fit: 0.35, tone: 1 }],
       },
     ],
   },
@@ -205,6 +205,10 @@ export const OUTPUTS = [
             smooth: 1.3,
             fit: 0.4,
             straight: 0.55,
+            minW: 1.1,
+            tone: 1,
+            hatchBelow: 1.2,
+            dedupe: 1.6,
             // The sheet's note and its underline are left out, and the bridge takes the low buildings' plot.
             mask: [[1196, 132, 1300, 240], BRIDGE_PLOT],
             order: 'north',
