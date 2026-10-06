@@ -5,7 +5,9 @@ import SiteFooter from '@/layout/SiteFooter';
 import { LOCATION, NAME, RESUME_FILENAME, RESUME_URL, ROLE } from '@/content/site';
 import { triggerDownload } from '@/lib/download';
 import { EASE } from '@/lib/motion';
+import Doodles from './components/Doodles';
 import HelloIntro from './components/HelloIntro';
+import type { Destination } from './doodles';
 import './styles/home-screen.css';
 
 type HomeScreenProps = {
@@ -13,7 +15,8 @@ type HomeScreenProps = {
   intro: boolean;
   /** The hello has left: the chrome can come in. Must be stable. */
   onIntroDone: () => void;
-  onViewProjects: () => void;
+  /** Where the actions and the doodles send the reader. */
+  onNavigate: (to: Destination) => void;
 };
 
 /** A piece that fades up into place, `delay` seconds after it is told to. */
@@ -29,11 +32,12 @@ const climb = (delay: number): Variants => ({
 });
 
 /**
- * The home: the name, one line and two actions, nothing more. On the first
- * visit of a load the hello writes itself first and the pieces rise as it
- * leaves; coming back from another tab they rise straight away.
+ * The home: the name, one line and two actions, with the doodles in a ring
+ * around them. On the first visit of a load the hello writes itself first
+ * and everything rises as it leaves; coming back from another tab it rises
+ * straight away.
  */
-export default function HomeScreen({ intro, onIntroDone, onViewProjects }: HomeScreenProps) {
+export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   /* Read once: `intro` names how this mount began, not what App thinks now. */
   const [withIntro] = useState(intro);
   const [settled, setSettled] = useState(!withIntro);
@@ -56,6 +60,8 @@ export default function HomeScreen({ intro, onIntroDone, onViewProjects }: HomeS
       </AnimatePresence>
 
       <div className="home-hero">
+        <Doodles shown={settled} lead={lead} onNavigate={onNavigate} />
+
         <motion.div className="home-block" initial="hidden" animate={settled ? 'shown' : 'hidden'}>
           <h1 className="home-name">
             {NAME.split(' ').map((word, i) => (
@@ -74,7 +80,11 @@ export default function HomeScreen({ intro, onIntroDone, onViewProjects }: HomeS
           </motion.p>
 
           <motion.div className="home-actions" variants={rise(lead + 0.44)}>
-            <button type="button" className="home-action home-action-primary focus-ring" onClick={onViewProjects}>
+            <button
+              type="button"
+              className="home-action home-action-primary focus-ring"
+              onClick={() => onNavigate({ tab: 'projects' })}
+            >
               View projects
               <ArrowRight size={15} strokeWidth={2.4} aria-hidden />
             </button>

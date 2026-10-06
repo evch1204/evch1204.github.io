@@ -1,6 +1,6 @@
 # Tei (Evan) Chang — Portfolio
 
-Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page opens with a hand-written hello, then settles into the name and two actions; other sections cover profile, experience, projects, and contact.
+Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. The home page opens with a hand-written hello, then settles into the name and two actions in a ring of line doodles; other sections cover profile, experience, projects, and contact.
 
 **Live site:** [evch1204.github.io](https://evch1204.github.io/)
 
@@ -46,8 +46,9 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 │   └── pages/           # One folder per tab; the page component at the root,
 │       │                # its parts in components/, single-use hooks beside it
 │       ├── home/        # HomeScreen: the hello intro, then the name and actions
-│       │   ├── components/   # HelloIntro (the written word)
-│       │   └── styles/       # home-screen.css (entry) + home-intro.css
+│       │   ├── components/   # HelloIntro (the written word), Doodles (the ring)
+│       │   ├── doodles.ts    # One entry per doodle: paths, centre, where a tap goes
+│       │   └── styles/       # home-screen.css (entry) + home-intro.css + home-doodles.css
 │       ├── about/       # Profile, tech, GitHub activity, resume
 │       ├── experience/  # Journey and education lists (OrgGroup, RoleRow)
 │       ├── projects/    # Grid and the project page it opens into;

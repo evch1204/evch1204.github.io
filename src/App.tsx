@@ -60,12 +60,16 @@ export default function App() {
     // Mount only: `activeTab` is read for the entry we arrived on, and re-running would name the wrong one.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** The one way into a tab: the header, the phone tab bar and the home screen's own link all come through here. */
+  /**
+   * The one way into a tab: the header, the phone tab bar and the home screen's
+   * own links all come through here. A `project` names a page on the projects
+   * tab; it rides in the same entry, which is how `useProjectRouting` opens it.
+   */
   const selectTab = useCallback(
-    (tab: Tab) => {
+    (tab: Tab, project?: string) => {
       // Already here: no second entry for the tab the reader is on.
-      if (tab === activeTab) return;
-      history.pushState({ tab }, '');
+      if (tab === activeTab && !project) return;
+      history.pushState(project ? { tab, project } : { tab }, '');
       setActiveTab(tab);
     },
     [activeTab],
@@ -84,7 +88,11 @@ export default function App() {
 
       {isHome ? (
         <div className="fixed inset-0 z-0 overflow-hidden bg-page">
-          <HomeScreen intro={introPending} onIntroDone={finishIntro} onViewProjects={() => selectTab('projects')} />
+          <HomeScreen
+            intro={introPending}
+            onIntroDone={finishIntro}
+            onNavigate={({ tab, project }) => selectTab(tab, project)}
+          />
         </div>
       ) : (
         /* Bottom padding clears the phone tab bar (and the home-button inset under it). */

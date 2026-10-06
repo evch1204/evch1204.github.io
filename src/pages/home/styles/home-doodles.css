@@ -1,0 +1,291 @@
+/* ---- The doodles ----
+ *
+ * Line drawings of the school, the company and the things built, in a ring
+ * round the name. Each sits at the centre its data gives it, bobs on its own
+ * clock, leans with the pointer (deeper ones more: the layer carries --mx /
+ * --my), names itself and comes alive under the pointer, and is a button that
+ * opens what it draws. Motion writes the strokes; everything else is here.
+ */
+
+.home-screen .home-doodles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  --mx: 0;
+  --my: 0;
+}
+
+.home-screen .home-doodle {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: calc(var(--size) * 1px);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 12px;
+  /* Centred on its point, then leaning with the pointer. */
+  transform: translate(-50%, -50%) translate(calc(var(--mx) * var(--depth) * 1px), calc(var(--my) * var(--depth) * 1px));
+  transition: transform 0.9s var(--home-ease);
+}
+
+.home-screen .home-doodle-in {
+  display: block;
+}
+
+.home-screen .home-doodle-bob {
+  position: relative;
+  display: block;
+  animation: home-bob var(--bob) ease-in-out var(--phase) infinite;
+}
+
+.home-screen .home-doodle svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.home-screen .home-doodle path {
+  fill: none;
+  stroke: var(--home-fg);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Every moving part turns about its own box, not the drawing's corner. */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.home-screen .home-doodle-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  transform: translateX(-50%) translateY(4px);
+  white-space: nowrap;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.66rem;
+  color: var(--home-muted);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.5s var(--home-ease);
+}
+
+.home-screen .home-doodle:hover .home-doodle-label,
+.home-screen .home-doodle:focus-visible .home-doodle-label {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@keyframes home-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(1.5deg);
+  }
+}
+
+/* ---- What each one does under the pointer ---- */
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-bell {
+  transform-origin: 50% 0;
+  animation: home-swing 0.9s ease-in-out infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-orbit {
+  animation: home-spin 5s linear infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-rays,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-sparkle,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-joints,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-dots,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-day {
+  animation: home-pulse 1.1s ease-in-out infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-route,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-trend,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-wave {
+  stroke-dasharray: 240;
+  animation: home-trace 1.6s linear infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-pin,
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-ball {
+  animation: home-hop 0.8s cubic-bezier(0.3, 0, 0.2, 1) infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-bars {
+  transform-origin: 50% 100%;
+  animation: home-grow 1.4s ease-in-out infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-cube {
+  animation: home-spin 4s linear infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-pad {
+  animation: home-wiggle 0.5s ease-in-out infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-clock {
+  animation: home-tick 1s steps(1) infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-box {
+  animation: home-lift 1.6s ease-in-out infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-mower {
+  animation: home-drive 2.4s ease-in-out infinite;
+}
+
+.home-screen .home-doodle:is(:hover, :focus-visible) .part-clippings {
+  animation: home-fly 0.7s ease-out infinite;
+}
+
+@keyframes home-swing {
+  0%,
+  100% {
+    transform: rotate(-22deg);
+  }
+  50% {
+    transform: rotate(22deg);
+  }
+}
+
+@keyframes home-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes home-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.55;
+  }
+}
+
+@keyframes home-trace {
+  from {
+    stroke-dashoffset: 240;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes home-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes home-grow {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.55);
+  }
+}
+
+@keyframes home-wiggle {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes home-tick {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+}
+
+@keyframes home-lift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes home-drive {
+  0%,
+  100% {
+    transform: translateX(-18px);
+  }
+  50% {
+    transform: translateX(22px);
+  }
+}
+
+@keyframes home-fly {
+  from {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-10px, -12px);
+    opacity: 0;
+  }
+}
+
+/* ---- Phones: the few that fit, smaller and in their own corners ---- */
+
+@media (width < 48rem) {
+  .home-screen .home-doodle {
+    display: none;
+    width: calc(var(--size) * 0.66px);
+  }
+
+  .home-screen .home-doodle-phone {
+    display: block;
+    left: var(--phone-x);
+    top: var(--phone-y);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-screen .home-doodle {
+    transform: translate(-50%, -50%);
+  }
+
+  .home-screen .home-doodle-bob,
+  .home-screen .home-doodle path {
+    animation: none !important;
+  }
+}
