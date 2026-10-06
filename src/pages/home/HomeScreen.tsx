@@ -25,7 +25,8 @@ type HomeScreenProps = {
  * drains out through the tail of the o into a pen, the pen tours the page
  * drawing one doodle after another while the name climbs in behind it, and
  * it lands as the dot in the line under the name. Coming back from another
- * tab there is no pen: everything simply rises, a beat apart.
+ * tab there is no pen: everything simply rises, a beat apart. Once drawn,
+ * the doodles stay put, ink on the page.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   const reduced = useReducedMotion();

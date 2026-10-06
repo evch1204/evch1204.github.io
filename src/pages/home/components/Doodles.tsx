@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type RefObject } from 'react';
+import { type CSSProperties, type RefObject } from 'react';
 import { motion, useReducedMotion, type Variants } from 'motion/react';
 import { EASE, PEN_EASE } from '@/lib/motion';
 import { DOODLES, type Destination } from '@/pages/home/doodles';
@@ -22,37 +22,15 @@ const nameOf = (label: string, to: Destination) =>
 /**
  * The ring of doodles in the white around the name, and the pen that draws
  * them. Each doodle is written in when the pen reaches it (or a beat after
- * the last, on a visit with no pen), bobs on its own clock, leans with the
- * pointer (deeper ones more), comes alive under the pointer and opens what it
+ * the last, on a visit with no pen) and then stays where the pen left it,
+ * ink on the page: it only comes alive under the pointer, and opens what it
  * draws when tapped.
  */
 export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }: DoodlesProps) {
   const reduced = useReducedMotion();
-  const layerRef = useRef<HTMLDivElement>(null);
-
-  /* The lean: a mouse writes two variables on the layer, at most once a frame. A finger does not lean. */
-  useEffect(() => {
-    if (reduced) return;
-    const layer = layerRef.current;
-    if (!layer) return;
-    let raf = 0;
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        layer.style.setProperty('--mx', (e.clientX / window.innerWidth - 0.5).toFixed(3));
-        layer.style.setProperty('--my', (e.clientY / window.innerHeight - 0.5).toFixed(3));
-      });
-    };
-    window.addEventListener('pointermove', onMove);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('pointermove', onMove);
-    };
-  }, [reduced]);
 
   return (
-    <div ref={layerRef} className={`home-doodles${touring ? ' is-touring' : ''}`}>
+    <div className={`home-doodles${touring ? ' is-touring' : ''}`}>
       {DOODLES.map((doodle, i) => {
         const shown = drawn === 'all' || drawn.has(doodle.id);
         const delay = stagger ? 0.55 + i * 0.07 : 0;
@@ -69,9 +47,6 @@ export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }:
           '--cx': `${doodle.at.x}%`,
           '--cy': `${doodle.at.y}%`,
           '--size': doodle.size,
-          '--depth': doodle.depth,
-          '--bob': `${doodle.bob}s`,
-          '--phase': `${doodle.phase}s`,
           ...(doodle.phone && { '--phone-x': `${doodle.phone.x}%`, '--phone-y': `${doodle.phone.y}%` }),
         } as CSSProperties;
         return (
@@ -89,7 +64,7 @@ export default function Doodles({ drawn, touring, stagger, onNavigate, penRef }:
             onClick={() => onNavigate(doodle.to)}
           >
             <motion.span className="home-doodle-in" variants={appear}>
-              <span className="home-doodle-bob">
+              <span className="home-doodle-art">
                 <svg viewBox="0 0 120 120" aria-hidden>
                   {doodle.paths.map((p) => (
                     <motion.path key={p.d} d={p.d} className={p.part && `part-${p.part}`} variants={write} />

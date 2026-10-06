@@ -20,11 +20,6 @@ type Doodle = {
   at: { x: number; y: number };
   /** Width in px at desktop; phones draw it at about two thirds. */
   size: number;
-  /** How far it drifts, in px, as the pointer crosses the whole window: deeper ones move more. */
-  depth: number;
-  /** Seconds of one bob, and where in it to start, so no two move together. */
-  bob: number;
-  phase: number;
   /** The few that fit a phone screen, and where their centres sit there, clear of the name and the actions. */
   phone?: { x: number; y: number };
 };
@@ -47,7 +42,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 108.9 42.2 A 52 22 -20 1 0 11.1 77.8 A 52 22 -20 1 0 108.9 42.2 M 108.9 42.2 m -3.2 0 a 3.2 3.2 0 1 0 6.4 0 a 3.2 3.2 0 1 0 -6.4 0', part: 'orbit' },
       { d: 'M 100 14 v 10 M 95 19 h 10 M 18 100 m -2.4 0 a 2.4 2.4 0 1 0 4.8 0 a 2.4 2.4 0 1 0 -4.8 0 M 106 104 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0', part: 'sparkle' },
     ],
-    at: { x: 80.6, y: 28 }, size: 120, depth: 26, bob: 7, phase: -1.1, phone: { x: 82, y: 17 },
+    at: { x: 80.6, y: 28 }, size: 120, phone: { x: 82, y: 17 },
   },
   {
     id: 'bookwithme',
@@ -59,7 +54,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 60 82 m -7 0 a 7 7 0 1 0 14 0 a 7 7 0 1 0 -14 0', part: 'day' },
       { d: 'M 100 100 m -13 0 a 13 13 0 1 0 26 0 a 13 13 0 1 0 -26 0 M 100 100 V 91 M 100 100 H 107', part: 'clock' },
     ],
-    at: { x: 90, y: 48 }, size: 108, depth: 20, bob: 6.5, phase: -0.6,
+    at: { x: 90, y: 48 }, size: 108,
   },
   {
     id: 'hand-tracker',
@@ -70,7 +65,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 53 104 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 41 94 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 33 85 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 28 76 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 24 68 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 45 73 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 42 59 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 40 49 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 39 40 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 54 70 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 53 55 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 53 43 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 53 34 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 62 73 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 64 58 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 65 48 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 66 39 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 70 78 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 75 67 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 78 59 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0 M 81 52 m -1.7 0 a 1.7 1.7 0 1 0 3.4 0 a 1.7 1.7 0 1 0 -3.4 0', part: 'joints' },
       { d: 'M 82 30 H 102 V 50 H 82 Z M 90 22 H 110 V 42 H 90 Z M 82 30 L 90 22 M 102 30 L 110 22 M 102 50 L 110 42 M 82 50 L 90 42', part: 'cube' },
     ],
-    at: { x: 80.6, y: 68 }, size: 120, depth: 16, bob: 7.5, phase: -1.8,
+    at: { x: 80.6, y: 68 }, size: 120,
   },
   {
     id: 'mow',
@@ -82,7 +77,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 30 54 h 26 v -9 h -26 Z M 35 56 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0 M 52 56 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0 M 56 46 L 72 26 M 70 28 L 76 32 M 44 45 V 40 H 50', part: 'mower' },
       { d: 'M 24 44 m -1.2 0 a 1.2 1.2 0 1 0 2.4 0 a 1.2 1.2 0 1 0 -2.4 0 M 20 50 m -1 0 a 1 1 0 1 0 2 0 a 1 1 0 1 0 -2 0 M 27 50 m -0.9 0 a 0.9 0.9 0 1 0 1.8 0 a 0.9 0.9 0 1 0 -1.8 0', part: 'clippings' },
     ],
-    at: { x: 57, y: 76 }, size: 112, depth: 24, bob: 6.5, phase: -1.4,
+    at: { x: 57, y: 76 }, size: 112,
   },
   {
     id: 'nba',
@@ -93,7 +88,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 66 12 V 60 H 112' },
       { d: 'M 71 60 V 44 H 77 V 60 M 81 60 V 34 H 87 V 60 M 91 60 V 40 H 97 V 60 M 101 60 V 20 H 107 V 60', part: 'bars' },
     ],
-    at: { x: 30, y: 75 }, size: 116, depth: 30, bob: 5, phase: -3.2, phone: { x: 82, y: 78 },
+    at: { x: 30, y: 75 }, size: 116, phone: { x: 82, y: 78 },
   },
   {
     id: 'runningmap',
@@ -107,7 +102,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 26 96 m -3.5 0 a 3.5 3.5 0 1 0 7 0 a 3.5 3.5 0 1 0 -7 0' },
       { d: 'M 96 32 C 90 26, 86 22, 86 14 A 10 10 0 0 1 106 14 C 106 22, 102 26, 96 32 Z M 96 14 m -3 0 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0', part: 'pin' },
     ],
-    at: { x: 12.4, y: 58.6 }, size: 118, depth: 14, bob: 5.5, phase: -2.3, phone: { x: 16, y: 80 },
+    at: { x: 12.4, y: 58.6 }, size: 118, phone: { x: 16, y: 80 },
   },
   {
     id: 'scu',
@@ -121,7 +116,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 52 104 V 62 M 49 62 H 55 M 98 104 V 62 M 95 62 H 101 M 64 104 V 82 A 11 11 0 0 1 86 82 V 104 M 75 104 V 74 M 58 104 V 100 H 92 V 104' },
       { d: 'M 6 104 C 6 97, 14 97, 14 104 M 102 104 C 102 98, 110 98, 110 104' },
     ],
-    at: { x: 12.4, y: 37.4 }, size: 128, depth: 18, bob: 6, phase: 0, phone: { x: 16, y: 19 },
+    at: { x: 12.4, y: 37.4 }, size: 128, phone: { x: 16, y: 19 },
   },
   {
     id: 'gaming',
@@ -133,7 +128,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 74 44 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 M 80 36 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 M 88 40 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 M 94 28 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 M 102 30 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 M 108 18 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0', part: 'dots' },
       { d: 'M 72 47 L 110 16', part: 'trend' },
     ],
-    at: { x: 30, y: 21.2 }, size: 112, depth: 22, bob: 6, phase: -4,
+    at: { x: 30, y: 21.2 }, size: 112,
   },
   {
     id: 'ergonomic',
@@ -145,6 +140,6 @@ export const DOODLES: Doodle[] = [
       { d: 'M 44 46 l 7 5 l -4 5 l -7 -5 Z M 50 50 C 62 50, 64 24, 72 24', part: 'electrode' },
       { d: 'M 72 24 H 78 L 82 12 L 88 36 L 94 6 L 100 42 L 106 18 L 110 28 H 118', part: 'wave' },
     ],
-    at: { x: 57, y: 20 }, size: 116, depth: 12, bob: 8, phase: -2.7,
+    at: { x: 57, y: 20 }, size: 116,
   },
 ];

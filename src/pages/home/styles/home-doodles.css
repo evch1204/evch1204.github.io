@@ -1,11 +1,10 @@
 /* ---- The doodles and the pen ----
  *
  * Line drawings of the school, the company and the things built, in a ring
- * round the name. Each sits at the centre its data gives it, bobs on its own
- * clock, leans with the pointer (deeper ones more: the layer carries --mx /
- * --my), names itself and comes alive under the pointer, and is a button that
- * opens what it draws. The pen that draws them lives on the same layer.
- * Motion writes the strokes; everything else is here.
+ * round the name. Each sits still at the centre its data gives it, like ink
+ * on the page; it names itself and comes alive only under the pointer, and is
+ * a button that opens what it draws. The pen that draws them lives on the
+ * same layer. Motion writes the strokes; everything else is here.
  */
 
 .home-screen .home-doodles {
@@ -17,8 +16,6 @@
   max-height: 1050px;
   z-index: 1;
   pointer-events: none;
-  --mx: 0;
-  --my: 0;
 }
 
 .home-screen .home-doodle {
@@ -35,9 +32,7 @@
   cursor: pointer;
   pointer-events: auto;
   border-radius: 12px;
-  /* Centred on its point, then leaning with the pointer. */
-  transform: translate(-50%, -50%) translate(calc(var(--mx) * var(--depth) * 1px), calc(var(--my) * var(--depth) * 1px));
-  transition: transform 0.9s var(--home-ease);
+  transform: translate(-50%, -50%);
 }
 
 /* The pen: a drop of the hello's ink, placed each frame by the tour. Last in
@@ -66,10 +61,9 @@
   display: block;
 }
 
-.home-screen .home-doodle-bob {
+.home-screen .home-doodle-art {
   position: relative;
   display: block;
-  animation: home-bob var(--bob) ease-in-out var(--phase) infinite;
 }
 
 .home-screen .home-doodle svg {
@@ -107,16 +101,6 @@
 .home-screen .home-doodle:focus-visible .home-doodle-label {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
-}
-
-@keyframes home-bob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-9px) rotate(1.5deg);
-  }
 }
 
 /* ---- What each one does under the pointer ---- */
@@ -321,11 +305,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-screen .home-doodle {
-    transform: translate(-50%, -50%);
-  }
-
-  .home-screen .home-doodle-bob,
   .home-screen .home-doodle path {
     animation: none !important;
   }
