@@ -36,7 +36,12 @@ function tabInState(state: unknown): Tab | null {
  */
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>(() => tabInState(history.state) ?? 'home');
+  /** The hello plays once per load, and only when the site opens on home. */
+  const [introPending, setIntroPending] = useState(activeTab === 'home');
+  const finishIntro = useCallback(() => setIntroPending(false), []);
+
   const isHome = activeTab === 'home';
+  const introPlaying = isHome && introPending;
   const Page = isHome ? null : TAB_PAGES[activeTab];
 
   useEffect(() => {
@@ -74,11 +79,12 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-zinc-100/50 blur-[60px] md:blur-[120px]" />
       </div>
 
-      <Header activeTab={activeTab} onSelect={selectTab} />
+      {/* The chrome sits under the hello and drops in as it leaves. */}
+      <Header activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying} />
 
       {isHome ? (
         <div className="fixed inset-0 z-0 overflow-hidden bg-page">
-          <HomeScreen onViewProjects={() => selectTab('projects')} />
+          <HomeScreen intro={introPending} onIntroDone={finishIntro} onViewProjects={() => selectTab('projects')} />
         </div>
       ) : (
         /* Bottom padding clears the phone tab bar (and the home-button inset under it). */
@@ -89,7 +95,7 @@ export default function App() {
         </main>
       )}
 
-      <TabBar activeTab={activeTab} onSelect={selectTab} />
+      <TabBar activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying} />
     </div>
   );
 }

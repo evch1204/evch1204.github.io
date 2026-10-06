@@ -1,14 +1,28 @@
+import { motion } from 'motion/react';
+import { EASE } from '@/lib/motion';
 import { NAV_TABS, type Tab } from './nav';
 
 /**
  * Phone navigation. The desktop pill needs ~500px and there is nowhere near
  * that below `md`, so the same tabs sit along the bottom edge instead, where a
- * thumb can reach them. Its height is `--tabbar-h` — see src/index.css.
+ * thumb can reach them. Its height is `--tabbar-h` — see src/index.css. Like
+ * the header, it waits under the hello and rises in as the word leaves.
  */
-export default function TabBar({ activeTab, onSelect }: { activeTab: Tab; onSelect: (tab: Tab) => void }) {
+export default function TabBar({
+  activeTab,
+  onSelect,
+  revealed,
+}: {
+  activeTab: Tab;
+  onSelect: (tab: Tab) => void;
+  revealed: boolean;
+}) {
   return (
-    <nav
+    <motion.nav
       aria-label="Primary"
+      initial={false}
+      animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+      transition={{ duration: 0.8, ease: EASE, delay: revealed ? 0.35 : 0 }}
       className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200/60 bg-white/80 backdrop-blur-2xl pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <div className="flex h-[var(--tabbar-h)] items-stretch">
@@ -37,6 +51,6 @@ export default function TabBar({ activeTab, onSelect }: { activeTab: Tab; onSele
           );
         })}
       </div>
-    </nav>
+    </motion.nav>
   );
 }

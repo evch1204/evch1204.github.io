@@ -1,18 +1,31 @@
+import { motion } from 'motion/react';
 import { BRAND, SOCIAL_LINKS } from '@/content/site';
 import { linkProps } from '@/lib/links';
+import { EASE } from '@/lib/motion';
 import NavPill from './NavPill';
 import type { Tab } from './nav';
 
-/** Navigation + social links, on one row on every page. */
+/**
+ * Navigation + social links, on one row on every page. While the hello plays
+ * the row waits out of sight, then drops in as the word leaves; `initial` is
+ * off so a load that skips the hello shows it at once.
+ */
 export default function Header({
   activeTab,
   onSelect,
+  revealed,
 }: {
   activeTab: Tab;
   onSelect: (tab: Tab) => void;
+  revealed: boolean;
 }) {
   return (
-    <header className="fixed top-4 md:top-8 left-0 right-0 z-50 px-4 md:px-6 md:h-[var(--header-h)] flex items-center gap-3 md:gap-4">
+    <motion.header
+      initial={false}
+      animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+      transition={{ duration: 0.8, ease: EASE, delay: revealed ? 0.35 : 0 }}
+      className="fixed top-4 md:top-8 left-0 right-0 z-50 px-4 md:px-6 md:h-[var(--header-h)] flex items-center gap-3 md:gap-4"
+    >
       <div className="flex-1 min-w-0 flex items-center justify-start">
         <button
           type="button"
@@ -36,6 +49,6 @@ export default function Header({
           </a>
         ))}
       </div>
-    </header>
+    </motion.header>
   );
 }

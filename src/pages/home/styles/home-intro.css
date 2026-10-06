@@ -1,0 +1,35 @@
+/* ---- The hello: a full-screen sheet over everything, header included. ---- */
+
+.hello-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding-inline: 16px;
+  /* The page underneath must take the pen's tour, so nothing here catches the pointer. */
+  pointer-events: none;
+}
+
+/* The sheet lifts as the ink starts to drain, leaving the stroke alone over the page. */
+.hello-intro-sheet {
+  position: absolute;
+  inset: 0;
+  background: var(--color-page);
+}
+
+.hello-intro-mark {
+  position: relative;
+  width: min(64vw, 560px);
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hello-intro-mark path {
+  fill: none;
+  stroke: #0a0a0a;
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
