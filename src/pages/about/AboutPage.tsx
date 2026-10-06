@@ -33,7 +33,7 @@ export default function AboutPage() {
   return (
     <Section title="About Me">
       <div className="flex flex-col gap-14">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] lg:items-center lg:gap-16">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)] lg:items-start lg:gap-10">
           <div className="min-w-0 space-y-7">
             <motion.div {...rise(0.1)} className="space-y-4 text-lg leading-relaxed text-pencil sm:text-xl sm:leading-relaxed">
               <p>
@@ -70,7 +70,7 @@ export default function AboutPage() {
             </motion.ul>
           </div>
 
-          <Portrait className="mx-auto max-w-[320px] lg:max-w-none" />
+          <Portrait className="mx-auto max-w-[320px] lg:-mt-6 lg:max-w-[380px]" />
         </div>
 
         <div className="sk-rule pt-10">

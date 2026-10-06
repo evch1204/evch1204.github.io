@@ -1,16 +1,9 @@
-/* ---- The portrait: the drawing over the photograph, and the lens that opens it ----
+/* ---- The portrait: the drawing, and the photograph brushed through it ----
  *
- * `--x`, `--y` are where the pointer is, as percentages of the frame; `--lens`
- * is 1 while it is over the frame and 0 once it has left. The lens itself is
- * a soft hole cut by `mask-image`: the photograph is masked to the hole, the
- * drawing to everything but the hole, so between them they cover the frame.
+ * The drawing lies on the paper. The photograph is there too, under it and
+ * out of sight, for a screen reader and for the tap that swaps the picture;
+ * what the brush reveals is painted on the canvas over them both.
  */
-
-@property --lens {
-  syntax: '<number>';
-  inherits: true;
-  initial-value: 0;
-}
 
 .portrait {
   position: relative;
@@ -18,17 +11,11 @@
 }
 
 .portrait-frame {
-  --x: 50%;
-  --y: 40%;
-  --lens: 0;
-  /* The lens's reach, when it is open; its edge softens over the last part of it. */
-  --reach: calc(var(--lens) * 36%);
   position: relative;
   aspect-ratio: 900 / 1201;
   border-radius: 22px;
   background: var(--color-page);
   cursor: crosshair;
-  transition: --lens 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .portrait-crop {
@@ -36,51 +23,55 @@
   inset: 0;
   overflow: hidden;
   border-radius: 22px;
+  /* The drawing multiplies onto the paper only: nothing above it is blended through. */
+  isolation: isolate;
 }
 
+.portrait-ink,
 .portrait-photo,
-.portrait-ink {
+.portrait-brush {
   position: absolute;
   left: 0;
   width: 100%;
-  height: auto;
   display: block;
 }
 
-/* The photograph, laid so that its face is under the drawing's. */
-.portrait-photo {
-  top: -3.43%;
-  mask-image: radial-gradient(circle at var(--x) var(--y), #000 calc(var(--reach) * 0.6), transparent var(--reach));
-  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), #000 calc(var(--reach) * 0.6), transparent var(--reach));
-}
-
-/* The drawing: its white is the page's paper, and it is cut away where the lens is. */
+/* The drawing: its white is the page's paper. */
 .portrait-ink {
   top: 0;
-  mix-blend-mode: multiply;
-  mask-image: radial-gradient(circle at var(--x) var(--y), transparent calc(var(--reach) * 0.6), #000 var(--reach));
-  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), transparent calc(var(--reach) * 0.6), #000 var(--reach));
+  height: auto;
+  z-index: 0;
 }
 
-/* Tapped: the whole photograph, and the drawing gone, until tapped again. */
-.portrait-frame.is-swapped .portrait-photo {
-  mask-image: none;
-  -webkit-mask-image: none;
-}
-
-.portrait-frame.is-swapped .portrait-ink {
+/* The photograph, laid so that its face is under the drawing's; shown whole only when tapped. */
+.portrait-photo {
+  top: -3.43%;
+  height: auto;
+  z-index: 2;
   opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
-.portrait-photo,
-.portrait-ink {
-  transition: opacity 0.4s ease;
+.portrait-brush {
+  top: 0;
+  height: 100%;
+  pointer-events: none;
+  /* Over the drawing: inside the stroke the photograph is clear, not seen through the ink. */
+  z-index: 1;
+}
+
+.portrait-frame.is-swapped .portrait-photo {
+  opacity: 1;
+}
+
+.portrait-frame.is-swapped .portrait-brush {
+  opacity: 0;
 }
 
 .portrait-note {
   position: absolute;
   right: -8px;
-  bottom: -34px;
+  bottom: -40px;
   font-size: 0.95rem;
   text-align: right;
   rotate: 6deg;
@@ -97,9 +88,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .portrait-frame,
-  .portrait-photo,
-  .portrait-ink {
+  .portrait-photo {
     transition: none;
   }
 }

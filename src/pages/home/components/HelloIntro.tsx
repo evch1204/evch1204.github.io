@@ -4,16 +4,18 @@ import { PEN_EASE } from '@/lib/motion';
 
 /**
  * One continuous monoline stroke, drawn upright and slanted by the group's
- * skew, so the dash animation writes it the way a pen would.
+ * skew, so the dash animation writes it the way a pen would. The two l's are
+ * open cursive loops: up the right side, round the top, down across the
+ * upstroke, as the Mac writes them.
  */
 const HELLO_PATH =
   'M 20 118 C 34 96, 50 60, 56 30 C 58 16, 44 12, 42 30 C 40 60, 44 110, 48 150 ' +
   'C 50 120, 60 100, 70 100 C 82 100, 78 128, 74 150 C 78 160, 100 148, 120 118 ' +
-  'C 124 106, 102 100, 98 122 C 94 146, 118 160, 140 136 C 152 120, 170 80, 180 48 ' +
-  'C 186 26, 212 20, 212 42 C 212 70, 190 112, 176 150 C 174 158, 184 156, 194 140 ' +
-  'C 206 120, 224 80, 234 48 C 240 26, 266 20, 266 42 C 266 70, 244 112, 230 150 ' +
-  'C 228 158, 238 156, 248 140 C 258 122, 272 108, 280 108 C 266 104, 254 122, 258 140 ' +
-  'C 262 158, 286 158, 292 138 C 296 122, 290 108, 280 108 C 286 102, 296 108, 306 114';
+  'C 124 106, 102 100, 98 122 C 94 146, 118 160, 140 136 C 152 122, 166 92, 178 60 ' +
+  'C 188 36, 200 22, 206 30 C 212 40, 196 76, 172 112 C 158 134, 160 156, 178 150 ' +
+  'C 194 144, 210 112, 222 76 C 232 48, 244 26, 252 32 C 258 40, 244 80, 220 118 ' +
+  'C 206 140, 208 158, 226 150 C 240 144, 254 126, 266 114 C 256 108, 246 120, 250 136 ' +
+  'C 254 154, 276 156, 284 140 C 290 128, 286 112, 272 110 C 282 104, 294 108, 306 114';
 
 /** Seconds: the pause before the pen starts, the writing itself, and the hold after. */
 const START = 0.2;
