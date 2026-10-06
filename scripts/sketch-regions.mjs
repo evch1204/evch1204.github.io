@@ -1,6 +1,5 @@
 // What the tracer reads off each reference sheet, and which module each drawing is written to.
 // Boxes, masks and picks are in the sheet's own pixels; see `trace` in trace-sketch.mjs for the options.
-import { goldenGate } from './sketch-bridge.mjs';
 
 /** The first sketch: one home screen, 1536 × 1024. The map, the tools, the mug and the mouse come from it. */
 const HOME = 'home-sketch.png';
@@ -89,9 +88,6 @@ const tool = (name, about, from, to) => ({
 
 /** A hand mark the pages place themselves: traced where it is, then moved to its own origin. */
 const mark = (name, about, region) => ({ name, about, origin: true, regions: [{ k: 5, thr: 185, weight: 0.8, smooth: 1.6, fit: 0.4, straight: 0.6, tone: 1, ...region }] });
-
-/** In the window, the low buildings west of Taipei 101 make room for the bridge. */
-const BRIDGE_PLOT = [1376, 208, 1426, 262];
 
 /** The paper plane and its trail share a region; the plane is the knot of strokes at the top of it. */
 const PLANE_REGION = { src: MONO, box: [1078, 812, 1200, 945], thr: 205, k: 5, weight: 0.8, smooth: 1.2, fit: 0.35, tone: 1 };
@@ -183,42 +179,6 @@ export const OUTPUTS = [
         about: 'The mouse over `Scroll to explore`.',
         origin: true,
         regions: [{ src: HOME, box: [740, 875, 800, 925], thr: 150, k: 3, weight: 0.8, smooth: 1.4, fit: 0.35, tone: 1 }],
-      },
-    ],
-  },
-  {
-    file: 'src/pages/about/sketch.ts',
-    about: "the About page. Coordinates are the grid sheet's own.",
-    drawings: [
-      {
-        name: 'WINDOW',
-        about:
-          'The desk by the window: the frame, Taipei 101 over the skyline with the Golden Gate in front of it, the plant, the laptop, the cups and the book.',
-        regions: [
-          {
-            src: GRID,
-            box: [1168, 96, 1512, 388],
-            thr: 226,
-            k: 4,
-            fills: 7,
-            weight: 0.62,
-            maxW: 1.9,
-            smooth: 1.3,
-            fit: 0.4,
-            straight: 0.55,
-            minW: 1.1,
-            tone: 1,
-            hatchBelow: 1.2,
-            dedupe: 1.6,
-            // The sheet's note and its underline are left out, and the bridge takes the low buildings' plot.
-            mask: [[1196, 132, 1300, 240], BRIDGE_PLOT],
-            order: 'north',
-          },
-          {
-            make: () => goldenGate({ left: 1369.5, west: 1385, east: 1414, shore: 1430, deck: 249, top: 220, water: 257.5, rise: 1.2 }),
-            order: 'made',
-          },
-        ],
       },
     ],
   },

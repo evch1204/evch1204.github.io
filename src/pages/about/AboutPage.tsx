@@ -6,10 +6,10 @@ import Section from '@/components/Section';
 import { CONTACT_LINKS, LOCATION, NAME, ROLE, SCHOOL } from '@/content/site';
 import { EASE } from '@/lib/motion';
 import GithubActivity from '@/pages/about/components/GithubActivity';
+import Portrait from '@/pages/about/components/Portrait';
 import ResumeModal from '@/pages/about/components/ResumeModal';
 import ResumePanel from '@/pages/about/components/ResumePanel';
 import TechIWorkWith from '@/pages/about/components/TechIWorkWith';
-import WindowScene from '@/pages/about/components/WindowScene';
 
 /** The three facts under the introduction: where, what was studied, and what the work is about. */
 const FACTS: { Icon: LucideIcon; main: string; aside: string }[] = [
@@ -33,7 +33,7 @@ export default function AboutPage() {
   return (
     <Section title="About Me">
       <div className="flex flex-col gap-14">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-center lg:gap-8">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] lg:items-center lg:gap-16">
           <div className="min-w-0 space-y-7">
             <motion.div {...rise(0.1)} className="space-y-4 text-lg leading-relaxed text-pencil sm:text-xl sm:leading-relaxed">
               <p>
@@ -70,7 +70,7 @@ export default function AboutPage() {
             </motion.ul>
           </div>
 
-          <WindowScene className="mx-auto max-w-[620px]" />
+          <Portrait className="mx-auto max-w-[320px] lg:max-w-none" />
         </div>
 
         <div className="sk-rule pt-10">

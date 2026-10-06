@@ -1,0 +1,105 @@
+/* ---- The portrait: the drawing over the photograph, and the lens that opens it ----
+ *
+ * `--x`, `--y` are where the pointer is, as percentages of the frame; `--lens`
+ * is 1 while it is over the frame and 0 once it has left. The lens itself is
+ * a soft hole cut by `mask-image`: the photograph is masked to the hole, the
+ * drawing to everything but the hole, so between them they cover the frame.
+ */
+
+@property --lens {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.portrait {
+  position: relative;
+  width: 100%;
+}
+
+.portrait-frame {
+  --x: 50%;
+  --y: 40%;
+  --lens: 0;
+  /* The lens's reach, when it is open; its edge softens over the last part of it. */
+  --reach: calc(var(--lens) * 36%);
+  position: relative;
+  aspect-ratio: 900 / 1201;
+  border-radius: 22px;
+  background: var(--color-page);
+  cursor: crosshair;
+  transition: --lens 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.portrait-crop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.portrait-photo,
+.portrait-ink {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* The photograph, laid so that its face is under the drawing's. */
+.portrait-photo {
+  top: -3.43%;
+  mask-image: radial-gradient(circle at var(--x) var(--y), #000 calc(var(--reach) * 0.6), transparent var(--reach));
+  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), #000 calc(var(--reach) * 0.6), transparent var(--reach));
+}
+
+/* The drawing: its white is the page's paper, and it is cut away where the lens is. */
+.portrait-ink {
+  top: 0;
+  mix-blend-mode: multiply;
+  mask-image: radial-gradient(circle at var(--x) var(--y), transparent calc(var(--reach) * 0.6), #000 var(--reach));
+  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), transparent calc(var(--reach) * 0.6), #000 var(--reach));
+}
+
+/* Tapped: the whole photograph, and the drawing gone, until tapped again. */
+.portrait-frame.is-swapped .portrait-photo {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.portrait-frame.is-swapped .portrait-ink {
+  opacity: 0;
+}
+
+.portrait-photo,
+.portrait-ink {
+  transition: opacity 0.4s ease;
+}
+
+.portrait-note {
+  position: absolute;
+  right: -8px;
+  bottom: -34px;
+  font-size: 0.95rem;
+  text-align: right;
+  rotate: 6deg;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .portrait-frame {
+    cursor: pointer;
+  }
+
+  .portrait-note {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portrait-frame,
+  .portrait-photo,
+  .portrait-ink {
+    transition: none;
+  }
+}
