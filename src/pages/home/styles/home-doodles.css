@@ -11,6 +11,10 @@
 .home-screen .home-doodles {
   position: absolute;
   inset: 0;
+  /* On a very wide screen the ring stays a ring: the layer caps its size and sits centred. */
+  margin: auto;
+  max-width: 1680px;
+  max-height: 1050px;
   z-index: 1;
   pointer-events: none;
   --mx: 0;
@@ -20,7 +24,8 @@
 .home-screen .home-doodle {
   position: absolute;
   left: var(--cx);
-  top: var(--cy);
+  /* Held in the band between the header and the footer, whatever the window's height. */
+  top: clamp(calc(112px + var(--size) * 0.45px), var(--cy), calc(100% - 128px - var(--size) * 0.45px));
   width: calc(var(--size) * 1px);
   padding: 0;
   border: 0;
@@ -35,12 +40,13 @@
   transition: transform 0.9s var(--home-ease);
 }
 
-/* The pen: a drop of the hello's ink, placed each frame by the tour. */
+/* The pen: a drop of the hello's ink, placed each frame by the tour. Last in
+   its layer, so it passes over the doodles; the layer itself sits under the
+   name, so the pen slips behind the text on its way to the dot. */
 .home-screen .home-pen {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 3;
   width: 9px;
   height: 9px;
   margin: -4.5px 0 0 -4.5px;
@@ -87,7 +93,7 @@
 .home-screen .home-doodle-label {
   position: absolute;
   left: 50%;
-  top: calc(100% + 4px);
+  top: calc(100% + 10px);
   transform: translateX(-50%) translateY(4px);
   white-space: nowrap;
   font-family: 'Space Mono', monospace;
@@ -135,7 +141,8 @@
 .home-screen .home-doodle:is(:hover, :focus-visible) .part-route,
 .home-screen .home-doodle:is(:hover, :focus-visible) .part-trend,
 .home-screen .home-doodle:is(:hover, :focus-visible) .part-wave {
-  stroke-dasharray: 240;
+  /* Motion gives every path a pathLength of 1, so a dash of 1 is the whole stroke. */
+  stroke-dasharray: 1 1;
   animation: home-trace 1.6s linear infinite;
 }
 
@@ -203,7 +210,7 @@
 
 @keyframes home-trace {
   from {
-    stroke-dashoffset: 240;
+    stroke-dashoffset: 1;
   }
   to {
     stroke-dashoffset: 0;
@@ -283,6 +290,18 @@
   to {
     transform: translate(-10px, -12px);
     opacity: 0;
+  }
+}
+
+/* ---- A short laptop window: smaller, and one fewer at the top ---- */
+
+@media (width >= 48rem) and (height < 700px) {
+  .home-screen .home-doodle {
+    width: calc(var(--size) * 0.72px);
+  }
+
+  .home-screen [data-doodle='ergonomic'] {
+    display: none;
   }
 }
 

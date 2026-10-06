@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
+import { PEN_EASE } from '@/lib/motion';
 
 /**
  * One continuous monoline stroke, drawn upright and slanted by the group's
@@ -18,8 +19,6 @@ const HELLO_PATH =
 const START = 0.2;
 const DRAW = 2;
 const HOLD = 0.42;
-/** The pen: eases off the mark and slows gently into the final tail. */
-const PEN_EASE = [0.45, 0.02, 0.2, 1] as const;
 /** The drain: slow to let go of the first stroke, then gone. */
 const DRAIN = 1.1;
 const DRAIN_EASE = [0.5, 0, 0.75, 0.4] as const;
@@ -31,7 +30,7 @@ type HelloIntroProps = {
   draining: boolean;
   /** The word has been written and held: time for the ink to leave. Must be stable. */
   onWritten: () => void;
-  /** The reader tapped or pressed a key during the writing: straight to the home. Must be stable. */
+  /** The reader tapped or pressed Enter, Space or Escape during the writing: straight to the home. Must be stable. */
   onSkip: () => void;
 };
 
@@ -39,7 +38,8 @@ type HelloIntroProps = {
  * The Mac's first-boot hello: one stroke written in real time, held a beat,
  * then drained out through the tail of the o, where the pen tour picks the
  * ink up. The sheet behind it lifts as the drain starts, so the page is there
- * for the pen to draw on.
+ * for the pen to draw on. Nothing here takes the pointer; the page's own
+ * controls are kept inert until they are shown.
  */
 export default function HelloIntro({ pathRef, draining, onWritten, onSkip }: HelloIntroProps) {
   const reduced = useReducedMotion();
@@ -70,14 +70,15 @@ export default function HelloIntro({ pathRef, draining, onWritten, onSkip }: Hel
       />
       <svg className="hello-intro-mark" viewBox="-10 0 330 180">
         <g transform="translate(26 0) skewX(-10)">
+          {/* The round cap would leave a dot at the tail once the dash has gone past it, so the stroke fades at the very end. */}
           <motion.path
             ref={pathRef}
             d={HELLO_PATH}
-            initial={{ pathLength: reduced ? 1 : 0, pathOffset: 0 }}
-            animate={draining ? { pathLength: 1, pathOffset: 1 } : { pathLength: 1, pathOffset: 0 }}
+            initial={{ pathLength: reduced ? 1 : 0, pathOffset: 0, opacity: 1 }}
+            animate={draining ? { pathLength: 1, pathOffset: 1, opacity: 0 } : { pathLength: 1, pathOffset: 0, opacity: 1 }}
             transition={
               draining
-                ? { duration: DRAIN, ease: DRAIN_EASE }
+                ? { duration: DRAIN, ease: DRAIN_EASE, opacity: { delay: DRAIN - 0.08, duration: 0.08 } }
                 : { duration: reduced ? 0 : DRAW, delay: START, ease: PEN_EASE }
             }
           />

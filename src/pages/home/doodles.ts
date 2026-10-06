@@ -20,7 +20,7 @@ type Doodle = {
   at: { x: number; y: number };
   /** Width in px at desktop; phones draw it at about two thirds. */
   size: number;
-  /** Pixels of pointer drift at the edge of the window: deeper ones move more. */
+  /** How far it drifts, in px, as the pointer crosses the whole window: deeper ones move more. */
   depth: number;
   /** Seconds of one bob, and where in it to start, so no two move together. */
   bob: number;
@@ -82,7 +82,7 @@ export const DOODLES: Doodle[] = [
       { d: 'M 30 54 h 26 v -9 h -26 Z M 35 56 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0 M 52 56 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0 M 56 46 L 72 26 M 70 28 L 76 32 M 44 45 V 40 H 50', part: 'mower' },
       { d: 'M 24 44 m -1.2 0 a 1.2 1.2 0 1 0 2.4 0 a 1.2 1.2 0 1 0 -2.4 0 M 20 50 m -1 0 a 1 1 0 1 0 2 0 a 1 1 0 1 0 -2 0 M 27 50 m -0.9 0 a 0.9 0.9 0 1 0 1.8 0 a 0.9 0.9 0 1 0 -1.8 0', part: 'clippings' },
     ],
-    at: { x: 57, y: 78.5 }, size: 112, depth: 24, bob: 6.5, phase: -1.4,
+    at: { x: 57, y: 76 }, size: 112, depth: 24, bob: 6.5, phase: -1.4,
   },
   {
     id: 'nba',
@@ -145,6 +145,6 @@ export const DOODLES: Doodle[] = [
       { d: 'M 44 46 l 7 5 l -4 5 l -7 -5 Z M 50 50 C 62 50, 64 24, 72 24', part: 'electrode' },
       { d: 'M 72 24 H 78 L 82 12 L 88 36 L 94 6 L 100 42 L 106 18 L 110 28 H 118', part: 'wave' },
     ],
-    at: { x: 57, y: 17.5 }, size: 116, depth: 12, bob: 8, phase: -2.7,
+    at: { x: 57, y: 20 }, size: 116, depth: 12, bob: 8, phase: -2.7,
   },
 ];
