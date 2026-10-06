@@ -7,18 +7,22 @@ const ILLUSTRATIONS: Record<IllustrationId, typeof HandCubeIllustration> = {
 };
 
 /**
- * A case-study picture: the imported image, or the named drawing. `eager` is
- * for the hero and the section figures, which set the page's height; the rest
- * loads lazily.
+ * A case-study picture: the imported image, or the named drawing. An image
+ * is shown as a pencil drawing of itself, like everything else on the sheet,
+ * unless `pencil` is off — the project page lets the reader see the real
+ * thing. `eager` is for the hero and the section figures, which set the
+ * page's height; the rest loads lazily.
  */
 export default function ProjectFigure({
   figure,
   className = '',
   eager = false,
+  pencil = true,
 }: {
   figure: Figure;
   className?: string;
   eager?: boolean;
+  pencil?: boolean;
 }) {
   if (figure.illustration) {
     const Drawing = ILLUSTRATIONS[figure.illustration];
@@ -28,7 +32,7 @@ export default function ProjectFigure({
     <img
       src={figure.src}
       alt={figure.alt}
-      className={className}
+      className={pencil ? `sk-photo ${className}` : className}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
     />

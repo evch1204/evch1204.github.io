@@ -1,17 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
+@import './styles/sketch.css';
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  /* Space Mono is already loaded in index.html for the home screen. */
-  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  /* The off-white every tab sits on; `bg-page`, `ring-page`, `ring-offset-page`. */
+  /* One hand writes everything: Shantell Sans, loaded in index.html with its informality and bounce axes. */
+  --font-sans: 'Shantell Sans', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+  /* The sheet every tab sits on; `bg-page`, `ring-page`, `ring-offset-page`. */
   --color-page: #fafafa;
+  /* The pen, a softer pencil for running text, and the faint graphite of a label. */
+  --color-ink: #1f1f22;
+  --color-pencil: #55544f;
+  --color-graphite: #8d8b86;
 }
 
 /* The keyboard focus ring every control draws: nothing on click, an ink ring on tab. */
 @utility focus-ring {
-  @apply outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2;
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-page;
 }
 
 /*
@@ -21,14 +24,17 @@
  */
 :root {
   --tabbar-h: 64px;
-  /* The NavPill's outer height (border 1 + padding 6 + button 36 + padding 6 +
-     border 1): the header's row height on desktop. */
+  /* The NavPill's outer height (padding 6 + button 38 + padding 6): the header's row height on desktop. */
   --header-h: 50px;
 }
 
 @layer base {
   body {
-    @apply bg-white text-zinc-900 antialiased;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    @apply bg-page text-ink antialiased;
+    /* Well towards the informal end of the face, with a little bounce on the baseline: a hand, not a font. */
+    font-variation-settings:
+      'INFM' 70,
+      'BNCE' 8;
+    letter-spacing: 0.012em;
   }
 }

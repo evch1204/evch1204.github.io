@@ -5,8 +5,8 @@ import data from '@/content/contributions.json';
 import { GITHUB_URL } from '@/content/site';
 import { linkProps } from '@/lib/links';
 
-/** GitHub's own light-mode heatmap scale, level 0 → 4. */
-const LEVEL_COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
+/** The heatmap's scale in pencil, level 0 → 4: a faint square, then harder and harder on the lead. */
+const LEVEL_COLORS = ['rgb(31 31 34 / 0.07)', 'rgb(31 31 34 / 0.26)', 'rgb(31 31 34 / 0.46)', 'rgb(31 31 34 / 0.7)', 'rgb(31 31 34 / 1)'];
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
@@ -126,12 +126,12 @@ export default function GithubActivity() {
         {tip ? (
           <div
             role="status"
-            className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg bg-zinc-900 px-2.5 py-1.5 text-[11px] font-semibold whitespace-nowrap text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+            className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-page"
             style={{ left: tip.x, top: tip.y - 8 }}
           >
             {tip.text}
             <span
-              className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-zinc-900"
+              className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-ink"
               aria-hidden
             />
           </div>
@@ -140,7 +140,7 @@ export default function GithubActivity() {
         {/* Fills the column on wide screens; scrolls once the cells hit their floor. */}
         <div ref={stripRef} className="overflow-x-auto pb-1 pt-7 [scrollbar-width:thin]">
           <div className="flex min-w-[720px] items-stretch gap-2">
-            <div className="flex w-7 shrink-0 flex-col gap-[3px] pt-[18px] text-right text-[9px] font-medium text-zinc-400">
+            <div className="flex w-7 shrink-0 flex-col gap-[3px] pt-[18px] text-right text-[10px] font-medium text-graphite">
               {WEEKDAY_LABELS.map((label, i) => (
                 <span key={i} className="flex flex-1 items-center justify-end leading-none">
                   {label}
@@ -149,7 +149,7 @@ export default function GithubActivity() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="mb-1.5 grid gap-[3px] text-[10px] font-medium text-zinc-400" style={columns}>
+              <div className="mb-1.5 grid gap-[3px] text-[11px] font-medium text-graphite" style={columns}>
                 {labels.map(({ index, label }) => (
                   <span
                     key={label + index}
@@ -171,7 +171,7 @@ export default function GithubActivity() {
                           data-day
                           role="img"
                           aria-label={describe(day)}
-                          className="aspect-square w-full rounded-[2px] transition-transform duration-150 hover:scale-[1.35]"
+                          className="aspect-square w-full rounded-[3px_2px_3px_2px] transition-transform duration-150 hover:scale-[1.35]"
                           style={{ backgroundColor: LEVEL_COLORS[day.level] ?? LEVEL_COLORS[0] }}
                           onMouseEnter={(e) => showTip(day, e.currentTarget)}
                           // Touch has no hover, so a tap has to be able to ask too.
@@ -190,21 +190,21 @@ export default function GithubActivity() {
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <p className="text-xs font-medium text-zinc-500">
-          <span className="font-bold text-zinc-900">{data.total.toLocaleString()}</span> contributions in the last year on{' '}
+        <p className="text-sm font-medium text-pencil">
+          <span className="font-bold text-ink">{data.total.toLocaleString()}</span> contributions in the last year on{' '}
           <a
             href={GITHUB_URL}
             {...linkProps(GITHUB_URL)}
-            className="inline-flex items-center gap-1 font-bold text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition-colors hover:decoration-zinc-900"
+            className="sk-link inline-flex items-center gap-1"
           >
-            <Github size={12} /> GitHub
+            <Github size={13} strokeWidth={1.9} /> GitHub
           </a>
           , across {activeDays} active days.
         </p>
-        <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-400 sm:ml-auto">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-graphite sm:ml-auto">
           Less
           {LEVEL_COLORS.map((color) => (
-            <span key={color} className="h-[11px] w-[11px] rounded-[2px]" style={{ backgroundColor: color }} />
+            <span key={color} className="h-[11px] w-[11px] rounded-[3px_2px_3px_2px]" style={{ backgroundColor: color }} />
           ))}
           More
         </div>

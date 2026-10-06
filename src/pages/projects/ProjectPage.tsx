@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Eye, Pencil } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import PillLink from '@/components/PillLink';
+import Frame from '@/components/sketch/Frame';
+import Sketch from '@/components/sketch/Sketch';
+import { ARROW_RIGHT, UNDERSCORE } from '@/components/sketch/marks';
 import { groupLabel, type Project } from '@/content/projects';
+import { linkProps } from '@/lib/links';
 import { EASE } from '@/lib/motion';
 import { projectAddresses } from './addresses';
 import AddressPill from './components/AddressPill';
@@ -17,8 +20,8 @@ import { heroLayoutId } from './hero';
 import { casePictures, counter } from './pictures';
 import { useSlides } from './useSlides';
 
-/** Every block after the first opens with the About page's hairline. */
-const BLOCK = 'border-t border-zinc-100 pt-12';
+/** Every block after the first opens with the About page's hand-ruled line. */
+const BLOCK = 'sk-rule pt-12';
 
 /**
  * The case study as a page inside the Projects tab, at the site's content
@@ -26,6 +29,9 @@ const BLOCK = 'border-t border-zinc-100 pt-12';
  * everything else fades in around it. `arrival` says where the reader came
  * from: from the grid, the hero is already on screen mid-flight and the rest
  * waits a beat; from a neighbouring page, it all fades in together.
+ *
+ * The pictures are drawn in pencil like the rest of the sheet; the chip under
+ * the hero swaps them for the real screenshots and back.
  */
 export default function ProjectPage({
   project,
@@ -52,6 +58,9 @@ export default function ProjectPage({
   const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
+  const [pencil, setPencil] = useState(true);
+  /** A drawing is already a drawing: the swap is only offered where there is a photograph to show. */
+  const hasPhotos = pictures.some((picture) => picture.src);
 
   // The page is the new thing on screen: the keyboard starts at its title.
   useEffect(() => {
@@ -71,7 +80,7 @@ export default function ProjectPage({
     exit: { opacity: 0, transition: { duration: 0.2 } },
   };
   // The hero has no entrance of its own when it is the shared element in flight; otherwise it fades like the rest.
-  // On the way out its band fades quickly, so it does not sit over the grid while the frame shrinks back to the card.
+  // On the way out it fades quickly, so it does not sit over the grid while the frame shrinks back to the card.
   const shared = !reduced;
   const inFlight = shared && arrival === 'grid';
   const heroFade = {
@@ -85,7 +94,7 @@ export default function ProjectPage({
   let figureCount = 0;
   const blocks = caseStudy.sections.map((section, i) => {
     const flip = section.figure ? figureCount++ % 2 === 1 : false;
-    return <StudySection key={section.heading} section={section} flip={flip} className={i === 0 ? '' : BLOCK} />;
+    return <StudySection key={section.heading} section={section} flip={flip} pencil={pencil} className={i === 0 ? '' : BLOCK} />;
   });
 
   return (
@@ -93,9 +102,13 @@ export default function ProjectPage({
       <motion.div {...rise}>
         {/* Back on the left, the addresses on the right; on a phone the pills take their own row, the primary one wide. */}
         <div className="mb-8 flex flex-wrap items-center gap-3 md:mb-10">
-          <PillLink as="button" variant="outline" size="sm" onClick={onBack} className="min-h-11 md:min-h-0">
-            <ArrowLeft size={14} className="shrink-0" /> All creations
-          </PillLink>
+          <button
+            type="button"
+            onClick={onBack}
+            className="group inline-flex min-h-11 items-center gap-2 rounded-md text-base font-medium text-pencil transition-colors hover:text-ink focus-ring md:min-h-0"
+          >
+            <ArrowLeft size={17} className="shrink-0 transition-transform duration-300 group-hover:-translate-x-1" /> Back to Projects
+          </button>
           {addresses.length > 0 ? (
             <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
               {addresses.map((address) => (
@@ -105,19 +118,21 @@ export default function ProjectPage({
           ) : null}
         </div>
 
-        <p className="mb-4 flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+        <p className="mb-3 flex items-center gap-2.5 text-sm font-semibold text-graphite">
           <span>{groupLabel(project.group)}</span>
-          <span className="text-zinc-300">/</span>
-          <span className="text-zinc-600">{project.kind}</span>
+          <span aria-hidden>/</span>
+          <span className="text-pencil">{project.kind}</span>
         </p>
         <h1
           ref={titleRef}
           tabIndex={-1}
-          className="mb-4 max-w-4xl text-[32px] font-bold leading-[1.05] tracking-[-0.04em] text-zinc-900 outline-none sm:text-[40px] lg:text-[48px]"
+          className="mb-5 max-w-4xl origin-bottom-left -rotate-1 text-4xl font-medium leading-[1.1] text-ink outline-none sm:text-5xl lg:text-[3.4rem]"
         >
           {project.cardTitle}
         </h1>
-        <p className="mb-8 max-w-3xl text-base leading-relaxed text-zinc-600 text-pretty md:mb-10 md:text-lg">{caseStudy.summary}</p>
+        <p className="mb-8 max-w-3xl text-lg leading-relaxed text-pencil text-pretty md:mb-10 md:text-xl md:leading-relaxed">
+          {caseStudy.summary}
+        </p>
       </motion.div>
 
       {/* The gallery further down picks into the same slider, so a change made there is visible on arrival. */}
@@ -126,6 +141,7 @@ export default function ProjectPage({
         {...heroFade}
         pictures={pictures}
         slides={slides}
+        pencil={pencil}
         layoutId={shared ? heroLayoutId(project.id) : undefined}
         layoutDependency={project.id}
         arrowDelay={arrowDelay}
@@ -136,12 +152,49 @@ export default function ProjectPage({
             text={hero.caption}
             right={many ? counter(slides.current, pictures.length) : undefined}
             live={many}
-            className="mt-3 md:mt-5"
+            className="mt-4 md:mt-5"
           />
         }
       />
 
-      <motion.div {...rise} className="mt-10 md:mt-12">
+      <motion.div {...rise} className="mt-8 md:mt-10">
+        {/* Under the hero: the swap between the pencil and the photographs, and the sketch's note pointing at the way out. */}
+        <div className="mb-8 flex items-start justify-between gap-6">
+          {hasPhotos ? (
+            <button
+              type="button"
+              onClick={() => setPencil((on) => !on)}
+              aria-pressed={!pencil}
+              className="sk-chip !px-3.5 !py-1.5 !text-sm !text-ink cursor-pointer rounded-full focus-ring"
+            >
+              <Frame r={999} weight={1.3} tone={0.7} />
+              {pencil ? <Eye size={15} strokeWidth={1.8} aria-hidden /> : <Pencil size={15} strokeWidth={1.8} aria-hidden />}
+              {pencil ? 'Show the real screenshots' : 'Back to pencil'}
+            </button>
+          ) : (
+            <span />
+          )}
+          {primary ? (
+            <a
+              href={primary.href}
+              {...linkProps(primary.href)}
+              className="sk-note group hidden shrink-0 rounded-md pr-2 text-right focus-ring md:block -rotate-[9deg]"
+            >
+              {primary.kind === 'live' ? 'View' : 'Read'}
+              <br />
+              {primary.kind === 'live' ? 'Live Demo' : 'the code'}
+              <Sketch
+                drawing={ARROW_RIGHT}
+                duration={0.4}
+                delay={0.4}
+                weight={1.3}
+                className="ml-2 inline-block h-auto w-7 align-middle transition-transform duration-300 group-hover:translate-x-1"
+              />
+              <Sketch drawing={UNDERSCORE} duration={0.5} delay={0.2} weight={1.4} className="ml-auto mt-0.5 h-auto w-24" />
+            </a>
+          ) : null}
+        </div>
+
         <MetaStrip project={project} />
 
         <div className="mt-12 flex flex-col gap-12">

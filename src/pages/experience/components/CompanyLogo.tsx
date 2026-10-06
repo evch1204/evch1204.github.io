@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Frame from '@/components/sketch/Frame';
 
 function companyInitials(company: string) {
   const cleaned = company.replace(/[.,]/g, '').replace(/-/g, ' ').trim();
@@ -9,14 +10,11 @@ function companyInitials(company: string) {
 }
 
 /**
- * The ring is the page background, so the mark reads as sitting on top of the
- * list rather than in it; the soft shadow lifts it the rest of the way.
- */
-const FRAME = 'shrink-0 rounded-[10px] ring-4 ring-page shadow-[0_4px_12px_rgba(0,0,0,0.05)]';
-
-/**
- * Loads a mark via Google’s public favicon service from the organization’s website domain.
- * LinkedIn does not provide stable, hotlinkable logo URLs to third parties.
+ * The organization's mark in a small frame drawn by hand, on a patch of the
+ * page's own paper so the rail under it stops at its edge. The mark is loaded
+ * via Google's public favicon service from the organization's website domain
+ * (LinkedIn does not provide stable, hotlinkable logo URLs to third parties)
+ * and shown in grey, pressed into the sheet like the rest of the pencil work.
  * Pass logoDomain="" for initials-only (no network).
  */
 export default function CompanyLogo({
@@ -32,32 +30,28 @@ export default function CompanyLogo({
 
   if (domain === undefined) return null;
 
-  const initials = companyInitials(company);
-  const box = (
-    <div
-      className={`${FRAME} flex items-center justify-center border border-zinc-200 bg-white text-[10px] font-bold tracking-tight text-zinc-600`}
+  const initials = domain === '' || failed;
+  return (
+    <span
+      className="sk-frame flex shrink-0 items-center justify-center rounded-[10px] bg-page text-xs font-bold text-pencil ring-4 ring-page"
       style={{ width: size, height: size }}
       aria-hidden
     >
-      {initials}
-    </div>
-  );
-
-  if (domain === '' || failed) {
-    return box;
-  }
-
-  return (
-    <img
-      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`}
-      alt=""
-      width={size}
-      height={size}
-      style={{ width: size, height: size }}
-      className={`${FRAME} border border-zinc-200 bg-white object-contain p-1`}
-      loading="lazy"
-      referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
-    />
+      <Frame r={10} weight={1.4} tone={0.7} />
+      {initials ? (
+        companyInitials(company)
+      ) : (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`}
+          alt=""
+          width={size}
+          height={size}
+          className="h-full w-full rounded-[10px] object-contain p-1.5 mix-blend-multiply grayscale contrast-125"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </span>
   );
 }

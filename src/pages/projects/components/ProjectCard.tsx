@@ -1,24 +1,30 @@
 import type { Ref } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Eyebrow from '@/components/Eyebrow';
+import Frame from '@/components/sketch/Frame';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
 import { projectAddresses } from '@/pages/projects/addresses';
 import ProjectPanel from './ProjectPanel';
 
-/** The project's real address, in mono — the card's "go use it" affordance. */
+/** The project's real address — the card's "go use it" affordance. */
 const ProjectLink = ({ project }: { project: Project }) => {
   const address = projectAddresses(project)[0];
   if (!address) return null;
 
   return (
-    <span className="flex min-w-0 max-w-full items-center gap-[7px] font-mono text-xs font-bold text-zinc-600">
-      <address.Icon size={14} className="shrink-0" />
+    <span className="flex min-w-0 max-w-full items-center gap-[7px] text-sm font-medium text-graphite">
+      <address.Icon size={14} strokeWidth={1.8} className="shrink-0" />
       <span className="truncate">{address.label}</span>
     </span>
   );
 };
 
+/**
+ * A project as the sketch lays one out: its window on the left, drawn in
+ * pencil, and beside it the name, the stack as chips, what it is and the way
+ * in. On a phone the window sits over the words.
+ */
 export default function ProjectCard({
   project,
   onOpen,
@@ -37,33 +43,35 @@ export default function ProjectCard({
       ref={ref}
       type="button"
       onClick={onOpen}
-      className="group relative flex w-full flex-col text-left p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-zinc-100 bg-white/50 backdrop-blur-sm hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 cursor-pointer focus-ring"
+      className="sk-frame sk-card group flex w-full flex-col gap-5 rounded-2xl p-5 text-left cursor-pointer focus-ring sm:flex-row sm:p-6"
     >
+      <Frame r={16} double draw />
       <ProjectPanel
         panel={project.panel}
         title={project.cardTitle}
         layoutId={layoutId}
-        className="mb-6 h-[180px] sm:h-[200px]"
+        className="h-[180px] w-full shrink-0 sm:h-[150px] sm:w-[42%]"
       />
-      <Eyebrow className="mb-2.5">{project.kind}</Eyebrow>
-      <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-black transition-colors tracking-tight mb-3">
-        {project.cardTitle}
-      </h3>
-      <p className="text-sm text-zinc-500 mb-5 leading-relaxed font-medium text-pretty">{project.cardDescription}</p>
-      <div className="mt-auto flex flex-wrap gap-2 mb-[22px]">
-        {project.cardTags.map((tag) => (
-          <Tag key={tag}>{tag}</Tag>
-        ))}
-      </div>
-      {/* Wraps rather than clips: a long repo path takes its own row on narrow cards. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-[18px] border-t border-zinc-100">
-        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-zinc-900">
-          View details <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <Eyebrow className="mb-1">{project.kind}</Eyebrow>
+        <h3 className="mb-2.5 text-xl font-semibold leading-snug text-ink">{project.cardTitle}</h3>
+        <span className="mb-3 flex flex-wrap gap-1.5">
+          {project.cardTags.map((tag) => (
+            <Tag key={tag}>{tag}</Tag>
+          ))}
         </span>
-        <span className="ml-auto min-w-0 max-w-full">
-          <ProjectLink project={project} />
+        <p className="mb-4 text-[15px] font-medium leading-relaxed text-pencil text-pretty">{project.cardDescription}</p>
+        {/* Wraps rather than clips: a long repo path takes its own row on narrow cards. */}
+        <span className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="inline-flex shrink-0 items-center gap-2 text-[15px] text-ink">
+            <span className="sk-link">View details</span>
+            <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+          </span>
+          <span className="ml-auto min-w-0 max-w-full">
+            <ProjectLink project={project} />
+          </span>
         </span>
-      </div>
+      </span>
     </button>
   );
 }

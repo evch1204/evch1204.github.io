@@ -1,26 +1,32 @@
 import type { LucideIcon } from 'lucide-react';
 import { linkProps } from '@/lib/links';
+import Frame from './sketch/Frame';
 
 /**
- * The mono address chip: an icon and a truncating label in a rounded outline.
- * With an `href` it is a link that opens elsewhere; without one it is the muted
+ * The address chip: an icon and a truncating label in a pencilled loop. With
+ * an `href` it is a link that opens elsewhere; without one it is the quieter
  * chip the profile uses for a fact that goes nowhere, like the city.
  */
-const LINK =
-  'inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 font-mono text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-900 hover:text-zinc-900';
-const MUTED =
-  'inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 font-mono text-xs font-bold text-zinc-500';
+const CHIP = 'sk-chip !px-3.5 !py-1.5 !text-sm';
 
 export default function Chip({ Icon, href, children }: { Icon: LucideIcon; href?: string; children: string }) {
   const body = (
     <>
-      <Icon size={14} className="shrink-0" />
+      <Icon size={15} strokeWidth={1.8} className="shrink-0" />
       <span className="truncate">{children}</span>
     </>
   );
-  if (!href) return <span className={MUTED}>{body}</span>;
+  if (!href) {
+    return (
+      <span className={CHIP}>
+        <Frame r={999} weight={1.2} tone={0.4} />
+        {body}
+      </span>
+    );
+  }
   return (
-    <a href={href} {...linkProps(href)} className={LINK}>
+    <a href={href} {...linkProps(href)} className={`${CHIP} !text-ink rounded-full focus-ring`}>
+      <Frame r={999} weight={1.3} tone={0.7} />
       {body}
     </a>
   );

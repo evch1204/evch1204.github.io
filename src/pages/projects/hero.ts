@@ -10,6 +10,10 @@ export const heroLayoutId = (projectId: string) => `project-hero-${projectId}`;
 /** How the shared window travels between the card and the page: a spring with a little settle, ~0.55s. */
 export const HERO_TRANSITION = { type: 'spring', bounce: 0.15, duration: 0.55 } as const;
 
-/** The About page's photo frame: white border, big radius, the soft shadow. Thinner and tighter on a phone. */
-export const FRAME =
-  'overflow-hidden rounded-[1.25rem] border-4 border-white bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] md:rounded-[2rem] md:border-[6px] md:shadow-[0_24px_64px_rgba(0,0,0,0.12)]';
+/**
+ * A picture's frame on the project page: a patch of paper for a `<Frame />`
+ * to rule round, and inside it the box that crops the picture to the frame's
+ * corners.
+ */
+export const FRAME = 'sk-frame rounded-2xl bg-page';
+export const FRAME_INNER = 'overflow-hidden rounded-2xl';

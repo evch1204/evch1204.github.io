@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
+import Pen from '@/components/sketch/Pen';
+import { ARROW_LONG } from '@/components/sketch/marks';
 import { NAME, ROLE } from '@/content/site';
 import { useLatest } from '@/hooks/useLatest';
 import type { Tab } from '@/layout/nav';
 import { EASE } from '@/lib/motion';
 import HelloIntro from './components/HelloIntro';
-import Pen from './components/Pen';
 import ScrollHint from './components/ScrollHint';
-import SketchChrome from './components/SketchChrome';
 import SketchScene from './components/SketchScene';
-import { ICONS, type Stroke } from './sketch';
+import { ROLE_LINE, TOOL_CLOUD, TOOL_CODE, TOOL_NODE, TOOL_REACT, TOOL_TYPESCRIPT } from './sketch';
 import { useInkBurst } from './useInkBurst';
 import './styles/home-screen.css';
 
@@ -21,23 +21,21 @@ type HomeScreenProps = {
   intro: boolean;
   /** The hello has left the screen to the page: the chrome can come in. Must be stable. */
   onIntroDone: () => void;
-  /** Where the tabs and the hint send the reader. */
+  /** Where the hint sends the reader. */
   onNavigate: (to: Destination) => void;
 };
 
 /** Everything a drop of ink flies to, in the order the drops leave. */
-const INK = ['map', 'laptop', 'notebook', 'mug', 'desk', 'icons', 'mouse'] as const;
-
-/** The two strokes under the role, where the last drop lands. */
-const UNDERLINE: Stroke[] = [
-  { d: 'M 3 9 C 60 6, 130 7, 200 8 S 330 10, 372 7', len: 370 },
-  { d: 'M 6 12 C 70 10, 150 11, 236 11', len: 230 },
-];
+const INK = ['map', 'desk', 'icons', 'mouse'] as const;
 
 /** The five tools under the blurb, in the order the sketch draws them. */
-const TOOLS = ['TypeScript', 'React', 'Node.js', 'Code', 'Cloud'];
-/** Where each tool sits on the sheet: its own window into the traced strokes. */
-const TOOL_BOXES = ['80 695 55 60', '145 695 60 60', '220 695 60 60', '295 695 65 60', '375 695 65 60'];
+const TOOLS = [
+  { name: 'TypeScript', drawing: TOOL_TYPESCRIPT },
+  { name: 'React', drawing: TOOL_REACT },
+  { name: 'Node.js', drawing: TOOL_NODE },
+  { name: 'Code', drawing: TOOL_CODE },
+  { name: 'Cloud', drawing: TOOL_CLOUD },
+];
 
 const BLURB = 'I build full-stack applications, solve real-world problems, and turn ideas into products.';
 
@@ -45,14 +43,15 @@ const BLURB = 'I build full-stack applications, solve real-world problems, and t
 const EXPLORE_AFTER = 160;
 
 /**
- * The home, a sheet of paper: the sketch of a desk under a map of the world,
- * with the name beside it. On the first visit of a load the hello writes
- * itself, its ink drains out through the tail of the o and bursts into
- * drops, one for every drawing and one more for the dot under the role.
- * Each drawing is written in the moment its drop lands, the name climbs
- * in while they are in the air, and the last drop lands as the dot. Coming
- * back from another tab there are no drops: everything is written in a beat
- * apart. Once drawn, the ink stays where the pen left it.
+ * The home, a sheet of paper: a map of the world with the flight home drawn
+ * across it, a person at a desk under it, and the name beside them. On the
+ * first visit of a load the hello writes itself, its ink drains out through
+ * the tail of the o and bursts into drops, one for every drawing and one
+ * more for the dot under the role. Each drawing is written in the moment its
+ * drop lands, the name climbs in while they are in the air, and the last
+ * drop lands as the dot. Coming back from another tab there are no drops:
+ * everything is written in a beat apart. Once drawn, the ink stays where the
+ * pen left it.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   const reduced = useReducedMotion();
@@ -130,8 +129,6 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
       </AnimatePresence>
 
       <div className="home-hero" ref={heroRef}>
-        <SketchChrome shown={whereUp} onSelect={(tab) => onNavigate({ tab })} />
-
         <div className="home-body">
           {/* Nothing here can be tabbed to before it is on the page. */}
           <div className="home-copy" inert={!settled}>
@@ -150,8 +147,8 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
               {company && <span className="sr-only"> at {company}</span>}
             </motion.p>
             <div className="home-underline">
-              <svg viewBox="0 0 380 16" preserveAspectRatio="none" aria-hidden>
-                <Pen strokes={UNDERLINE} drawn={whereUp} duration={0.5} delay={d(0.4)} />
+              <svg className="sk-art" viewBox={ROLE_LINE.box.join(' ')} preserveAspectRatio="none" aria-hidden>
+                <Pen drawing={ROLE_LINE} drawn={whereUp} duration={0.5} delay={d(0.4)} />
               </svg>
               {/* The dot is where the last drop lands; it shows only once it has. */}
               <span ref={dotRef} className={`home-dot${settled ? ' landed' : ''}`} aria-hidden />
@@ -159,11 +156,11 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
             <motion.p className="home-blurb" initial="hidden" animate={whereUp ? 'shown' : 'hidden'} variants={rise(d(0.45))}>
               {BLURB}
             </motion.p>
-            <ul className="home-tools" data-ink="icons" data-ink-at="6" aria-label="Tools">
-              {ICONS.map((strokes, i) => (
-                <li key={TOOLS[i]} title={TOOLS[i]}>
-                  <svg viewBox={TOOL_BOXES[i]} role="img" aria-label={TOOLS[i]}>
-                    <Pen strokes={strokes} drawn={has('icons')} duration={0.45} delay={d(1.5) + i * 0.12} />
+            <ul className="home-tools" data-ink="icons" data-ink-at="2" aria-label="Tools">
+              {TOOLS.map(({ name, drawing }, i) => (
+                <li key={name} title={name}>
+                  <svg className="sk-art" viewBox={drawing.box.join(' ')} role="img" aria-label={name}>
+                    <Pen drawing={drawing} drawn={has('icons')} duration={0.45} delay={d(1.5) + i * 0.12} weight={0.9} />
                   </svg>
                 </li>
               ))}
@@ -174,6 +171,24 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
         </div>
 
         <ScrollHint drawn={has('mouse')} stagger={!withIntro} onExplore={() => onNavigate({ tab: 'about' })} />
+
+        {/* The note in the sheet's bottom corner, as the sketch has it: the three things the work comes down to. */}
+        <motion.p
+          className="home-note sk-note"
+          initial="hidden"
+          animate={settled ? 'shown' : 'hidden'}
+          variants={rise(d(1.9))}
+          aria-hidden
+        >
+          Code
+          <br />
+          Build
+          <br />
+          Ship
+          <svg className="sk-art" viewBox={ARROW_LONG.box.join(' ')}>
+            <Pen drawing={ARROW_LONG} drawn={settled} duration={0.4} delay={d(1.9) + 0.5} weight={0.9} />
+          </svg>
+        </motion.p>
 
         {/* The drops: the hello's ink, one per drawing and one for the dot, each placed by the burst. */}
         <div className={`home-drops${ink === 'burst' ? ' is-bursting' : ''}`} aria-hidden>

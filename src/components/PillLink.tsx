@@ -1,23 +1,25 @@
 import type { ReactNode } from 'react';
 import { linkProps } from '@/lib/links';
+import Frame from './sketch/Frame';
 
 /**
- * The rounded pill the pages use for every real action — download, open, close.
- * `solid` is the one thing to do on a page and `outline` the alternatives
- * beside it; `sm` is the size for a toolbar, `md` for a page's own buttons.
+ * The pill the pages use for every real action — download, open, close —
+ * drawn by hand: `solid` is filled with ink, the one thing to do on a page,
+ * and `outline` is the pencilled alternatives beside it; `sm` is the size
+ * for a toolbar, `md` for a page's own buttons.
  */
-const BASE = 'inline-flex items-center justify-center gap-2 rounded-full font-bold transition-colors';
+const BASE = 'sk-btn rounded-full focus-ring';
 
 const VARIANTS = {
-  solid: 'bg-zinc-900 text-white hover:bg-black',
-  outline: 'border border-zinc-200 text-zinc-900 hover:bg-zinc-50',
+  solid: '',
+  outline: 'sk-btn-outline',
 } as const;
 
 const SIZES = {
   /** Toolbar of a dialog header. */
-  sm: 'px-4 py-2 text-xs',
+  sm: 'px-4 py-2 text-sm',
   /** Body of a panel, a dialog footer, the contact page's actions. */
-  md: 'px-6 py-3 text-sm',
+  md: 'px-6 py-3 text-base',
 } as const;
 
 type Common = {
@@ -42,11 +44,13 @@ type PillLinkProps = Common &
 
 export default function PillLink(props: PillLinkProps) {
   const { variant = 'solid', size = 'md', className = '', children } = props;
-  const cls = `${BASE} ${SIZES[size]} ${VARIANTS[variant]}${className ? ` ${className}` : ''}`;
+  const cls = [BASE, SIZES[size], VARIANTS[variant], className].filter(Boolean).join(' ');
+  const pill = <Frame r={999} weight={1.6} tone={1} fill={variant === 'solid'} className="sk-under" />;
 
   if (props.as === 'button') {
     return (
       <button type="button" onClick={props.onClick} className={cls}>
+        {pill}
         {children}
       </button>
     );
@@ -60,6 +64,7 @@ export default function PillLink(props: PillLinkProps) {
       {...(props.download ? {} : linkProps(props.href))}
       className={cls}
     >
+      {pill}
       {children}
     </a>
   );

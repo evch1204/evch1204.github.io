@@ -1,9 +1,10 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode, type Ref } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps, type PanInfo } from 'motion/react';
+import Frame from '@/components/sketch/Frame';
 import type { Figure } from '@/content/projects';
 import { EASE } from '@/lib/motion';
-import { FRAME, HERO_TRANSITION } from '@/pages/projects/hero';
+import { FRAME, FRAME_INNER, HERO_TRANSITION } from '@/pages/projects/hero';
 import { pictureKey } from '@/pages/projects/pictures';
 import type { Slides } from '@/pages/projects/useSlides';
 import ProjectFigure from './ProjectFigure';
@@ -20,10 +21,10 @@ const SLIDE = {
 };
 
 /**
- * Previous / next picture: a white disc on the frame's edge, always visible —
- * touch has no hover to reveal it. From `md` it sits half outside the frame,
- * on the zinc band, rather than over the picture. `delay` holds it back while
- * the frame is still in flight, so it does not hang in the air ahead of it.
+ * Previous / next picture: a circle drawn by hand on the frame's edge, always
+ * visible — touch has no hover to reveal it. From `md` it sits half outside
+ * the frame rather than over the picture. `delay` holds it back while the
+ * frame is still in flight, so it does not hang in the air ahead of it.
  */
 const Arrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; delay: number; onClick: () => void }) => (
   <motion.button
@@ -32,19 +33,23 @@ const Arrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; 
     initial={{ opacity: 0 }}
     animate={{ opacity: 1, transition: { duration: 0.3, delay, ease: EASE } }}
     aria-label={direction === 'previous' ? 'Previous picture' : 'Next picture'}
-    className={`absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-colors hover:text-zinc-900 focus-ring md:h-9 md:w-9 ${
+    className={`sk-frame group !absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-page text-pencil transition-colors hover:text-ink focus-ring md:h-10 md:w-10 ${
       direction === 'previous' ? 'left-2 md:-left-5' : 'right-2 md:-right-5'
     }`}
   >
-    {direction === 'previous' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+    <Frame r={999} weight={1.5} tone={0.9} />
+    {direction === 'previous' ? (
+      <ArrowLeft size={17} className="transition-transform duration-300 group-hover:-translate-x-0.5" />
+    ) : (
+      <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+    )}
   </motion.button>
 );
 
 /**
- * The hero band: from `md`, the photo frame on the card sill's zinc band,
- * reaching a little past the content edges — as far as the gutter allows
- * until the content is centred with room to spare. On a phone the frame takes
- * the full width on its own. `caption` is the row under the frame.
+ * The hero: the project's picture in a frame ruled by hand, drawn in pencil
+ * until the reader asks for the real thing (`pencil`). `caption` is the row
+ * under the frame.
  *
  * With more than one picture the frame is also the page's slider: arrows on
  * its edges, a swipe, the arrow keys, and a filmstrip under the caption. The
@@ -56,6 +61,7 @@ const Arrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; 
 export default function HeroSlider({
   pictures,
   slides,
+  pencil,
   layoutId,
   layoutDependency,
   arrowDelay,
@@ -65,6 +71,8 @@ export default function HeroSlider({
 }: HTMLMotionProps<'figure'> & {
   pictures: Figure[];
   slides: Slides;
+  /** Show the pictures as pencil drawings of themselves, like the rest of the sheet. */
+  pencil: boolean;
   /** Shared with the card's window, so one grows into the other; none when motion is reduced. */
   layoutId?: string;
   layoutDependency: string;
@@ -106,49 +114,47 @@ export default function HeroSlider({
   };
 
   return (
-    <motion.figure
-      ref={ref}
-      onKeyDown={onKey}
-      className="md:-mx-3 md:rounded-[2rem] md:border md:border-zinc-100 md:bg-zinc-50 md:px-8 md:pb-6 md:pt-8 lg:px-10 lg:pb-7 lg:pt-10 xl:-mx-8"
-      {...motionProps}
-    >
+    <motion.figure ref={ref} onKeyDown={onKey} {...motionProps}>
       {/* The frame hugs the picture: a tall figure is capped in height and centred rather than letterboxed. */}
       <div className="flex justify-center">
-        {/* Shrink-wraps the frame, so the arrows hang off the picture's edges and not the band's. */}
+        {/* Shrink-wraps the frame, so the arrows hang off the picture's edges and not the page's. */}
         <div className="relative max-w-full">
           <motion.div
             layoutId={layoutId}
             layoutDependency={layoutDependency}
             transition={{ layout: HERO_TRANSITION }}
-            className={`relative max-w-full ${FRAME}`}
+            className={`max-w-full ${FRAME}`}
           >
-            {many ? (
-              <>
-                {/* The stage: the first picture's box, kept whichever picture is showing. */}
-                <ProjectFigure figure={pictures[0]} eager className={`${PICTURE} invisible`} />
-                <AnimatePresence initial={false} custom={direction}>
-                  <motion.div
-                    key={pictureKey(hero)}
-                    custom={direction}
-                    variants={SLIDE}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: reduced ? 0 : 0.4, ease: EASE }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.15}
-                    onDragEnd={onSwipe}
-                    className="absolute inset-0"
-                  >
-                    {/* Inert: the pointer belongs to the swipe, not to the browser's own image drag. */}
-                    <ProjectFigure figure={hero} eager className="pointer-events-none h-full w-full object-contain" />
-                  </motion.div>
-                </AnimatePresence>
-              </>
-            ) : (
-              <ProjectFigure figure={hero} eager className={PICTURE} />
-            )}
+            <Frame r={16} weight={1.6} tone={0.9} double />
+            <div className={`relative ${FRAME_INNER}`}>
+              {many ? (
+                <>
+                  {/* The stage: the first picture's box, kept whichever picture is showing. */}
+                  <ProjectFigure figure={pictures[0]} eager className={`${PICTURE} invisible`} />
+                  <AnimatePresence initial={false} custom={direction}>
+                    <motion.div
+                      key={pictureKey(hero)}
+                      custom={direction}
+                      variants={SLIDE}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: reduced ? 0 : 0.4, ease: EASE }}
+                      drag="x"
+                      dragConstraints={{ left: 0, right: 0 }}
+                      dragElastic={0.15}
+                      onDragEnd={onSwipe}
+                      className="absolute inset-0"
+                    >
+                      {/* Inert: the pointer belongs to the swipe, not to the browser's own image drag. */}
+                      <ProjectFigure figure={hero} eager pencil={pencil} className="pointer-events-none h-full w-full object-contain" />
+                    </motion.div>
+                  </AnimatePresence>
+                </>
+              ) : (
+                <ProjectFigure figure={hero} eager pencil={pencil} className={PICTURE} />
+              )}
+            </div>
           </motion.div>
           {many ? (
             <>
@@ -159,15 +165,15 @@ export default function HeroSlider({
         </div>
       </div>
       {caption}
-      {/* The filmstrip picks without leaving the band; it scrolls sideways when the thumbs outgrow it. */}
+      {/* The filmstrip picks without leaving the hero; it scrolls sideways when the thumbs outgrow it. */}
       {many ? (
         <ul
           ref={stripRef}
-          className="relative mt-4 flex gap-2.5 overflow-x-auto p-1 [scrollbar-width:none] md:mt-5 md:justify-center-safe [&::-webkit-scrollbar]:hidden"
+          className="relative mt-4 flex gap-3 overflow-x-auto p-1.5 [scrollbar-width:none] md:mt-5 md:justify-center-safe [&::-webkit-scrollbar]:hidden"
         >
           {pictures.map((picture, i) => (
             <li key={pictureKey(picture)}>
-              <Thumb picture={picture} index={i} active={i === current} onPick={show} className="h-14 rounded-lg md:h-16" />
+              <Thumb picture={picture} index={i} active={i === current} onPick={show} className="h-14 md:h-16" />
             </li>
           ))}
         </ul>

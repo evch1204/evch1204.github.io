@@ -17,8 +17,9 @@ function View({ offset, ref, ...rest }: HTMLMotionProps<'div'> & { offset: numbe
 }
 
 /**
- * The Projects tab: the grid, and the project page it opens into. The page
- * takes the grid's place with a shared-element animation from the card, has a
+ * The Projects tab: the grid (which writes the tab's title), and the project
+ * page it opens into. The page takes the grid's place with a shared-element
+ * animation from the card, has a
  * history entry of its own (Back returns to the grid), and hands the scroll
  * position and the keyboard back when it closes.
  */
@@ -27,7 +28,7 @@ export default function ProjectsPage() {
   const { selected, prev, next, arrival, offset, open, select, goBack, registerCard } = useProjectRouting();
 
   return (
-    <Section title="Creations">
+    <Section>
       {/*
        * `relative flex-col`: the leaving view is popped out of flow at its last
        * position, measured against this box, and the incoming view's offset

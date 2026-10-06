@@ -82,15 +82,15 @@ export default function HandCubeIllustration({ label, className = '' }: { label:
       className={className}
     >
       <title>{label}</title>
-      <rect width="560" height="400" fill="#FAFAFA" />
+      <rect width="560" height="400" fill="var(--color-page)" />
 
       {/* Landmarks, joined the MediaPipe way. */}
-      <g stroke="#a1a1aa" strokeWidth="2.5" strokeLinecap="round" fill="none">
+      <g stroke="var(--color-graphite)" strokeWidth="2.2" strokeLinecap="round" fill="none">
         {BONES.map(([a, b]) => (
           <line key={`${a}-${b}`} x1={LANDMARKS[a][0]} y1={LANDMARKS[a][1]} x2={LANDMARKS[b][0]} y2={LANDMARKS[b][1]} />
         ))}
       </g>
-      <g fill="#52525b">
+      <g fill="var(--color-ink)">
         {LANDMARKS.map(([x, y], i) => (
           <circle key={i} cx={x} cy={y} r={i === 0 ? 5 : 4} />
         ))}
@@ -101,8 +101,8 @@ export default function HandCubeIllustration({ label, className = '' }: { label:
         y1={LANDMARKS[0][1]}
         x2={LANDMARKS[9][0]}
         y2={LANDMARKS[9][1]}
-        stroke="#18181b"
-        strokeWidth="2.5"
+        stroke="var(--color-ink)"
+        strokeWidth="2.2"
         strokeDasharray="4 5"
         strokeLinecap="round"
       />
@@ -121,14 +121,14 @@ export default function HandCubeIllustration({ label, className = '' }: { label:
           />
         ))}
       </g>
-      <g fill="#fff" stroke="#18181b" strokeWidth="1.5">
+      <g fill="var(--color-page)" stroke="var(--color-ink)" strokeWidth="1.5">
         {CUBE.map((p, i) => (
           <circle key={i} cx={p.x} cy={p.y} r={p.z > 0 ? 5 : 3.5} />
         ))}
       </g>
 
-      {/* Mono labels, like the program's UI overlay. */}
-      <g fontFamily="'Space Mono', ui-monospace, monospace" fontSize="11" fill="#a1a1aa">
+      {/* The program's UI overlay, written out by hand. */}
+      <g fontSize="13" fontWeight="500" fill="var(--color-graphite)">
         <text x="40" y="360">Mode: ROTATE · palm open</text>
         <text x="300" y="360">Scale: 1.00 · pitch / yaw from 0→9</text>
       </g>

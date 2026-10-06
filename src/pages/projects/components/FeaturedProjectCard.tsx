@@ -1,6 +1,7 @@
 import type { Ref } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Eyebrow from '@/components/Eyebrow';
+import Frame from '@/components/sketch/Frame';
 import Tag from '@/components/Tag';
 import type { Project } from '@/content/projects';
 import ProjectPanel from './ProjectPanel';
@@ -24,32 +25,29 @@ export default function FeaturedProjectCard({
       ref={ref}
       type="button"
       onClick={onOpen}
-      className="group w-full max-w-none text-left rounded-[2rem] border border-zinc-100 bg-white/80 backdrop-blur-sm px-5 py-5 sm:px-7 sm:py-6 md:px-9 md:py-6 lg:px-10 lg:py-7 shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 hover:bg-white hover:shadow-[0_28px_60px_rgba(0,0,0,0.07)] hover:border-zinc-200 focus-ring"
+      className="sk-frame sk-card group w-full max-w-none rounded-3xl px-5 py-6 text-left cursor-pointer focus-ring sm:px-8 sm:py-7 lg:px-10 lg:py-8"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_minmax(240px,38%)] gap-6 lg:gap-10 lg:items-center">
+      <Frame r={22} weight={1.6} double draw />
+      <div className="grid grid-cols-1 gap-7 lg:grid-cols-[1.15fr_minmax(240px,38%)] lg:items-center lg:gap-10">
         <div className="min-w-0">
           <Eyebrow className="mb-2">Featured</Eyebrow>
-          <h3 className="text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-bold text-zinc-900 tracking-tight mb-2 group-hover:text-black transition-colors leading-tight">
-            {project.cardTitle}
-          </h3>
-          <p className="text-sm sm:text-base text-zinc-500 leading-snug font-medium mb-3 max-w-3xl">
-            {project.cardDescription}
-          </p>
+          <h3 className="mb-3 text-2xl font-semibold leading-tight text-ink sm:text-3xl xl:text-4xl">{project.cardTitle}</h3>
+          <p className="mb-4 max-w-3xl text-base font-medium leading-relaxed text-pencil sm:text-[17px]">{project.cardDescription}</p>
           {project.reportPreview && (
-            <div className="mb-4 max-w-[600px] border-l-2 border-zinc-200 pl-4">
+            <div className="relative mb-5 max-w-[600px] pl-5">
+              <span className="sk-rail absolute bottom-0 left-0 top-0" aria-hidden />
               <Eyebrow className="mb-1.5">From the report</Eyebrow>
-              <p className="line-clamp-3 text-[13px] leading-[1.55] text-zinc-600 font-medium">{project.reportPreview}</p>
+              <p className="line-clamp-3 text-[15px] font-medium leading-[1.6] text-pencil">{project.reportPreview}</p>
             </div>
           )}
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="mb-5 flex flex-wrap gap-2">
             {project.cardTags.map((tag) => (
-              <Tag key={tag}>
-                {tag}
-              </Tag>
+              <Tag key={tag}>{tag}</Tag>
             ))}
           </div>
-          <span className="inline-flex items-center gap-2 text-sm font-bold text-zinc-900 group-hover:gap-3 transition-all">
-            View project details <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+          <span className="inline-flex items-center gap-2 text-base text-ink">
+            <span className="sk-link">View project details</span>
+            <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
           </span>
         </div>
         <ProjectPanel
