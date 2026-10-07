@@ -7,6 +7,7 @@ import { ERGONOMIC_RISK } from './ergonomic-risk';
 import { BOOKWITHME } from './bookwithme';
 import { RUNNINGMAP } from './runningmap';
 import { MOW_YOUR_COMMITS } from './mow-your-commits';
+import { NOTCHCODE } from './notchcode';
 import { DOCS } from './docs';
 import { DRAWSPACE } from './drawspace';
 import { HAND_TRACKER } from './hand-tracker';
@@ -38,6 +39,7 @@ export const PROJECTS: Project[] = [
   BOOKWITHME,
   RUNNINGMAP,
   MOW_YOUR_COMMITS,
+  NOTCHCODE,
   DOCS,
   DRAWSPACE,
   HAND_TRACKER,
