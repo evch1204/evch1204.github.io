@@ -1,11 +1,14 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import Frame from '@/components/sketch/Frame';
 import { NAV_TABS, type Tab } from './nav';
 
 /**
- * The desktop tab row (phones get the TabBar instead). The dark pill is a single element that slides between the
- * buttons, so it has to measure where the active button actually sits — on
- * mount, whenever the tab changes and whenever the row is resized.
+ * The desktop tab row (phones get the TabBar instead): a pill outlined in
+ * pencil, with a blot of ink behind the tab we are on. The blot is a single
+ * element that slides between the buttons, so it has to measure where the
+ * active button actually sits — on mount, whenever the tab changes and
+ * whenever the row is resized.
  */
 export default function NavPill({
   activeTab,
@@ -46,15 +49,18 @@ export default function NavPill({
     <nav
       ref={navRef}
       aria-label="Primary"
-      className="relative shrink-0 p-1.5 bg-white/70 backdrop-blur-2xl border border-zinc-200/50 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)] hidden md:flex items-center gap-1"
+      className="sk-frame shrink-0 p-1.5 rounded-full bg-page/85 backdrop-blur-md hidden md:flex items-center gap-1"
     >
+      <Frame r={999} weight={1.6} tone={0.9} />
       <motion.div
-        className="pointer-events-none absolute inset-y-1.5 z-0 rounded-full bg-zinc-900"
+        className="pointer-events-none absolute inset-y-1.5 z-0"
         initial={false}
         animate={{ left: navPill.left, width: navPill.width }}
         transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
         aria-hidden
-      />
+      >
+        <Frame r={999} fill tone={1} />
+      </motion.div>
       {NAV_TABS.map((tab, i) => {
         const active = activeTab === tab.id;
         return (
@@ -66,8 +72,8 @@ export default function NavPill({
             type="button"
             onClick={() => onSelect(tab.id)}
             aria-current={active ? 'page' : undefined}
-            className={`relative z-10 px-4 lg:px-6 py-2 text-sm font-semibold transition-colors duration-300 rounded-full ${
-              active ? 'text-white' : 'text-zinc-500 hover:text-zinc-900'
+            className={`relative z-10 px-4 lg:px-5 py-2 text-[15px] leading-[22px] font-semibold transition-colors duration-300 rounded-full focus-ring ${
+              active ? 'text-page' : 'text-pencil hover:text-ink'
             }`}
           >
             {tab.label}

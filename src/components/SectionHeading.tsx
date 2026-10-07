@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 /**
- * The "rule + uppercase label" heading. `h3` opens a block inside a page
- * section; a `Section` renders its own title through this as the page's `h2`.
+ * The heading of a block inside a page: the words in the hand with a short
+ * stroke under them. `h3` opens a block inside a page section.
  */
 export default function SectionHeading({
   as: Heading = 'h3',
@@ -15,11 +15,8 @@ export default function SectionHeading({
   children: ReactNode;
 }) {
   return (
-    <Heading
-      className={`flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400 ${className}`}
-    >
-      <span className="h-px w-12 bg-zinc-200" />
-      {children}
-    </Heading>
+    <div className={className}>
+      <Heading className="sk-heading">{children}</Heading>
+    </div>
   );
 }

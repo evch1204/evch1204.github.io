@@ -1,28 +1,27 @@
 import { memo } from 'react';
 import { ArrowRight } from 'lucide-react';
+import PillLink from '@/components/PillLink';
+import SketchTitle from '@/components/sketch/SketchTitle';
 import { FEATURED_PROJECT, PROJECT_GROUPS, projectsInGroup, type Project } from '@/content/projects';
 import { GITHUB_URL } from '@/content/site';
 import { pad2 } from '@/lib/format';
-import { linkProps } from '@/lib/links';
 import { heroLayoutId } from '@/pages/projects/hero';
 import FeaturedProjectCard from './FeaturedProjectCard';
 import ProjectCard from './ProjectCard';
 
-/** Rule + label that separates the two runs of project cards. */
+/** A run of project cards opens with its name in the hand, a ruled line, and how many there are. */
 const GroupHeading = ({ label, count }: { label: string; count: number }) => (
-  <div className="mt-14 mb-6 flex items-baseline gap-4">
-    <h3 className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">{label}</h3>
-    <span className="h-px flex-1 bg-zinc-200" aria-hidden />
-    <span className="text-[11px] font-bold tracking-wider text-zinc-400">
-      {pad2(count)}
-    </span>
+  <div className="mt-16 mb-7 flex items-center gap-4">
+    <h3 className="sk-heading whitespace-nowrap">{label}</h3>
+    <span className="sk-rule h-0 flex-1" aria-hidden />
+    <span className="text-sm font-semibold text-graphite">{pad2(count)}</span>
   </div>
 );
 
 /**
- * The featured card, the two runs of cards and the GitHub link — the tab as it
- * was before the page existed. Memoised: the tab re-renders around it while
- * the page opens and closes, and nothing in here changes then.
+ * The tab's own page: its title, the featured card, the two runs of cards
+ * and the GitHub link. Memoised: the tab re-renders around it while a project
+ * page opens and closes, and nothing in here changes then.
  */
 const ProjectGrid = memo(function ProjectGrid({
   shared,
@@ -36,6 +35,13 @@ const ProjectGrid = memo(function ProjectGrid({
 }) {
   return (
     <>
+      <div className="mb-10 pt-3">
+        <SketchTitle>Projects</SketchTitle>
+        <p className="mt-5 max-w-[54ch] text-lg leading-relaxed text-pencil">
+          A selection of things I&apos;ve built, from apps and interfaces to data and systems.
+        </p>
+      </div>
+
       <FeaturedProjectCard
         project={FEATURED_PROJECT}
         onOpen={() => onOpen(FEATURED_PROJECT)}
@@ -49,7 +55,7 @@ const ProjectGrid = memo(function ProjectGrid({
         return (
           <div key={group.id}>
             <GroupHeading label={group.label} count={items.length} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {items.map((project) => (
                 <ProjectCard
                   key={project.id}
@@ -64,13 +70,9 @@ const ProjectGrid = memo(function ProjectGrid({
         );
       })}
       <div className="mt-16 flex justify-center">
-        <a
-          href={GITHUB_URL}
-          {...linkProps(GITHUB_URL)}
-          className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white border border-zinc-200 text-zinc-900 font-bold hover:border-zinc-900 transition-all duration-300"
-        >
-          Explore More on GitHub <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </a>
+        <PillLink variant="outline" href={GITHUB_URL} className="group px-8 py-4">
+          Explore more on GitHub <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+        </PillLink>
       </div>
     </>
   );

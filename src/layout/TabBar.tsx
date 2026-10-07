@@ -1,13 +1,14 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { EASE } from '@/lib/motion';
+import Frame from '@/components/sketch/Frame';
 import { NAV_TABS, type Tab } from './nav';
 
 /**
  * Phone navigation. The desktop pill needs ~500px and there is nowhere near
  * that below `md`, so the same tabs sit along the bottom edge instead, where a
- * thumb can reach them. Its height is `--tabbar-h` — see src/index.css. Like
- * the header, it waits under the hello, out of reach, and rises in as the word
- * leaves.
+ * thumb can reach them, under a line ruled by hand. Its height is
+ * `--tabbar-h` — see src/index.css. Like the header, it waits under the
+ * hello, out of reach, and rises in as the word leaves.
  */
 export default function TabBar({
   activeTab,
@@ -26,7 +27,7 @@ export default function TabBar({
       animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: reduced ? 0 : 10 }}
       transition={{ duration: 0.8, ease: EASE, delay: revealed ? 0.35 : 0 }}
       inert={!revealed}
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200/60 bg-white/80 backdrop-blur-2xl pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="sk-rule fixed inset-x-0 bottom-0 z-50 bg-page/90 backdrop-blur-md pb-[env(safe-area-inset-bottom)] md:hidden [--sk-o:0.7]"
     >
       <div className="flex h-[var(--tabbar-h)] items-stretch">
         {NAV_TABS.map(({ id, label, Icon }) => {
@@ -37,19 +38,16 @@ export default function TabBar({
               type="button"
               onClick={() => onSelect(id)}
               aria-current={active ? 'page' : undefined}
-              className={`flex flex-1 flex-col items-center justify-center gap-1 transition-colors ${
-                active ? 'text-zinc-900' : 'text-zinc-400'
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors ${
+                active ? 'text-ink' : 'text-graphite'
               }`}
             >
-              {/* Same filled lozenge as the desktop pill, shrunk to the icon. */}
-              <span
-                className={`flex h-7 items-center justify-center rounded-full px-4 transition-colors duration-300 ${
-                  active ? 'bg-zinc-900 text-white' : ''
-                }`}
-              >
-                <Icon size={20} strokeWidth={2} aria-hidden />
+              {/* The same blot of ink as the desktop pill, shrunk to the icon. */}
+              <span className="relative isolate flex h-7 items-center justify-center px-4">
+                {active ? <Frame r={999} fill tone={1} className="sk-under" /> : null}
+                <Icon size={20} strokeWidth={1.9} className={active ? 'text-page' : undefined} aria-hidden />
               </span>
-              <span className="text-[10px] font-semibold tracking-wide">{label}</span>
+              <span className="text-[11px] font-semibold">{label}</span>
             </button>
           );
         })}

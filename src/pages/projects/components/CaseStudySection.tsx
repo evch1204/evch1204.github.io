@@ -1,14 +1,14 @@
-import Eyebrow from '@/components/Eyebrow';
+import Frame from '@/components/sketch/Frame';
 import type { CaseStudySection } from '@/content/projects';
-import { FRAME } from '@/pages/projects/hero';
+import { FRAME, FRAME_INNER } from '@/pages/projects/hero';
 import ProjectFigure from './ProjectFigure';
 
 const Prose = ({ section }: { section: CaseStudySection }) => (
   <>
-    <Eyebrow as="h3" className="mb-4">
-      {section.heading}
-    </Eyebrow>
-    <div className="space-y-4 text-base leading-relaxed text-zinc-600 text-pretty">
+    <div className="mb-5">
+      <h3 className="sk-heading">{section.heading}</h3>
+    </div>
+    <div className="space-y-4 text-[17px] leading-relaxed text-pencil text-pretty">
       {section.body.map((paragraph, i) => (
         // Static content: the index is the paragraph's identity.
         <p key={i}>{paragraph}</p>
@@ -49,11 +49,12 @@ export default function StudySection({
       <figure className={`min-w-0 ${flip ? 'lg:order-1' : ''}`}>
         {/* Eager: a lazy figure has no height until it loads, and the page would jump under the reader. */}
         <div className={FRAME}>
-          <ProjectFigure figure={section.figure} eager className="block h-auto w-full" />
+          <Frame r={16} weight={1.5} tone={0.85} draw />
+          <div className={FRAME_INNER}>
+            <ProjectFigure figure={section.figure} eager className="block h-auto w-full" />
+          </div>
         </div>
-        <figcaption className="mt-3 font-mono text-[10px] leading-relaxed text-zinc-400 md:text-[11px]">
-          {section.figure.caption}
-        </figcaption>
+        <figcaption className="mt-3 text-sm leading-relaxed text-graphite">{section.figure.caption}</figcaption>
       </figure>
     </section>
   );

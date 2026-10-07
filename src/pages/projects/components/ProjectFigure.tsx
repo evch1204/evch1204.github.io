@@ -7,9 +7,9 @@ const ILLUSTRATIONS: Record<IllustrationId, typeof HandCubeIllustration> = {
 };
 
 /**
- * A case-study picture: the imported image, or the named drawing. `eager` is
- * for the hero and the section figures, which set the page's height; the rest
- * loads lazily.
+ * A case-study picture: the imported image, as it is, or the named drawing.
+ * `eager` is for the hero and the section figures, which set the page's
+ * height; the rest loads lazily.
  */
 export default function ProjectFigure({
   figure,

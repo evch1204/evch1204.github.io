@@ -1,19 +1,23 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { EASE } from '@/lib/motion';
-import SectionHeading from './SectionHeading';
+import SketchTitle from './sketch/SketchTitle';
 
 /**
  * A page's top-level section: the fade-and-slide that plays as tabs swap, plus
- * the "— LABEL" heading it opens with. `actions` sits on the right of that
- * title row — a pill or two, never more.
+ * the hand-written title it opens with, its stroke drawn under it. `actions`
+ * sits on the right of that title row — a pill or two, never more. The first
+ * section of a page carries the page's `h1`; a second one passes `as="h2"`.
  */
 export default function Section({
   title,
+  as = 'h1',
   actions,
   children,
 }: {
-  title: string;
+  /** Left out by a page that writes its own headline. */
+  title?: string;
+  as?: 'h1' | 'h2';
   actions?: ReactNode;
   children: ReactNode;
 }) {
@@ -25,13 +29,13 @@ export default function Section({
       transition={{ duration: 0.5, ease: EASE }}
       className="w-full"
     >
-      {/* The same row with or without actions: an empty flex row is just the heading. */}
-      <div className="mb-7 flex items-center justify-between gap-4">
-        <SectionHeading as="h2" className="mb-0">
-          {title}
-        </SectionHeading>
-        {actions}
-      </div>
+      {/* The same row with or without actions; the top padding is the room the tilted title climbs into. */}
+      {title ? (
+        <div className="mb-10 flex items-end justify-between gap-4 pt-3">
+          <SketchTitle as={as}>{title}</SketchTitle>
+          {actions}
+        </div>
+      ) : null}
       {children}
     </motion.section>
   );

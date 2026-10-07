@@ -1,0 +1,94 @@
+/* ---- The portrait: the drawing, and the photograph brushed through it ----
+ *
+ * The drawing lies on the paper. The photograph is there too, under it and
+ * out of sight, for a screen reader and for the tap that swaps the picture;
+ * what the brush reveals is painted on the canvas over them both.
+ */
+
+.portrait {
+  position: relative;
+  width: 100%;
+}
+
+.portrait-frame {
+  position: relative;
+  aspect-ratio: 900 / 1201;
+  border-radius: 22px;
+  background: var(--color-page);
+  cursor: crosshair;
+}
+
+.portrait-crop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 22px;
+  /* The drawing multiplies onto the paper only: nothing above it is blended through. */
+  isolation: isolate;
+}
+
+.portrait-ink,
+.portrait-photo,
+.portrait-brush {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: block;
+}
+
+/* The drawing: its white is the page's paper. */
+.portrait-ink {
+  top: 0;
+  height: auto;
+  z-index: 0;
+}
+
+/* The photograph, laid so that its face is under the drawing's; shown whole only when tapped. */
+.portrait-photo {
+  top: -3.43%;
+  height: auto;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.portrait-brush {
+  top: 0;
+  height: 100%;
+  pointer-events: none;
+  /* Over the drawing: inside the stroke the photograph is clear, not seen through the ink. */
+  z-index: 1;
+}
+
+.portrait-frame.is-swapped .portrait-photo {
+  opacity: 1;
+}
+
+.portrait-frame.is-swapped .portrait-brush {
+  opacity: 0;
+}
+
+.portrait-note {
+  position: absolute;
+  right: -8px;
+  bottom: -40px;
+  font-size: 0.95rem;
+  text-align: right;
+  rotate: 6deg;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .portrait-frame {
+    cursor: pointer;
+  }
+
+  .portrait-note {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portrait-photo {
+    transition: none;
+  }
+}

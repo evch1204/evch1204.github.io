@@ -1,19 +1,28 @@
 @import './home-intro.css';
-@import './home-doodles.css';
+
+/* ---- The home: the first sheet of the sketchbook, drawn on in one pen ----
+ *
+ * Under the site's header, the first screen is the name beside the scene with
+ * `Scroll to explore` at its foot; the sheet then scrolls on to the featured
+ * projects. Everything in ink is a traced stroke written by the Pen; the drop
+ * of ink that sets the pen off lives on its own layer over it all.
+ */
 
 .home-screen {
-  --home-fg: #0a0a0a;
-  --home-muted: #555550;
-  --home-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  background: transparent;
+  --home-fg: var(--color-ink);
   color: var(--home-fg);
-  font-family: 'Space Mono', monospace;
-  overflow: hidden;
   height: 100%;
-  min-height: 100dvh;
   width: 100%;
   position: relative;
   box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Until the hello has handed the page over, there is nothing below the first screen to scroll to. */
+.home-screen.is-intro {
+  overflow-y: hidden;
 }
 
 .home-screen .grain {
@@ -27,185 +36,407 @@
 }
 
 .home-screen .home-hero {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  /* Bottom padding exceeds top, so the block sits above centre and clears the footer. */
-  padding: clamp(5.5rem, 10vh, 8.5rem) clamp(16px, 6vw, 64px) clamp(9.5rem, 17vh, 13.5rem);
-  z-index: 5;
-  box-sizing: border-box;
-}
-
-.home-screen .home-block {
   position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  z-index: 5;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 100dvh;
+  max-width: 1600px;
+  margin: 0 auto;
+  /* The top padding is the header's row. */
+  padding: 96px clamp(16px, 4vw, 56px) 12px;
+  box-sizing: border-box;
+  /* The pointer is a pencil here (the library's pencil, its point at the hotspot); the controls keep their own. */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 24 24' fill='%23fafafa' stroke='%231f1f22' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E")
+      3 27,
+    crosshair;
 }
 
-/* ---- The name ---- */
+/* While a stroke is being drawn nothing on the sheet is for selecting. */
+.home-screen .home-hero.is-drawing,
+.home-screen .home-hero.is-drawing * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- The name beside the scene ---- */
+
+.home-screen .home-body {
+  display: grid;
+  grid-template-columns: minmax(250px, 32%) 1fr;
+  column-gap: clamp(12px, 2.5vw, 40px);
+  align-items: center;
+  min-height: 0;
+  padding-block: 4px;
+}
+
+.home-screen .home-copy {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding-left: clamp(0px, 2vw, 32px);
+}
+
+.home-screen .home-hi {
+  margin: 0;
+  font-size: 1.85rem;
+  font-weight: 500;
+}
 
 .home-screen .home-name {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  column-gap: 0.22em;
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(2.9rem, 8.4vw, 6rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  color: var(--home-fg);
-}
-
-/* Each word climbs out of its own mask; the padding keeps descenders from clipping. */
-.home-screen .home-word {
-  display: inline-block;
-  overflow: hidden;
-  padding-block: 0.08em;
-  margin-block: -0.08em;
-}
-
-.home-screen .home-word > span {
-  display: inline-block;
-}
-
-/* ---- The one line and the two actions ---- */
-
-.home-screen .home-where {
-  margin: clamp(18px, 2.4vw, 26px) 0 0;
-  font-size: 0.8rem;
-  letter-spacing: 0.01em;
-  color: var(--home-muted);
-}
-
-/* The dot is where the last drop lands; it shows only once it has. */
-.home-screen .home-where-dot {
-  display: inline-block;
-  width: 1.5em;
-  text-align: center;
-  color: var(--home-fg);
-  opacity: 0;
-  transition: opacity 0.4s;
-}
-
-.home-screen .home-where-dot.landed {
-  opacity: 1;
-}
-
-/* A phone breaks the line before the place, never inside it. */
-.home-screen .home-where-place {
+  margin: 0 0 4px;
+  font-size: clamp(2.8rem, 5.2vw, 4.8rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
-.home-screen .home-actions {
-  margin-top: clamp(28px, 4vw, 40px);
+.home-screen .home-role {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.3vw, 2.1rem);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* The sketch's own stroke under the role, stretched to the column. */
+.home-screen .home-underline {
+  width: 100%;
+  max-width: 380px;
+  height: 20px;
+}
+
+.home-screen .home-blurb {
+  margin: 18px 0 0;
+  max-width: 24ch;
+  font-size: clamp(1.15rem, 1.5vw, 1.35rem);
+  line-height: 1.55;
+}
+
+.home-screen .home-tools {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 18px;
 }
 
-.home-screen .home-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 20px;
-  border: 1.5px solid var(--home-fg);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--home-fg);
-  font-family: "Space Mono", monospace;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 0.45s var(--home-ease),
-    box-shadow 0.45s var(--home-ease);
+.home-screen .home-tool {
+  position: relative;
 }
 
-/* Lifted under the pointer; the keyboard's ring, also a box-shadow, wins when both apply. */
-.home-screen .home-action:hover:not(:focus-visible) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+.home-screen .home-tools svg {
+  height: 42px;
+  width: auto;
 }
 
-.home-screen .home-action:active {
-  transform: translateY(0);
-  transition-duration: 0.12s;
-}
-
-.home-screen .home-action-primary {
-  background: var(--home-fg);
-  color: var(--color-page);
-}
-
-.home-screen .home-action-primary svg {
-  transition: transform 0.45s var(--home-ease);
-}
-
-.home-screen .home-action-primary:hover svg {
-  transform: translateX(3px);
-}
-
-/* ---- Footer slot: holds the shared SiteFooter at the bottom of the screen ---- */
-
-.home-screen .home-footer-slot {
+/* A tool's name, written under it while the pencil is over it. */
+.home-screen .home-tool-name {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 6;
-  /* Only its links take the pointer: a doodle may sit over the slot's top padding on a short window. */
+  left: 50%;
+  top: calc(100% + 4px);
+  translate: -50% 0;
+  rotate: -6deg;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-ink);
+  opacity: 0;
+  transition: opacity 0.25s ease, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
 }
 
-.home-screen .home-footer-slot :is(a, button) {
-  pointer-events: auto;
+.home-screen .home-tool:hover .home-tool-name {
+  opacity: 1;
+  translate: -50% 3px;
+}
+
+/* ---- The scene: the map, the flight, the desk ---- */
+
+.home-screen .home-scene {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100dvh - 190px);
+  min-height: 0;
+}
+
+/* The arc the plane flies is for the plane alone; the dashes under it are the sketch's own. */
+.home-screen .home-scene .home-route {
+  fill: none;
+  stroke: none;
+}
+
+.home-screen .home-scene .home-pin {
+  fill: var(--home-fg);
+  stroke: none;
+}
+
+/* ---- The things that come alive under the pencil ---- */
+
+/* Each thing's patch of the sheet: there, but unseen, so a thin line is easy to find with the pointer. */
+.home-screen .home-scene .home-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+
+.home-screen .home-thing.is-alive .sk-pen {
+  animation: sk-boil 0.36s steps(1, end) infinite;
+}
+
+/* The steam rises off the coffee while the mug is alive, written afresh each time it has gone. */
+.home-screen .home-thing.is-alive .home-steam {
+  animation: home-steam 1.5s ease-out infinite;
+}
+
+@keyframes home-steam {
+  0% {
+    translate: 0 0;
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    translate: 0 -8px;
+    opacity: 0;
+  }
+}
+
+.home-screen .home-plane {
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+/* The mark the drop makes as it lands. */
+.home-screen .home-scene .home-ripple {
+  fill: none;
+  stroke: var(--home-fg);
+  stroke-width: 1.4;
+}
+
+.home-screen .home-scene text {
+  font-family: inherit;
+  font-weight: 500;
+  fill: var(--home-fg);
+}
+
+.home-screen .home-scene .home-label text {
+  font-size: 17px;
+}
+
+.home-screen .home-scene .home-label .home-label-small {
+  font-size: 14px;
+}
+
+/* ---- Scroll to explore ---- */
+
+.home-screen .home-hint {
+  justify-self: center;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.home-screen .home-hint-mouse {
+  width: 26px;
+  height: 34px;
+}
+
+.home-screen .home-hint-arrow {
+  width: 12px;
+  height: 26px;
+  animation: home-nudge 2s ease-in-out infinite;
+}
+
+@keyframes home-nudge {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 4px;
+  }
+}
+
+/* ---- The margin note in the bottom corner ---- */
+
+.home-screen .home-note {
+  position: absolute;
+  left: clamp(16px, 5vw, 76px);
+  bottom: 26px;
+  margin: 0;
+  rotate: -14deg;
+}
+
+.home-screen .home-note svg {
+  width: 46px;
+  height: auto;
+  margin: 2px 0 0 14px;
+}
+
+/* ---- The pencil's own marks: what the reader draws, and the note that says they can ---- */
+
+.home-screen .home-doodles {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.home-screen .home-doodles path {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.3;
+  stroke-opacity: 0.88;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-screen .home-pencil-note {
+  position: absolute;
+  right: clamp(16px, 5vw, 76px);
+  bottom: 30px;
+  margin: 0;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: right;
+  rotate: 5deg;
+}
+
+.home-screen .home-pencil-note svg {
+  display: inline-block;
+  vertical-align: -3px;
+}
+
+.home-screen button.home-pencil-note {
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+/* No pencil without a pointer to hold it: a finger scrolls. */
+@media (hover: none), (pointer: coarse) {
+  .home-screen .home-pencil-note,
+  .home-screen .home-doodles {
+    display: none;
+  }
+}
+
+/* ---- The drop: the hello's ink, placed, sized and faded every frame by its flight ---- */
+
+.home-screen .home-drops {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.home-screen .home-drop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--home-fg);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* ---- Below the fold: the featured projects, and the footer ---- */
+
+.home-screen .home-more {
+  position: relative;
+  z-index: 5;
+  max-width: 58rem;
+  margin: 0 auto;
+  /* The top padding clears the header when the hint scrolls the section to the top of the window. */
+  padding: 7.5rem clamp(16px, 4vw, 40px) 4rem;
+  box-sizing: border-box;
 }
 
 /* ---- Phone shell (the exact complement of Tailwind's `md`) -----------------
  *
- * The desktop home is one viewport-locked screen. A phone has neither the width
- * nor the height for that, so the hero becomes an ordinary scrolling page and
- * the bottom tab bar replaces the footer at that edge.
+ * A phone has neither the width nor the height for the name beside the scene,
+ * so they stack: the name, then the scene, then the hint, and the projects
+ * below, all clear of the tab bar along the bottom edge.
  */
 @media (width < 48rem) {
-  .home-screen {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
   .home-screen .home-hero {
-    position: relative;
-    inset: auto;
-    min-height: 100%;
-    padding: 6rem 1rem calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+    min-height: 0;
+    grid-template-rows: auto auto;
+    align-content: start;
+    padding: 5.5rem 16px 1rem;
   }
 
-  .home-screen .home-footer-slot {
+  .home-screen .home-body {
+    grid-template-columns: 1fr;
+    row-gap: 28px;
+  }
+
+  .home-screen .home-copy {
+    padding-left: 0;
+  }
+
+  .home-screen .home-name,
+  .home-screen .home-role {
+    white-space: normal;
+  }
+
+  .home-screen .home-scene {
+    height: auto;
+    max-height: none;
+    aspect-ratio: 1000 / 670;
+  }
+
+  .home-screen .home-hint {
+    padding-top: 20px;
+  }
+
+  .home-screen .home-note,
+  .home-screen .home-pencil-note {
     display: none;
   }
 
+  .home-screen .home-more {
+    padding: 4.5rem 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 2rem);
+  }
+}
+
+/* A short window has no corner to spare for the notes. */
+@media (height < 46rem) {
+  .home-screen .home-note,
+  .home-screen .home-pencil-note {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-screen .home-action,
-  .home-screen .home-action-primary svg {
-    transition: none;
+  .home-screen .home-hint-arrow,
+  .home-screen .home-thing.is-alive .sk-pen,
+  .home-screen .home-thing.is-alive .home-steam {
+    animation: none;
   }
-
 }

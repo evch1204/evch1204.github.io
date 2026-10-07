@@ -1,83 +1,87 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { GraduationCap, MapPin, Sparkles, type LucideIcon } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import Chip from '@/components/Chip';
 import Section from '@/components/Section';
-import { CONTACT_LINKS, NAME, ROLE } from '@/content/site';
+import { CONTACT_LINKS, LOCATION, NAME, ROLE, SCHOOL } from '@/content/site';
 import { EASE } from '@/lib/motion';
-import profilePhoto from '@/assets/images/profile.jpg';
 import GithubActivity from '@/pages/about/components/GithubActivity';
+import Portrait from '@/pages/about/components/Portrait';
 import ResumeModal from '@/pages/about/components/ResumeModal';
 import ResumePanel from '@/pages/about/components/ResumePanel';
 import TechIWorkWith from '@/pages/about/components/TechIWorkWith';
 
+/** The three facts under the introduction: where, what was studied, and what the work is about. */
+const FACTS: { Icon: LucideIcon; main: string; aside: string }[] = [
+  { Icon: MapPin, main: LOCATION, aside: '(Originally from Taiwan)' },
+  { Icon: GraduationCap, main: 'Computer Science, B.S.', aside: `${SCHOOL} · Data Science · ’25` },
+  { Icon: Sparkles, main: 'Focus', aside: 'Full-stack · AI tooling · Data science' },
+];
+
+/** The places to write to; the city is one of the facts above, so it is not repeated as a chip. */
+const LINKS = CONTACT_LINKS.filter((link) => link.href);
+
 export default function AboutPage() {
   const [resumeOpen, setResumeOpen] = useState(false);
+  const reduced = useReducedMotion();
+  const rise = (delay: number) => ({
+    initial: { opacity: 0, y: reduced ? 0 : 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5, ease: EASE, delay },
+  });
 
   return (
-    <Section title="Profile">
-      <div className="flex flex-col gap-12">
-        <div className="grid gap-10 sm:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:gap-14 lg:items-center">
-          <div className="min-w-0 space-y-5">
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-4xl font-bold tracking-tighter text-zinc-900 sm:text-5xl lg:text-6xl"
-              >
-                {NAME}
-              </motion.h1>
-              <p className="mt-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">
-                B.S. Computer Science (Data Science) · SCU &apos;25
-              </p>
-            </div>
-            <div className="text-base leading-relaxed text-zinc-600 sm:text-lg">
+    <Section title="About Me">
+      <div className="flex flex-col gap-14">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)] lg:items-start lg:gap-10">
+          <div className="min-w-0 space-y-7">
+            <motion.div {...rise(0.1)} className="space-y-4 text-lg leading-relaxed text-pencil sm:text-xl sm:leading-relaxed">
               <p>
-                I&apos;m a Computer Science graduate and I&apos;m seeking to learn and grow along with AI. I studied at{' '}
-                <span className="font-semibold text-zinc-900">Santa Clara University</span> with a Data Science
-                specialization. I&apos;m currently a{' '}
-                <span className="font-semibold text-zinc-900">{ROLE}</span>, where I
-                build full-stack products end-to-end—from system design through production deployment.
+                Hi, I&apos;m <span className="font-semibold text-ink">{NAME}</span> — a Computer Science graduate, and I&apos;m
+                seeking to learn and grow along with AI.
               </p>
-            </div>
-            <ul className="flex flex-wrap gap-2.5 pt-1">
-              {CONTACT_LINKS.map(({ label, href, Icon }) => (
+              <p>
+                I studied at <span className="font-semibold text-ink">{SCHOOL}</span> with a Data Science specialization.
+                I&apos;m currently a <span className="font-semibold text-ink">{ROLE}</span>, where I build full-stack products
+                end-to-end, from system design through production deployment.
+              </p>
+            </motion.div>
+
+            <motion.ul {...rise(0.2)} className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+              {FACTS.map(({ Icon, main, aside }) => (
+                <li key={main} className="flex items-start gap-3">
+                  <Icon size={22} strokeWidth={1.7} className="mt-0.5 shrink-0 text-ink" aria-hidden />
+                  <span className="min-w-0">
+                    <span className="block text-base font-semibold text-ink">{main}</span>
+                    <span className="block text-sm text-graphite">{aside}</span>
+                  </span>
+                </li>
+              ))}
+            </motion.ul>
+
+            <motion.ul {...rise(0.3)} className="flex flex-wrap gap-2.5">
+              {LINKS.map(({ label, href, Icon }) => (
                 <li key={label}>
                   <Chip Icon={Icon} href={href}>
                     {label}
                   </Chip>
                 </li>
               ))}
-            </ul>
+            </motion.ul>
           </div>
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-[260px] sm:max-w-[300px] lg:max-w-none lg:w-full">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: EASE }}
-                className="relative z-10 aspect-[3/4] w-full overflow-hidden rounded-[2rem] border-[6px] border-white bg-zinc-100 shadow-[0_24px_64px_rgba(0,0,0,0.12)] sm:rounded-[2.25rem] sm:border-8"
-              >
-                <img
-                  src={profilePhoto}
-                  alt={NAME}
-                  className="h-full w-full object-cover"
-                  decoding="async"
-                />
-              </motion.div>
-              <div className="absolute -inset-3 rounded-[2.5rem] bg-zinc-900/[0.04] blur-2xl sm:-inset-4 sm:rounded-[3rem]" aria-hidden />
-            </div>
-          </div>
+
+          <Portrait className="mx-auto max-w-[320px] lg:-mt-6 lg:max-w-[380px]" />
         </div>
 
-        <div className="border-t border-zinc-100 pt-10">
+        <div className="sk-rule pt-10">
           <TechIWorkWith className="w-full" />
         </div>
 
-        <div className="border-t border-zinc-100 pt-10">
+        <div className="sk-rule pt-10">
           <GithubActivity />
         </div>
 
-        <div className="border-t border-zinc-100 pt-10">
+        <div className="sk-rule pt-10">
           <ResumePanel onExpand={() => setResumeOpen(true)} />
         </div>
       </div>

@@ -1,168 +1,213 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { Eraser, Pencil } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { ArrowRight, Download } from 'lucide-react';
-import SiteFooter from '@/layout/SiteFooter';
-import { LOCATION, NAME, RESUME_FILENAME, RESUME_URL, ROLE } from '@/content/site';
-import { triggerDownload } from '@/lib/download';
-import { EASE } from '@/lib/motion';
-import Doodles from './components/Doodles';
+import Pen from '@/components/sketch/Pen';
+import type { Drawing } from '@/components/sketch/drawing';
+import { ARROW_LONG } from '@/components/sketch/marks';
+import { NAME, ROLE } from '@/content/site';
+import type { Tab } from '@/layout/nav';
+import { EASE, PEN_EASE } from '@/lib/motion';
+import DoodlePad from './components/DoodlePad';
 import HelloIntro from './components/HelloIntro';
-import type { Destination } from './doodles';
-import { useInkBurst } from './useInkBurst';
+import HomeFeatured from './components/HomeFeatured';
+import ScrollHint from './components/ScrollHint';
+import SketchScene from './components/SketchScene';
+import { ROLE_LINE, TOOL_CLOUD, TOOL_CODE, TOOL_NODE, TOOL_REACT, TOOL_TYPESCRIPT } from './sketch';
+import { useInkDrop } from './useInkDrop';
 import './styles/home-screen.css';
+
+/** Where a link on the home sends the reader: a tab, or a project page on the projects tab. */
+type Destination = { tab: Tab; project?: string };
 
 type HomeScreenProps = {
   /** Play the hello on mount. Read once: the screen runs its own sequence from there. */
   intro: boolean;
   /** The hello has left the screen to the page: the chrome can come in. Must be stable. */
   onIntroDone: () => void;
-  /** Where the actions and the doodles send the reader. */
+  /** Where the project cards send the reader. */
   onNavigate: (to: Destination) => void;
 };
 
+/** The five tools under the blurb, in the order the sketch draws them. */
+const TOOLS = [
+  { name: 'TypeScript', drawing: TOOL_TYPESCRIPT },
+  { name: 'React', drawing: TOOL_REACT },
+  { name: 'Node.js', drawing: TOOL_NODE },
+  { name: 'Code', drawing: TOOL_CODE },
+  { name: 'Cloud', drawing: TOOL_CLOUD },
+];
+
+const BLURB = 'I build full-stack applications, solve real-world problems, and turn ideas into products.';
+
 /**
- * The home. On the first visit of a load the hello writes itself, its ink
- * drains out through the tail of the o and bursts into drops, one for every
- * doodle and one more for the dot under the name. The drops fan out at once;
- * each doodle is written in the moment its drop lands, the name climbs in
- * while they are in the air, and the last drop lands as the dot. Coming back
- * from another tab there are no drops: everything simply rises, a beat
- * apart. Once drawn, the doodles stay put, ink on the page.
+ * The left column's clock, in seconds from the moment the page starts to be
+ * written: each line is written out after the one above it, the stroke goes
+ * under the role, the blurb comes up and the tools are drawn.
+ */
+const T = { hi: 0, name: 0.25, role: 0.8, line: 1.25, blurb: 1.4, tools: 1.65, foot: 2.5 } as const;
+
+/** One of the tools: drawn in its turn, and drawn again, with its name, whenever the pencil passes over it. */
+function Tool({ name, drawing, drawn, delay }: { name: string; drawing: Drawing; drawn: boolean; delay: number }) {
+  const [beat, setBeat] = useState(0);
+  return (
+    <li className="home-tool" onPointerEnter={() => setBeat((b) => b + 1)}>
+      <svg className="sk-art" viewBox={drawing.box.join(' ')} role="img" aria-label={name}>
+        <Pen key={beat} drawing={drawing} drawn={drawn} duration={beat ? 0.55 : 0.4} delay={beat ? 0 : delay} weight={0.9} />
+      </svg>
+      <span className="home-tool-name" aria-hidden>
+        {name}
+      </span>
+    </li>
+  );
+}
+
+/**
+ * The home, the first sheet of the sketchbook: a map of the world with the
+ * flight here drawn across it, a person at a desk under it, the name beside
+ * them, and the featured projects on the spread below.
+ *
+ * On the first visit of a load the hello writes itself. Its ink then drains
+ * out through the tail of the o and gathers into one drop, which arcs across
+ * the sheet and lands as the pin at Taiwan. While it is in the air the name
+ * is written out on the left, a line at a time; when it lands the map
+ * spreads out from the pin, the flight runs across it to Santa Clara with
+ * the plane at its head, and the desk is drawn. Coming back from another tab
+ * there is no hello and no drop: the same sequence simply runs.
+ *
+ * Then the sheet is the reader's. Their pointer is a pencil: the drawings
+ * come alive under it, and pressed to the page it draws.
  */
 export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScreenProps) {
   const reduced = useReducedMotion();
   /* Read once: `intro` names how this mount began, not what App thinks now. */
   const [withIntro] = useState(intro);
-  const [ink, setInk] = useState<'hello' | 'burst' | 'done'>(withIntro ? 'hello' : 'done');
-  const [drawn, setDrawn] = useState<ReadonlySet<string>>(() => new Set());
-  const [nameUp, setNameUp] = useState(!withIntro);
-  const [whereUp, setWhereUp] = useState(!withIntro);
+  const [ink, setInk] = useState<'hello' | 'drop' | 'done'>(withIntro ? 'hello' : 'done');
+  const [doodles, setDoodles] = useState<string[]>([]);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const helloPathRef = useRef<SVGPathElement>(null);
-  const dotRef = useRef<HTMLSpanElement>(null);
-  const refs = useMemo(() => ({ hero: heroRef, helloPath: helloPathRef, dot: dotRef }), []);
+  const dropRef = useRef<HTMLSpanElement>(null);
+  const moreRef = useRef<HTMLElement>(null);
+  const refs = useMemo(() => ({ hero: heroRef, helloPath: helloPathRef, drop: dropRef }), []);
 
+  /** The drop has landed, or the reader skipped ahead: the page is theirs. */
   const settle = useCallback(() => {
     setInk('done');
-    setNameUp(true);
-    setWhereUp(true);
     onIntroDone();
   }, [onIntroDone]);
 
-  /** The word is written: the ink leaves it and the drops set off. */
-  const burst = useCallback(() => {
-    setInk((t) => (t === 'hello' ? 'burst' : t));
+  /** The word is written: the ink leaves it and the drop sets off. */
+  const release = useCallback(() => {
+    setInk((t) => (t === 'hello' ? 'drop' : t));
     onIntroDone();
   }, [onIntroDone]);
 
-  useInkBurst(ink === 'burst', refs, {
-    onDrawn: (id) => setDrawn((prev) => new Set(prev).add(id)),
-    onNameUp: () => setNameUp(true),
-    onWhereUp: () => setWhereUp(true),
-    onDone: settle,
-  });
+  useInkDrop(ink === 'drop', refs, settle);
 
+  /** The left column starts to be written as the hello lets go of its ink; the scene waits for the drop. */
+  const written = ink !== 'hello';
   const settled = ink === 'done';
-  /* With no drops to time them, the pieces rise a beat apart on their own. */
-  const d = (delay: number) => (withIntro ? 0 : delay);
+  /* After the hello, the first line waits for the sheet to clear; without one, everything starts at once. */
+  const base = withIntro ? 0.45 : 0.15;
+  const at = (t: number) => base + t;
 
-  /* The entrances. With reduced motion nothing moves: the pieces only fade. */
+  /* A line written out from its left edge, the way the hello was. With reduced motion it only fades. */
+  const write = (delay: number, duration: number): Variants => ({
+    hidden: reduced ? { opacity: 0 } : { clipPath: 'inset(-20% 100% -20% -4%)' },
+    shown: { opacity: 1, clipPath: 'inset(-20% -4% -20% -4%)', transition: { duration, ease: PEN_EASE, delay } },
+  });
   const rise = (delay: number): Variants => ({
-    hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 14, filter: 'blur(6px)' },
-    shown: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.9, ease: EASE, delay } },
+    hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 10 },
+    shown: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay } },
   });
-  /* The line the last drop lands on only ever fades; it must not move under the drop. */
-  const fade = (delay: number): Variants => ({
-    hidden: { opacity: 0 },
-    shown: { opacity: 1, transition: { duration: 0.8, ease: EASE, delay } },
-  });
-  /* A word that climbs out of its own mask. */
-  const climb = (delay: number): Variants => ({
-    hidden: reduced ? { opacity: 0 } : { y: '112%' },
-    shown: { opacity: 1, y: 0, transition: { duration: 1.15, ease: EASE, delay } },
-  });
+  const state = written ? 'shown' : 'hidden';
+
+  const [role, company] = ROLE.split(' at ');
 
   return (
-    <div className="home-screen">
+    <div className={`home-screen${settled ? '' : ' is-intro'}`}>
       <div className="grain" aria-hidden />
 
       <AnimatePresence>
         {ink !== 'done' && (
-          <HelloIntro pathRef={helloPathRef} draining={ink === 'burst'} onWritten={burst} onSkip={settle} />
+          <HelloIntro pathRef={helloPathRef} draining={ink === 'drop'} onWritten={release} onSkip={settle} />
         )}
       </AnimatePresence>
 
-      {/* Nothing here can be tapped or tabbed to before it is on screen: each piece is inert until it is. */}
       <div className="home-hero" ref={heroRef}>
-        <Doodles
-          drawn={settled ? 'all' : drawn}
-          bursting={ink === 'burst'}
-          stagger={!withIntro}
-          onNavigate={onNavigate}
+        <div className="home-body">
+          {/* Nothing here can be tabbed to before it is on the page. */}
+          <div className="home-copy" inert={!settled}>
+            <motion.p className="home-hi" initial="hidden" animate={state} variants={write(at(T.hi), 0.45)}>
+              Hi, I'm
+            </motion.p>
+            <motion.h1 className="home-name" initial="hidden" animate={state} variants={write(at(T.name), 0.8)}>
+              {NAME}
+            </motion.h1>
+            <motion.p className="home-role" initial="hidden" animate={state} variants={write(at(T.role), 0.6)}>
+              {role}
+              {company && <span className="sr-only"> at {company}</span>}
+            </motion.p>
+            <svg className="home-underline sk-art" viewBox={ROLE_LINE.box.join(' ')} preserveAspectRatio="none" aria-hidden>
+              <Pen drawing={ROLE_LINE} drawn={written} duration={0.45} delay={at(T.line)} />
+            </svg>
+            <motion.p className="home-blurb" initial="hidden" animate={state} variants={rise(at(T.blurb))}>
+              {BLURB}
+            </motion.p>
+            <ul className="home-tools" aria-label="Tools">
+              {TOOLS.map(({ name, drawing }, i) => (
+                <Tool key={name} name={name} drawing={drawing} drawn={written} delay={at(T.tools) + i * 0.12} />
+              ))}
+            </ul>
+          </div>
+
+          <SketchScene drawn={settled} lead={withIntro ? 0 : 0.5} />
+        </div>
+
+        <ScrollHint
+          shown={written}
+          delay={at(T.foot)}
+          onExplore={() => moreRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })}
         />
 
-        <div className="home-block" inert={!settled}>
-          <motion.h1 className="home-name" initial="hidden" animate={nameUp ? 'shown' : 'hidden'}>
-            {NAME.split(' ').map((word, i) => (
-              <span className="home-word" key={word}>
-                <motion.span variants={climb(d(i * 0.1))}>{word}</motion.span>
-              </span>
-            ))}
-          </motion.h1>
+        {/* The note in the sheet's bottom corner, as the sketch has it: the three things the work comes down to. */}
+        <motion.p className="home-note sk-note" initial="hidden" animate={state} variants={rise(at(T.foot))} aria-hidden>
+          Code
+          <br />
+          Build
+          <br />
+          Ship
+          <svg className="sk-art" viewBox={ARROW_LONG.box.join(' ')}>
+            <Pen drawing={ARROW_LONG} drawn={written} duration={0.4} delay={at(T.foot) + 0.5} weight={0.9} />
+          </svg>
+        </motion.p>
 
-          <motion.p
-            className="home-where"
-            initial="hidden"
-            animate={whereUp ? 'shown' : 'hidden'}
-            variants={fade(d(0.3))}
-          >
-            {ROLE}
-            <span className="sr-only">, </span>
-            <span ref={dotRef} className={`home-where-dot${settled ? ' landed' : ''}`} aria-hidden>
-              ·
-            </span>
-            <span className="home-where-place">{LOCATION}</span>
+        {/* The other corner: that the pencil works, until it has been used; then the way to rub it out. */}
+        {doodles.length ? (
+          <button type="button" className="home-pencil-note sk-note focus-ring" onClick={() => setDoodles([])}>
+            <Eraser size={18} strokeWidth={1.8} aria-hidden /> Rub it out
+          </button>
+        ) : (
+          <motion.p className="home-pencil-note sk-note" initial="hidden" animate={settled ? 'shown' : 'hidden'} variants={rise(at(T.foot) + 0.3)}>
+            Psst, the pencil works.
+            <br />
+            Draw on the page <Pencil size={17} strokeWidth={1.8} aria-hidden />
           </motion.p>
+        )}
 
-          <motion.div
-            className="home-actions"
-            initial="hidden"
-            animate={settled ? 'shown' : 'hidden'}
-            variants={rise(d(0.44))}
-          >
-            <button
-              type="button"
-              className="home-action home-action-primary focus-ring"
-              onClick={() => onNavigate({ tab: 'projects' })}
-            >
-              View projects
-              <ArrowRight size={15} strokeWidth={2.4} aria-hidden />
-            </button>
-            <button
-              type="button"
-              className="home-action focus-ring"
-              onClick={() => triggerDownload(RESUME_URL, RESUME_FILENAME)}
-            >
-              <Download size={15} strokeWidth={2.4} aria-hidden />
-              Resume
-            </button>
-          </motion.div>
+        {/* What the reader has drawn, and the stroke in hand. */}
+        <DoodlePad sheet={heroRef} enabled={settled} strokes={doodles} onStroke={(d) => setDoodles((all) => [...all, d])} />
+
+        {/* The hello's ink, gathered into one drop and thrown at Taiwan; placed each frame by the flight. */}
+        <div className="home-drops" aria-hidden>
+          <span ref={dropRef} className="home-drop" />
         </div>
       </div>
 
-      {/* The shared footer, pinned to the bottom instead of ending a scroll. */}
-      <motion.div
-        className="home-footer-slot"
-        initial="hidden"
-        animate={settled ? 'shown' : 'hidden'}
-        variants={rise(d(0.65))}
-        inert={!settled}
-      >
-        <div className="mx-auto w-full max-w-6xl px-6">
-          <SiteFooter className="pt-10 pb-8" />
-        </div>
-      </motion.div>
+      {/* Below the fold: what `Scroll to explore` scrolls to. Out of reach until the sheet above is the reader's. */}
+      <div inert={!settled}>
+        <HomeFeatured ref={moreRef} onOpen={(project) => onNavigate({ tab: 'projects', project })} />
+      </div>
     </div>
   );
 }

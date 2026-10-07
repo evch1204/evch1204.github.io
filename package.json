@@ -11,7 +11,8 @@
     "typecheck": "tsc -b",
     "deploy": "npm run build && gh-pages -d dist",
     "contributions": "node scripts/fetch-contributions.mjs",
-    "favicon": "node scripts/make-favicon.mjs"
+    "favicon": "node scripts/make-favicon.mjs",
+    "sketch": "node scripts/trace-sketch.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
@@ -31,6 +32,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "gh-pages": "^6.3.0",
     "globals": "^17.12.0",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.70.0",

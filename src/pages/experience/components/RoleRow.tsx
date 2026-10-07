@@ -1,5 +1,6 @@
 import { useReducedMotion } from 'motion/react';
 import { ChevronsUpDown, Code2, Cpu, Database, GraduationCap, School } from 'lucide-react';
+import Frame from '@/components/sketch/Frame';
 import Tag from '@/components/Tag';
 import type { Role, RoleIcon } from '@/content/experience';
 
@@ -22,11 +23,11 @@ const ROLE_ICONS: Record<RoleIcon, typeof Code2> = {
  * Closed, the header carries a one-line teaser (the first bullet) so the list
  * reads without opening anything; it folds away as the panel opens.
  *
- * The row's icon sits on the org's rail; the open row inks it. Each row draws
- * its own stretch of the rail, from its top edge (under the org mark, or the
- * row above) down through its icon to the next row — the last row stops at
- * its icon, so the line hangs from the mark to the final position and no
- * further.
+ * The row's node sits on the org's rail, a circle drawn by hand; the open row
+ * inks it in. Each row rules its own stretch of the rail, from its top edge
+ * (under the org mark, or the row above) down through its node to the next
+ * row — the last row stops at its node, so the line hangs from the mark to
+ * the final position and no further.
  */
 export default function RoleRow({ role, open, last, onToggle }: { role: Role; open: boolean; last: boolean; onToggle: () => void }) {
   const Icon = ROLE_ICONS[role.icon];
@@ -40,34 +41,31 @@ export default function RoleRow({ role, open, last, onToggle }: { role: Role; op
 
   return (
     <div className="relative">
-      <span className={`absolute left-[13px] top-0 w-0.5 bg-zinc-200 ${last ? 'h-[26px]' : 'bottom-0'}`} aria-hidden />
+      <span className={`sk-rail absolute left-[11px] top-0 ${last ? 'h-[26px]' : 'bottom-0'}`} aria-hidden />
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         aria-controls={panelId}
-        className="group relative flex w-full items-start gap-4 rounded-lg py-3 text-left cursor-pointer focus-ring focus-visible:ring-offset-4 focus-visible:ring-offset-page"
+        className="group relative flex w-full items-start gap-4 rounded-lg py-3 text-left cursor-pointer focus-ring focus-visible:ring-offset-4"
       >
         <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${
-            open
-              ? 'border-zinc-900 bg-zinc-900 text-white'
-              : 'border-zinc-200 bg-zinc-50 text-zinc-500 group-hover:border-zinc-400 group-hover:text-zinc-900'
+          className={`sk-frame flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-page transition-colors ${
+            open ? 'text-page' : 'text-pencil group-hover:text-ink'
           }`}
           style={timing}
         >
+          <Frame r={999} weight={1.5} tone={open ? 1 : 0.75} fill={open} className="sk-under" />
           <Icon size={14} strokeWidth={2} aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-semibold tracking-[-0.015em] text-zinc-900 text-pretty">
-            {role.title}
-          </span>
-          <span className="mt-1 block text-xs font-medium text-zinc-400">
+          <span className="block text-[17px] font-semibold text-ink text-pretty">{role.title}</span>
+          <span className="mt-0.5 block text-sm font-medium text-graphite">
             {role.kind}
-            <span className="px-2 text-zinc-300" aria-hidden>
-              |
+            <span className="px-2 text-graphite/60" aria-hidden>
+              ·
             </span>
-            <span className="font-mono text-[11px]">{role.period}</span>
+            <span>{role.period}</span>
           </span>
           {/* A visual preview of the first bullet, which the panel below already carries. */}
           {teaser ? (
@@ -78,7 +76,7 @@ export default function RoleRow({ role, open, last, onToggle }: { role: Role; op
             >
               <span className="block min-h-0 overflow-hidden">
                 <span
-                  className="mt-1 line-clamp-1 text-[13px] font-medium leading-normal text-zinc-400"
+                  className="mt-1 line-clamp-1 text-sm font-medium leading-normal text-graphite"
                   style={{ opacity: open ? 0 : 1, transition: `opacity ${fade(open ? 200 : 300)}ms ease` }}
                 >
                   {teaser}
@@ -88,13 +86,13 @@ export default function RoleRow({ role, open, last, onToggle }: { role: Role; op
           ) : null}
         </span>
         <span
-          className={`mt-1 flex shrink-0 items-center transition-[transform,color] group-hover:text-zinc-900 ${
-            open ? 'text-zinc-900' : 'text-zinc-400'
+          className={`mt-1 flex shrink-0 items-center transition-[transform,color] group-hover:text-ink ${
+            open ? 'text-ink' : 'text-graphite'
           }`}
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', ...timing }}
           aria-hidden
         >
-          <ChevronsUpDown size={15} />
+          <ChevronsUpDown size={16} strokeWidth={1.8} />
         </span>
       </button>
 
@@ -117,8 +115,8 @@ export default function RoleRow({ role, open, last, onToggle }: { role: Role; op
           >
             <ul className="flex flex-col gap-2">
               {role.bullets.map((bullet) => (
-                <li key={bullet} className="flex gap-2.5 text-[13.5px] font-medium leading-[1.65] text-zinc-500 text-pretty">
-                  <span className="shrink-0 text-zinc-300" aria-hidden>
+                <li key={bullet} className="flex gap-2.5 text-[15px] font-medium leading-[1.65] text-pencil text-pretty">
+                  <span className="shrink-0 text-ink" aria-hidden>
                     •
                   </span>
                   <span>{bullet}</span>
@@ -126,7 +124,7 @@ export default function RoleRow({ role, open, last, onToggle }: { role: Role; op
               ))}
             </ul>
             {role.tags.length > 0 ? (
-              <ul className="mt-4 flex flex-wrap gap-[7px]">
+              <ul className="mt-4 flex flex-wrap gap-2 p-0.5">
                 {role.tags.map((tag) => (
                   <li key={tag}>
                     <Tag>{tag}</Tag>

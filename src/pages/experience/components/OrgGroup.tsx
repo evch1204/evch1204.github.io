@@ -11,9 +11,9 @@ function startYear(org: Org) {
 }
 
 /**
- * One organization: the header, and its positions strung on a rail beneath it.
- * The rail is drawn by the rows themselves (see RoleRow), so it needs no
- * measuring — it is just a line through the icons.
+ * One organization: the header, and its positions strung on a hand-ruled rail
+ * beneath it. The rail is drawn by the rows themselves (see RoleRow), so it
+ * needs no measuring — it is just a line through the nodes.
  */
 export default function OrgGroup({
   org,
@@ -44,35 +44,30 @@ export default function OrgGroup({
     >
       {/* Year gutter: holds beside the group while it scrolls past. Hidden on phones. */}
       <div className={`hidden sm:block ${first ? 'pt-2.5' : 'pt-[34px]'}`} aria-hidden>
-        <span className="sticky top-28 block text-right font-mono text-[11px] font-bold leading-4 text-zinc-400">
-          {year}
-        </span>
+        <span className="sticky top-28 block text-right text-sm font-semibold leading-4 text-graphite -rotate-6">{year}</span>
       </div>
 
-      <div className={`min-w-0 ${first ? '' : 'border-t border-zinc-100 pt-6'} pb-6`}>
+      <div className={`min-w-0 ${first ? '' : 'sk-rule pt-6'} pb-6`}>
         {/* Wraps on narrow screens: the location drops under the name, indented to
             line up with it, instead of squeezing the org name to nothing. */}
         <div className="mb-1 flex flex-wrap items-center gap-3">
           <CompanyLogo domain={org.logoDomain} company={org.name} size={36} />
-          <h3 className="text-[17px] font-bold tracking-[-0.025em] text-zinc-900">{org.name}</h3>
+          <h3 className="text-xl font-semibold text-ink">{org.name}</h3>
           {org.current ? (
-            <span
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-900"
-              title="Current"
-            >
-              <span className="block h-[7px] w-[7px] rounded-full bg-zinc-900" aria-hidden />
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink" title="Current">
+              <span className="block h-[7px] w-[7px] rounded-full bg-ink" aria-hidden />
               Now
             </span>
           ) : null}
           {org.location ? (
-            <span className="flex basis-full items-center gap-1 pl-12 text-[11px] font-medium text-zinc-400 sm:ml-auto sm:basis-auto sm:pl-0">
-              <MapPin size={11} aria-hidden />
+            <span className="flex basis-full items-center gap-1 pl-12 text-sm font-medium text-graphite sm:ml-auto sm:basis-auto sm:pl-0">
+              <MapPin size={13} strokeWidth={1.8} aria-hidden />
               {org.location}
             </span>
           ) : null}
         </div>
 
-        {/* Rows indented so their icons sit centred under the org mark. */}
+        {/* Rows indented so their nodes sit centred under the org mark. */}
         <div className="ml-1 flex flex-col">
           {org.roles.map((role, i) => (
             <RoleRow

@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect, type ComponentType } from 'react';
 import { AnimatePresence } from 'motion/react';
+import SketchDefs from '@/components/sketch/SketchDefs';
 import Header from '@/layout/Header';
 import SiteFooter from '@/layout/SiteFooter';
 import TabBar from '@/layout/TabBar';
@@ -10,7 +11,7 @@ import ExperiencePage from '@/pages/experience/ExperiencePage';
 import ProjectsPage from '@/pages/projects/ProjectsPage';
 import ContactPage from '@/pages/contact/ContactPage';
 
-/** Home is the exception: it is a viewport-locked screen, not a scrolling page, so it is not in here. */
+/** Home is the exception: it opens under the hello and scrolls inside its own layer, so it is not in here. */
 const TAB_PAGES: Record<Exclude<Tab, 'home'>, ComponentType> = {
   about: AboutPage,
   experience: ExperiencePage,
@@ -82,12 +83,8 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-page font-sans selection:bg-zinc-900 selection:text-white overflow-x-clip">
-      {/* Background Accents */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-zinc-100/50 blur-[60px] md:blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-zinc-100/50 blur-[60px] md:blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-page font-sans selection:bg-ink selection:text-page overflow-x-clip">
+      <SketchDefs />
 
       {/* The chrome sits under the hello and drops in as it leaves. */}
       <Header activeTab={activeTab} onSelect={selectTab} revealed={!introPlaying} />

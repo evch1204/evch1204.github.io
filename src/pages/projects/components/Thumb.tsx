@@ -1,14 +1,14 @@
+import Frame from '@/components/sketch/Frame';
 import type { Figure } from '@/content/projects';
 import { pad2 } from '@/lib/format';
 import ProjectFigure from './ProjectFigure';
 
 /**
- * One picture as a button at the tile ratio, the active one ringed. The
- * picture is contained rather than cropped: a card crop is more than twice as
- * wide as the tile, and filling would slice the words out of it — the room it
- * leaves is white on a white screenshot. `className` carries the size, the
- * rounding and any shadow; the filmstrip and the gallery differ there and
- * nowhere else.
+ * One picture as a button at the tile ratio, in a frame ruled by hand; the
+ * active one is ruled in ink, heavier. The picture is contained rather than
+ * cropped: a card crop is more than twice as wide as the tile, and filling
+ * would slice the words out of it. `className` carries the size; the
+ * filmstrip and the gallery differ there and nowhere else.
  */
 export default function Thumb({
   picture,
@@ -29,11 +29,12 @@ export default function Thumb({
       onClick={() => onPick(index)}
       aria-current={active ? 'true' : undefined}
       aria-label={`Show picture ${pad2(index + 1)}: ${picture.caption}`}
-      className={`block aspect-[16/10] shrink-0 overflow-hidden border border-zinc-200 bg-white focus-ring ${
-        active ? 'ring-2 ring-zinc-900 ring-offset-2' : ''
-      } ${className}`}
+      className={`sk-frame sk-card block aspect-[16/10] shrink-0 rounded-lg bg-page focus-ring ${className}`}
     >
-      <ProjectFigure figure={picture} className="h-full w-full object-contain" />
+      <Frame r={8} weight={active ? 2.2 : 1.3} tone={active ? 1 : 0.5} />
+      <span className="block h-full w-full overflow-hidden rounded-lg">
+        <ProjectFigure figure={picture} className="h-full w-full object-contain" />
+      </span>
     </button>
   );
 }
