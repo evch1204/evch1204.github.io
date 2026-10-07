@@ -5,8 +5,8 @@ import data from '@/content/contributions.json';
 import { GITHUB_URL } from '@/content/site';
 import { linkProps } from '@/lib/links';
 
-/** The heatmap's scale in pencil, level 0 → 4: a faint square, then harder and harder on the lead. */
-const LEVEL_COLORS = ['rgb(31 31 34 / 0.07)', 'rgb(31 31 34 / 0.26)', 'rgb(31 31 34 / 0.46)', 'rgb(31 31 34 / 0.7)', 'rgb(31 31 34 / 1)'];
+/** GitHub's own scale, level 0 → 4: a blank square, then greener and greener. */
+const LEVEL_COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];

@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Eye, Pencil } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import Frame from '@/components/sketch/Frame';
 import Sketch from '@/components/sketch/Sketch';
 import { ARROW_RIGHT, UNDERSCORE } from '@/components/sketch/marks';
 import { groupLabel, type Project } from '@/content/projects';
@@ -29,9 +28,6 @@ const BLOCK = 'sk-rule pt-12';
  * everything else fades in around it. `arrival` says where the reader came
  * from: from the grid, the hero is already on screen mid-flight and the rest
  * waits a beat; from a neighbouring page, it all fades in together.
- *
- * The pictures are drawn in pencil like the rest of the sheet; the chip under
- * the hero swaps them for the real screenshots and back.
  */
 export default function ProjectPage({
   project,
@@ -58,9 +54,6 @@ export default function ProjectPage({
   const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const [pencil, setPencil] = useState(true);
-  /** A drawing is already a drawing: the swap is only offered where there is a photograph to show. */
-  const hasPhotos = pictures.some((picture) => picture.src);
 
   // The page is the new thing on screen: the keyboard starts at its title.
   useEffect(() => {
@@ -94,7 +87,7 @@ export default function ProjectPage({
   let figureCount = 0;
   const blocks = caseStudy.sections.map((section, i) => {
     const flip = section.figure ? figureCount++ % 2 === 1 : false;
-    return <StudySection key={section.heading} section={section} flip={flip} pencil={pencil} className={i === 0 ? '' : BLOCK} />;
+    return <StudySection key={section.heading} section={section} flip={flip} className={i === 0 ? '' : BLOCK} />;
   });
 
   return (
@@ -141,7 +134,6 @@ export default function ProjectPage({
         {...heroFade}
         pictures={pictures}
         slides={slides}
-        pencil={pencil}
         layoutId={shared ? heroLayoutId(project.id) : undefined}
         layoutDependency={project.id}
         arrowDelay={arrowDelay}
@@ -158,22 +150,8 @@ export default function ProjectPage({
       />
 
       <motion.div {...rise} className="mt-8 md:mt-10">
-        {/* Under the hero: the swap between the pencil and the photographs, and the sketch's note pointing at the way out. */}
-        <div className="mb-8 flex items-start justify-between gap-6">
-          {hasPhotos ? (
-            <button
-              type="button"
-              onClick={() => setPencil((on) => !on)}
-              aria-pressed={!pencil}
-              className="sk-chip !px-3.5 !py-1.5 !text-sm !text-ink cursor-pointer rounded-full focus-ring"
-            >
-              <Frame r={999} weight={1.3} tone={0.7} />
-              {pencil ? <Eye size={15} strokeWidth={1.8} aria-hidden /> : <Pencil size={15} strokeWidth={1.8} aria-hidden />}
-              {pencil ? 'Show the real screenshots' : 'Back to pencil'}
-            </button>
-          ) : (
-            <span />
-          )}
+        {/* Under the hero: the sketch's note pointing at the way out. */}
+        <div className="mb-8 flex items-start justify-end gap-6">
           {primary ? (
             <a
               href={primary.href}

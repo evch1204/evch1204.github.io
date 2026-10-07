@@ -21,8 +21,8 @@ const ProjectLink = ({ project }: { project: Project }) => {
 };
 
 /**
- * A project as the sketch lays one out: its window on the left, drawn in
- * pencil, and beside it the name, the stack as chips, what it is and the way
+ * A project as the sketch lays one out: its window on the left, ruled by
+ * hand, and beside it the name, the stack as chips, what it is and the way
  * in. On a phone the window sits over the words.
  */
 export default function ProjectCard({

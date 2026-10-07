@@ -169,12 +169,6 @@
     }
   }
 
-  /* ---- A photograph or a screenshot as a pencil drawing of itself (see SketchDefs) ---- */
-
-  .sk-photo {
-    filter: url(#sk-pencil);
-  }
-
   /* ---- Words in the hand ---- */
 
   .sk-title {

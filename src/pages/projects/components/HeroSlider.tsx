@@ -47,9 +47,8 @@ const Arrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; 
 );
 
 /**
- * The hero: the project's picture in a frame ruled by hand, drawn in pencil
- * until the reader asks for the real thing (`pencil`). `caption` is the row
- * under the frame.
+ * The hero: the project's picture in a frame ruled by hand. `caption` is the
+ * row under the frame.
  *
  * With more than one picture the frame is also the page's slider: arrows on
  * its edges, a swipe, the arrow keys, and a filmstrip under the caption. The
@@ -61,7 +60,6 @@ const Arrow = ({ direction, delay, onClick }: { direction: 'previous' | 'next'; 
 export default function HeroSlider({
   pictures,
   slides,
-  pencil,
   layoutId,
   layoutDependency,
   arrowDelay,
@@ -71,8 +69,6 @@ export default function HeroSlider({
 }: HTMLMotionProps<'figure'> & {
   pictures: Figure[];
   slides: Slides;
-  /** Show the pictures as pencil drawings of themselves, like the rest of the sheet. */
-  pencil: boolean;
   /** Shared with the card's window, so one grows into the other; none when motion is reduced. */
   layoutId?: string;
   layoutDependency: string;
@@ -147,12 +143,12 @@ export default function HeroSlider({
                       className="absolute inset-0"
                     >
                       {/* Inert: the pointer belongs to the swipe, not to the browser's own image drag. */}
-                      <ProjectFigure figure={hero} eager pencil={pencil} className="pointer-events-none h-full w-full object-contain" />
+                      <ProjectFigure figure={hero} eager className="pointer-events-none h-full w-full object-contain" />
                     </motion.div>
                   </AnimatePresence>
                 </>
               ) : (
-                <ProjectFigure figure={hero} eager pencil={pencil} className={PICTURE} />
+                <ProjectFigure figure={hero} eager className={PICTURE} />
               )}
             </div>
           </motion.div>

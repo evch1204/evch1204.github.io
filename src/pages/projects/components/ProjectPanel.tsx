@@ -7,7 +7,7 @@ import ProjectFigure from './ProjectFigure';
 /**
  * A card's picture, as the sketch draws a thumbnail: a small browser window
  * ruled by hand, three dots and an address line across its top, and inside it
- * the project redrawn in pencil. A screenshot fills the window from the top; a
+ * the project itself. A screenshot fills the window from the top; a
  * figure or drawing sits in it whole. `className` sets the window's size (and
  * any margin) per card.
  *
@@ -55,7 +55,7 @@ export default function ProjectPanel({
                 alt={`Screenshot of ${title}`}
                 loading="lazy"
                 decoding="async"
-                className="sk-photo h-0 min-h-0 w-full flex-1 object-cover object-top"
+                className="h-0 min-h-0 w-full flex-1 object-cover object-top"
               />
             ) : (
               // A drawing paints its own paper edge to edge; a chart or photo gets a little air inside the window.

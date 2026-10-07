@@ -20,18 +20,15 @@ const Prose = ({ section }: { section: CaseStudySection }) => (
 /**
  * A section of the narrative. Without a figure it is prose at a reading
  * measure; with one it is a two-column band from `lg`, the figure on the side
- * `flip` says, and prose over figure below that. `pencil` is the page's
- * swap between the drawn pictures and the photographs.
+ * `flip` says, and prose over figure below that.
  */
 export default function StudySection({
   section,
   flip,
-  pencil,
   className,
 }: {
   section: CaseStudySection;
   flip: boolean;
-  pencil: boolean;
   className: string;
 }) {
   if (!section.figure) {
@@ -54,7 +51,7 @@ export default function StudySection({
         <div className={FRAME}>
           <Frame r={16} weight={1.5} tone={0.85} draw />
           <div className={FRAME_INNER}>
-            <ProjectFigure figure={section.figure} eager pencil={pencil} className="block h-auto w-full" />
+            <ProjectFigure figure={section.figure} eager className="block h-auto w-full" />
           </div>
         </div>
         <figcaption className="mt-3 text-sm leading-relaxed text-graphite">{section.figure.caption}</figcaption>
