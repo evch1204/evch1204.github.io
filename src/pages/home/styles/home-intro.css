@@ -21,7 +21,7 @@
 
 .hello-intro-mark {
   position: relative;
-  width: min(64vw, 560px);
+  width: min(72vw, 760px);
   max-width: 100%;
   height: auto;
   overflow: visible;
@@ -30,7 +30,7 @@
 .hello-intro-mark path {
   fill: none;
   stroke: var(--home-fg);
-  stroke-width: 4.2;
+  stroke-width: 9;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
