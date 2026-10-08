@@ -7,6 +7,7 @@ export const DRAWSPACE: Project = {
   kind: 'Diagram canvas',
   group: 'apps',
   liveUrl: 'https://drawspace.app.space',
+  demoUrl: 'https://www.youtube.com/watch?v=GrjuwMmOThM',
   panel: { kind: 'screenshot', src: cardImage },
   cardDescription:
     'An infinite diagramming canvas with pen, shape, arrow and text tools that render in a hand-drawn style, organised into files and folders with zoom and full undo history.',
