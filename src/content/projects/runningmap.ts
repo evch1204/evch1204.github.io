@@ -10,6 +10,7 @@ export const RUNNINGMAP: Project = {
   kind: 'Route planner',
   group: 'apps',
   liveUrl: 'https://runningmap.app.space',
+  demoUrl: 'https://www.youtube.com/watch?v=cujYOkWi68U',
   panel: { kind: 'screenshot', src: cardImage },
   cardDescription:
     'Plot a running route leg by leg on an interactive map — drag a point to fine-tune the line, shift-click to remove it — with live distance and walk, bike or drive pacing as the route grows.',
