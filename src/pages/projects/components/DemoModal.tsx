@@ -2,9 +2,9 @@ import { useLayoutEffect, useRef, type RefObject } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react';
 import Modal from '@/components/Modal';
-import PillLink from '@/components/PillLink';
 import Frame from '@/components/sketch/Frame';
 import type { Figure, Project } from '@/content/projects';
+import { linkProps } from '@/lib/links';
 import { EASE } from '@/lib/motion';
 import { youtubeEmbedUrl } from '@/lib/url';
 import { FRAME, FRAME_INNER, HERO_TRANSITION } from '@/pages/projects/hero';
@@ -45,11 +45,22 @@ const flyTo = (panel: HTMLElement, to: Box) =>
   animate(panel, { top: px(to.top), left: px(to.left), width: px(to.width), height: px(to.height) }, HERO_TRANSITION);
 
 /**
- * The project's demo video, in a dialog framed like the rest of the sheet —
- * and the way it arrives: the hero's frame lifts off the page and grows
- * into the player, the screenshot in it giving way to the video, and shrinks
- * back into place when the dialog closes. The same move the card's window
- * makes when it grows into the hero, carried one step further.
+ * The player's box: sixteen by nine, as wide as the page's content, and never
+ * taller than most of the viewport — the overlay's padding keeps it off the
+ * edges. A class rather than a style, so the flight's inline box can be
+ * cleared back to it.
+ */
+const PLAYER = 'aspect-video w-[min(64rem,82dvh_*_16_/_9)] max-w-full';
+
+/**
+ * The project's demo video, and the way it arrives: the hero's frame lifts
+ * off the page and grows into the player — the frame *is* the player, the
+ * video filling it edge to edge, the screenshot in it giving way to the
+ * video as it grows — and shrinks back into place when the dialog closes.
+ * The same move the card's window makes when it grows into the hero,
+ * carried one step further. The name and the way out to YouTube sit under
+ * the frame like the hero's caption; the close button hangs off its corner
+ * like the hero's arrows. Both wait for the frame to land.
  *
  * The flight is measured, not shared: the panel is pinned to the viewport at
  * the hero's box on screen (`origin`), ruled by hand exactly as the hero is
@@ -74,10 +85,10 @@ export default function DemoModal({
   onClose: () => void;
 }) {
   const fly = !useReducedMotion();
-  /** The hero's picture over the panel: solid for the lift-off, gone once the player is in view. */
+  /** The hero's picture over the player: solid for the lift-off, gone by the time the frame lands. */
   const pictureOpacity = useMotionValue(0);
-  /** The dialog proper — header and player — the other way round. */
-  const contentOpacity = useMotionValue(1);
+  /** The caption and the close button, outside the frame: there once it has landed, gone as it leaves. */
+  const chromeOpacity = useMotionValue(1);
   const closing = useRef(false);
 
   // Before paint, with the panel laid out where it will land: pin it to the
@@ -90,9 +101,10 @@ export default function DemoModal({
     const to = boxOf(panel);
     if (!panel || !from || !to) return;
     pictureOpacity.set(1);
-    contentOpacity.set(0);
-    animate(pictureOpacity, 0, { duration: 0.35, delay: 0.12, ease: EASE });
-    animate(contentOpacity, 1, { duration: 0.3, delay: 0.3, ease: EASE });
+    chromeOpacity.set(0);
+    // The picture outlasts the flight a little: it hands over to the player, not to the ink behind it.
+    animate(pictureOpacity, 0, { duration: 0.55, delay: 0.2, ease: EASE });
+    animate(chromeOpacity, 1, { duration: 0.3, delay: 0.4, ease: EASE });
     let stale = false;
     pin(panel, from);
     flyTo(panel, to).then(() => {
@@ -119,7 +131,7 @@ export default function DemoModal({
       return;
     }
     closing.current = true;
-    animate(contentOpacity, 0, { duration: 0.15, ease: EASE });
+    animate(chromeOpacity, 0, { duration: 0.12, ease: EASE });
     animate(pictureOpacity, 1, { duration: 0.3, delay: 0.1, ease: EASE });
     pin(panel, from);
     flyTo(panel, to).then(onClose);
@@ -134,7 +146,7 @@ export default function DemoModal({
       backdropClassName="bg-ink/45 backdrop-blur-[1px]"
       backdropLabel="Close demo"
       label={`${project.cardTitle} demo`}
-      panelClassName={`${FRAME} relative z-[102] w-full max-w-5xl shadow-[0_32px_64px_rgba(0,0,0,0.2)] outline-none`}
+      panelClassName={`${FRAME} ${PLAYER} relative z-[102] shadow-[0_32px_64px_rgba(0,0,0,0.25)] outline-none`}
       panelMotion={
         fly
           ? {
@@ -148,46 +160,53 @@ export default function DemoModal({
     >
       {/* Over the picture rather than under it, so the whole line shows while the hero's picture covers the box. */}
       <Frame r={16} weight={1.6} tone={0.9} double className="z-10" />
-      <div className={`relative h-full ${FRAME_INNER}`}>
-        <motion.div style={{ opacity: contentOpacity }} className="flex flex-col">
-          <div className="flex shrink-0 items-center gap-3 px-5 py-4 sm:px-6">
-            <h2 className="sk-heading">{project.cardTitle}</h2>
-            <span className="text-sm font-semibold text-graphite">Demo</span>
-            <div className="ml-auto flex items-center gap-2">
-              <PillLink size="sm" variant="outline" href={project.demoUrl}>
-                <ExternalLink size={14} /> <span className="hidden sm:inline">Open on YouTube</span>
-              </PillLink>
-              <button
-                type="button"
-                onClick={requestClose}
-                className="rounded-full p-2 text-pencil transition-[color,rotate] duration-300 hover:rotate-90 hover:text-ink focus-ring"
-                aria-label="Close"
-              >
-                <X size={20} />
-              </button>
-            </div>
-          </div>
-          <div className="sk-rule p-3 sm:p-6">
-            {/* Ink behind the player, so the frame reads as a screen while the video loads. */}
-            <div className="aspect-video w-full overflow-hidden rounded-lg bg-ink">
-              <iframe
-                src={youtubeEmbedUrl(project.demoUrl)}
-                title={`${project.cardTitle} demo`}
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-                className="block h-full w-full border-0"
-              />
-            </div>
-          </div>
-        </motion.div>
-        {/* The hero's picture, over everything, for the lift-off and the landing. */}
+      {/* Ink behind the player, so the frame reads as a screen while the video loads. */}
+      <div className={`relative h-full w-full bg-ink ${FRAME_INNER}`}>
+        <iframe
+          src={youtubeEmbedUrl(project.demoUrl)}
+          title={`${project.cardTitle} demo`}
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="block h-full w-full border-0"
+        />
+        {/* The hero's picture, over the player, for the lift-off and the landing. */}
         {fly ? (
           <motion.div style={{ opacity: pictureOpacity }} className="pointer-events-none absolute inset-0" aria-hidden>
             <ProjectFigure figure={picture} eager className="h-full w-full object-cover object-top" />
           </motion.div>
         ) : null}
       </div>
+
+      {/* Under the frame, as the hero's caption is: the name in ink, the way out to YouTube on the right. */}
+      <motion.div
+        style={{ opacity: chromeOpacity }}
+        className="absolute inset-x-0 top-full mt-3 flex items-center justify-between gap-4 text-sm leading-relaxed text-page/85 md:mt-4"
+      >
+        <span className="min-w-0 truncate">
+          <b className="font-bold text-page">{project.cardTitle}</b>
+          <span className="ml-2.5">Demo</span>
+        </span>
+        <a
+          href={project.demoUrl}
+          {...linkProps(project.demoUrl)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md font-semibold text-page underline decoration-page/40 decoration-[1.5px] underline-offset-4 transition-colors hover:decoration-page focus-ring"
+        >
+          Open on YouTube <ExternalLink size={13} />
+        </a>
+      </motion.div>
+
+      {/* The way out, a circle drawn by hand on the frame's corner, as the arrows hang off the hero's edges. */}
+      <motion.button
+        type="button"
+        onClick={requestClose}
+        style={{ opacity: chromeOpacity }}
+        aria-label="Close demo"
+        className="sk-frame group absolute -right-4 -top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full bg-page text-pencil transition-colors hover:text-ink focus-ring md:-right-5 md:-top-5 md:h-10 md:w-10"
+      >
+        <Frame r={999} weight={1.5} tone={0.9} />
+        <X size={18} className="transition-transform duration-300 group-hover:rotate-90" />
+      </motion.button>
     </Modal>
   );
 }
