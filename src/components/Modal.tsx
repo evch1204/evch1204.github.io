@@ -1,6 +1,6 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, type HTMLMotionProps } from 'motion/react';
 import { EASE } from '@/lib/motion';
 
 type ModalProps = {
@@ -15,6 +15,13 @@ type ModalProps = {
   panelClassName: string;
   /** Name for a dialog with no visible title to point at. */
   label?: string;
+  /**
+   * The panel's own entrance and exit, in place of the default rise-and-fade:
+   * initial, animate, exit, transition and a style of motion values. For a
+   * dialog that arrives some other way — the demo's frame flying in from
+   * the hero.
+   */
+  panelMotion?: Pick<HTMLMotionProps<'div'>, 'initial' | 'animate' | 'exit' | 'transition' | 'style'>;
   children: ReactNode;
 };
 
@@ -33,6 +40,7 @@ export default function Modal({
   backdropLabel,
   panelClassName,
   label,
+  panelMotion,
   children,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -91,7 +99,8 @@ export default function Modal({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  useEffect(() => {
+  // Before paint: a dialog that measures where it is flying from must see the page as it is once locked.
+  useLayoutEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -109,15 +118,14 @@ export default function Modal({
   return createPortal(
     <AnimatePresence>
       {open ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className={overlayClassName}
-        >
-          <button
+        <motion.div className={overlayClassName}>
+          {/* The backdrop fades on its own: the panel arrives and leaves its own way, and must not be dimmed with it. */}
+          <motion.button
             type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className={`fixed inset-0 z-[101] ${backdropClassName}`}
             aria-label={backdropLabel}
             onClick={onClose}
@@ -132,6 +140,7 @@ export default function Modal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.25, ease: EASE }}
+            {...panelMotion}
             className={panelClassName}
           >
             {children}

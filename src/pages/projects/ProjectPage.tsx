@@ -57,6 +57,7 @@ export default function ProjectPage({
   const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
+  const heroFrameRef = useRef<HTMLDivElement>(null);
   const [demoOpen, setDemoOpen] = useState(false);
 
   // The page is the new thing on screen: the keyboard starts at its title.
@@ -156,6 +157,9 @@ export default function ProjectPage({
         arrowDelay={arrowDelay}
         // The demo's play button sits on the picture: the one thing on the page that says "watch".
         action={project.demoUrl ? <DemoPlayButton delay={arrowDelay} onClick={() => setDemoOpen(true)} /> : undefined}
+        // While the demo is open the frame is off the page, flying as the dialog; with reduced motion it stays put.
+        frameRef={heroFrameRef}
+        lifted={demoOpen && !reduced}
         caption={
           // The right slot counts the pictures; the address pill at the top already names the host.
           <Caption
@@ -207,7 +211,7 @@ export default function ProjectPage({
         </div>
       </motion.div>
 
-      <DemoModal project={project} open={demoOpen} onClose={() => setDemoOpen(false)} />
+      <DemoModal project={project} picture={hero} open={demoOpen} origin={heroFrameRef} onClose={() => setDemoOpen(false)} />
     </article>
   );
 }

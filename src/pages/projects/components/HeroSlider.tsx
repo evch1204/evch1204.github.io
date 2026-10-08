@@ -65,6 +65,8 @@ export default function HeroSlider({
   arrowDelay,
   caption,
   action,
+  frameRef,
+  lifted = false,
   ref,
   ...motionProps
 }: HTMLMotionProps<'figure'> & {
@@ -78,6 +80,10 @@ export default function HeroSlider({
   caption: ReactNode;
   /** A control laid over the picture, positioned against the frame like the arrows: the demo's play button. */
   action?: ReactNode;
+  /** The frame's box on screen — where the demo's dialog flies from, and back to. */
+  frameRef?: Ref<HTMLDivElement>;
+  /** The frame has left the page: it is hidden, along with its arrows and action, while a stand-in flies. */
+  lifted?: boolean;
   ref?: Ref<HTMLElement>;
 }) {
   const reduced = useReducedMotion();
@@ -117,7 +123,7 @@ export default function HeroSlider({
       {/* The frame hugs the picture: a tall figure is capped in height and centred rather than letterboxed. */}
       <div className="flex justify-center">
         {/* Shrink-wraps the frame, so the arrows hang off the picture's edges and not the page's. */}
-        <div className="relative max-w-full">
+        <div ref={frameRef} className="relative max-w-full" style={{ visibility: lifted ? 'hidden' : undefined }}>
           <motion.div
             layoutId={layoutId}
             layoutDependency={layoutDependency}

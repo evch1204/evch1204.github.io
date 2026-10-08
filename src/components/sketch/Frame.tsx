@@ -50,7 +50,10 @@ export default function Frame({ r = 14, weight = 1.5, tone = 0.85, fill = false,
   return (
     <span ref={ref} className={`sk-frame-art ${className}`} aria-hidden>
       {size && size.w > 0 && size.h > 0 ? (
-        <svg width={size.w} height={size.h} viewBox={`0 0 ${size.w} ${size.h}`}>
+        // Fills the box rather than taking the measured size: a box that is
+        // animating stretches the last drawing to fit between measurements,
+        // instead of showing it at a stale size, and at rest the two agree.
+        <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${size.w} ${size.h}`}>
           {fill ? <path className="sk-frame-fill" d={boxOutline(size.w, size.h, r, seed, { closed: true })} /> : null}
           {double ? (
             <path
