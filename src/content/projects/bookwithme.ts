@@ -10,6 +10,7 @@ export const BOOKWITHME: Project = {
   kind: 'Scheduling',
   group: 'apps',
   liveUrl: 'https://bookwithme.app.space',
+  demoUrl: 'https://www.youtube.com/watch?v=ySjUQaAK528',
   panel: { kind: 'screenshot', src: cardImage },
   cardDescription:
     'Publishes a booking page for a meeting type — duration, description and live availability — so a guest picks a slot in their own time zone and it lands on the host schedule.',
