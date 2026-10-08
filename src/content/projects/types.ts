@@ -64,6 +64,8 @@ export type Project = {
   group: ProjectGroup;
   /** Deployed site. Shown on the card as its bare host name. */
   liveUrl?: string;
+  /** A short walk-through on YouTube. The page offers it as "Watch demo", played in a popup. */
+  demoUrl?: string;
   panel: CardPanel;
   caseStudy: CaseStudy;
 };

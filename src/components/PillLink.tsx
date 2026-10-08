@@ -39,7 +39,14 @@ type PillLinkProps = Common &
         download?: string;
         onClick?: never;
       }
-    | { as: 'button'; onClick: () => void; href?: never; download?: never }
+    | {
+        as: 'button';
+        onClick: () => void;
+        /** Says the button opens a dialog rather than doing the thing itself. */
+        'aria-haspopup'?: 'dialog';
+        href?: never;
+        download?: never;
+      }
   );
 
 export default function PillLink(props: PillLinkProps) {
@@ -49,7 +56,7 @@ export default function PillLink(props: PillLinkProps) {
 
   if (props.as === 'button') {
     return (
-      <button type="button" onClick={props.onClick} className={cls}>
+      <button type="button" onClick={props.onClick} aria-haspopup={props['aria-haspopup']} className={cls}>
         {pill}
         {children}
       </button>

@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
+import PillLink from '@/components/PillLink';
 import Sketch from '@/components/sketch/Sketch';
 import { ARROW_RIGHT, UNDERSCORE } from '@/components/sketch/marks';
 import { groupLabel, type Project } from '@/content/projects';
@@ -10,6 +11,7 @@ import { projectAddresses } from './addresses';
 import AddressPill from './components/AddressPill';
 import Caption from './components/Caption';
 import StudySection from './components/CaseStudySection';
+import DemoModal from './components/DemoModal';
 import HeroSlider from './components/HeroSlider';
 import MetaStrip from './components/MetaStrip';
 import NeighbourCard from './components/NeighbourCard';
@@ -54,6 +56,7 @@ export default function ProjectPage({
   const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   // The page is the new thing on screen: the keyboard starts at its title.
   useEffect(() => {
@@ -102,11 +105,24 @@ export default function ProjectPage({
           >
             <ArrowLeft size={17} className="shrink-0 transition-transform duration-300 group-hover:-translate-x-1" /> Back to Projects
           </button>
-          {addresses.length > 0 ? (
+          {addresses.length > 0 || project.demoUrl ? (
             <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
               {addresses.map((address) => (
                 <AddressPill key={address.href} address={address} primary={address === primary} />
               ))}
+              {/* The demo video sits with the addresses: it is the other way to see the project, short of using it. */}
+              {project.demoUrl ? (
+                <PillLink
+                  as="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDemoOpen(true)}
+                  aria-haspopup="dialog"
+                  className="min-h-11 whitespace-nowrap md:min-h-0"
+                >
+                  <Play size={14} className="shrink-0" fill="currentColor" /> Watch demo
+                </PillLink>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -187,6 +203,8 @@ export default function ProjectPage({
           </nav>
         </div>
       </motion.div>
+
+      <DemoModal project={project} open={demoOpen} onClose={() => setDemoOpen(false)} />
     </article>
   );
 }
