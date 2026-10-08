@@ -9,6 +9,7 @@ export const DOCS: Project = {
   kind: 'Document workspace',
   group: 'apps',
   liveUrl: 'https://docs.app.space',
+  demoUrl: 'https://www.youtube.com/watch?v=L9ZCxK61r7I',
   panel: { kind: 'screenshot', src: cardImage },
   cardDescription:
     'A document workspace with a searchable library, folders, templates and sharing — documents open into a block editor with live formatting and autosave.',
