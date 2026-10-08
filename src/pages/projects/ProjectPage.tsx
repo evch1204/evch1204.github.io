@@ -12,6 +12,7 @@ import AddressPill from './components/AddressPill';
 import Caption from './components/Caption';
 import StudySection from './components/CaseStudySection';
 import DemoModal from './components/DemoModal';
+import DemoPlayButton from './components/DemoPlayButton';
 import HeroSlider from './components/HeroSlider';
 import MetaStrip from './components/MetaStrip';
 import NeighbourCard from './components/NeighbourCard';
@@ -153,6 +154,8 @@ export default function ProjectPage({
         layoutId={shared ? heroLayoutId(project.id) : undefined}
         layoutDependency={project.id}
         arrowDelay={arrowDelay}
+        // The demo's play button sits on the picture: the one thing on the page that says "watch".
+        action={project.demoUrl ? <DemoPlayButton delay={arrowDelay} onClick={() => setDemoOpen(true)} /> : undefined}
         caption={
           // The right slot counts the pictures; the address pill at the top already names the host.
           <Caption

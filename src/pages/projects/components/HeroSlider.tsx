@@ -64,6 +64,7 @@ export default function HeroSlider({
   layoutDependency,
   arrowDelay,
   caption,
+  action,
   ref,
   ...motionProps
 }: HTMLMotionProps<'figure'> & {
@@ -75,6 +76,8 @@ export default function HeroSlider({
   /** How long the arrows wait before fading in. */
   arrowDelay: number;
   caption: ReactNode;
+  /** A control laid over the picture, positioned against the frame like the arrows: the demo's play button. */
+  action?: ReactNode;
   ref?: Ref<HTMLElement>;
 }) {
   const reduced = useReducedMotion();
@@ -158,6 +161,7 @@ export default function HeroSlider({
               <Arrow direction="next" delay={arrowDelay} onClick={() => step(1)} />
             </>
           ) : null}
+          {action}
         </div>
       </div>
       {caption}
