@@ -222,6 +222,8 @@ export function useProjectRouting() {
     const onKey = (e: KeyboardEvent) => {
       // A chord (Alt+← is the browser's back) or a held key is not a request to move.
       if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || e.defaultPrevented) return;
+      // A dialog over the page — the demo — owns the keyboard: its Escape closes it, not the page.
+      if (document.querySelector('[aria-modal="true"]')) return;
       if (e.key === 'Escape') goBack();
       if (e.key === 'ArrowRight' && next) select(next);
       if (e.key === 'ArrowLeft' && prev) select(prev);

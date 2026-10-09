@@ -64,6 +64,8 @@ export default function Modal({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Claimed: nothing under the dialog should read the same Escape as its own.
+        e.preventDefault();
         onClose();
         return;
       }
