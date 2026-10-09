@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from 'react';
 import { ExternalLink, Play, X } from 'lucide-react';
-import { animate, cubicBezier, useReducedMotion, type AnimationPlaybackControlsWithThen, type AnimationSequence } from 'motion/react';
+import { animate, useReducedMotion, type AnimationPlaybackControlsWithThen, type AnimationSequence } from 'motion/react';
 import Modal from '@/components/Modal';
 import { boxOutline, seedOf } from '@/components/sketch/hand';
 import { UNDERSCORE } from '@/components/sketch/marks';
@@ -17,17 +17,15 @@ type Box = { x: number; y: number; w: number; h: number };
 type Seeds = { loop: number; label: number; frame: number; close: number };
 type Origin = { circle: RefObject<HTMLElement | null>; label: RefObject<HTMLElement | null> };
 
-/** The pen's two hands: slow off the mark and soft into the end for a line, quick and settling for a flight. */
-const pen = cubicBezier(...PEN_EASE);
-const fly = cubicBezier(...EASE);
-
 /** The popup's corner radius, the hero frame's. */
 const RADIUS = 16;
 /** The close button: a circle this wide, hung on the popup's top-right corner. */
 const CLOSE = 44;
-/** How many places the pen is told to be along a line, and along its flight. */
-const LINE_SAMPLES = 48;
-const ARC_SAMPLES = 32;
+/**
+ * The pen's line while it moves: loaded with ink, the way the hello is written
+ * — one heavy monoline. At rest a frame is ruled at the blots' own weight.
+ */
+const PEN_WIDTH = 5;
 /** A step with no duration to speak of: something shown or hidden the instant the pen gets there. */
 const TICK = 0.01;
 
@@ -52,25 +50,6 @@ const place = (el: HTMLElement, box: Box) =>
   Object.assign(el.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px` });
 
 /**
- * The places the pen is along a line, as keyframes: at even steps of time,
- * at the distance the line has reached by then under `ease`. Played linearly
- * they keep the pen on the head of a line drawn with that ease — an ease
- * given to the keyframes themselves would be spent between every pair of them.
- * `back` walks the line from its end, as a line un-drawing does.
- */
-const along = (path: SVGPathElement, ease: (t: number) => number, back = false) => {
-  const cx: number[] = [];
-  const cy: number[] = [];
-  for (let i = 0; i < LINE_SAMPLES; i++) {
-    const f = ease(i / (LINE_SAMPLES - 1));
-    const [x, y] = pointOf(path, back ? 1 - f : f);
-    cx.push(x);
-    cy.push(y);
-  }
-  return { cx, cy };
-};
-
-/**
  * The pen's way from `a` to `b`: one slight arc, a quadratic bow whose
  * middle is lifted off the straight line, upwards, by a quarter of its length.
  */
@@ -82,31 +61,22 @@ const bow = (a: Point, b: Point): Point => {
   return [(a[0] + b[0]) / 2 + nx * length * 0.25, (a[1] + b[1]) / 2 + ny * length * 0.25];
 };
 
-/** The arc as a path: the flick of ink the pen leaves as it flies. */
-const arcPath = (a: Point, b: Point) => {
+/** The arc from `a` to `b` as a path, or as the opening of one that carries on from `b`. */
+const arc = (a: Point, b: Point) => {
   const c = bow(a, b);
-  return `M ${a[0]} ${a[1]} Q ${c[0]} ${c[1]} ${b[0]} ${b[1]}`;
+  return `M${a[0]} ${a[1]}Q${c[0]} ${c[1]} ${b[0]} ${b[1]}`;
 };
 
-/** The pen's flight along the arc, eased the same way as the line it leaves. `back` flies it from `b` to `a`. */
-const flight = (a: Point, b: Point, back = false) => {
-  const c = bow(a, b);
-  const cx: number[] = [];
-  const cy: number[] = [];
-  for (let i = 0; i < ARC_SAMPLES; i++) {
-    const f = fly(i / (ARC_SAMPLES - 1));
-    const t = back ? 1 - f : f;
-    const u = 1 - t;
-    cx.push(u * u * a[0] + 2 * u * t * c[0] + t * t * b[0]);
-    cy.push(u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]);
-  }
-  return { cx, cy };
+/** Where a path begins. */
+const startOf = (d: string): Point => {
+  const m = /^M(-?[\d.]+) (-?[\d.]+)/.exec(d);
+  return m ? [Number(m[1]), Number(m[2])] : [0, 0];
 };
 
 /**
  * The point `f` of the way along a path, on screen: carried through whatever
  * the path is placed and stretched by into the stage's SVG, whose units are
- * the viewport's pixels — where the pen is drawn.
+ * the viewport's pixels.
  */
 function pointOf(path: SVGPathElement, f: number): Point {
   const p = path.getPointAtLength(f * path.getTotalLength());
@@ -143,11 +113,11 @@ type Els = {
   labelLoop: SVGPathElement;
   labelFill: SVGPathElement;
   stage: SVGGElement;
+  stroke: SVGPathElement;
   frame: SVGPathElement;
   frameSecond: SVGPathElement;
   paper: SVGPathElement;
-  pen: SVGCircleElement;
-  trail: SVGPathElement;
+  hop: SVGPathElement;
   marks: HTMLDivElement;
   play: HTMLSpanElement;
   words: HTMLSpanElement;
@@ -173,9 +143,11 @@ const resolve = (parts: Parts): Els | null => {
 
 /**
  * Lays the stage out to the viewport and to the button as they are now:
- * rules the popup's outline to its box, puts the player, the caption and the
- * close button round it, and copies the button's two blots to where they
- * sit. False while the button is not on the page to copy.
+ * rules the popup's outline to its box, writes the pen's one stroke — from
+ * the circle's loop up to the outline's start and on round it — puts the
+ * player, the caption and the close button round the box, and copies the
+ * button's two blots to where they sit. False while the button is not on
+ * the page to copy.
  */
 function lay(el: Els, origin: Origin, seeds: Seeds): boolean {
   const circleEl = origin.circle.current;
@@ -191,11 +163,13 @@ function lay(el: Els, origin: Origin, seeds: Seeds): boolean {
   place(el.words, label);
 
   el.stage.setAttribute('transform', `translate(${box.x} ${box.y})`);
-  el.frame.setAttribute('d', boxOutline(box.w, box.h, RADIUS, seeds.frame));
+  const outline = boxOutline(box.w, box.h, RADIUS, seeds.frame);
+  el.frame.setAttribute('d', outline);
   el.frameSecond.setAttribute('d', boxOutline(box.w, box.h, RADIUS, seeds.frame + 7, { wander: 1 }));
   el.paper.setAttribute('d', boxOutline(box.w, box.h, RADIUS, seeds.frame, { closed: true }));
-  // From the loop's end to the outline's start: where the pen flies, and the flick it leaves.
-  el.trail.setAttribute('d', arcPath(pointOf(el.loop, 1), pointOf(el.frame, 0)));
+  // One stroke, in the box's coordinates: the loop's end, the arc up to the outline's start, the outline.
+  const [ex, ey] = pointOf(el.loop, 1);
+  el.stroke.setAttribute('d', `${arc([ex - box.x, ey - box.y], startOf(outline))}${outline.replace(/^M/, 'L')}`);
   place(el.player, box);
   place(el.caption, { x: box.x, y: box.y + box.h + 14, w: box.w, h: 28 });
   // Centred on the corner, half off the popup like the hero's arrows; on a phone, kept on the screen.
@@ -209,65 +183,61 @@ function lay(el: Els, origin: Origin, seeds: Seeds): boolean {
 }
 
 /**
- * The opening, ~1.2s, from the button at rest. Lift: the ink drains out of
- * both blots and the words go with it, the circle's loop left on the page.
- * Unspool: the loop reels in towards its own end while the pen tip flies off
- * it, in a slight arc, to the popup's top-left corner. Draw: the pen rules
- * the popup's outline clockwise, the dot on the line's head, and paper comes
- * up inside as it closes. Develop: the pencil's second pass, the video, the
- * caption with its underline, and the close button's loop.
+ * The opening, ~1.85s, from the button at rest, written the way the hello
+ * is: one heavy line, in one movement, taking its time. Lift: the ink drains
+ * out of both blots and the words go with it, and gathers into the circle's
+ * loop, which thickens into the pen's line. Unspool: the loop reels in
+ * towards its own end. Stroke: from there the pen writes one line — up, in a
+ * slight arc, to the popup's top-left corner, and round the outline
+ * clockwise — and paper comes up inside as it closes. Develop: the line
+ * dries to a frame's weight, the arc fades off the page, and the pencil's
+ * second pass, the video, the caption and the close button's loop arrive.
  */
 function opening(el: Els): AnimationSequence {
-  const out = flight(pointOf(el.loop, 1), pointOf(el.frame, 0));
-  const rule = along(el.frame, pen);
+  // Every dash value starts from a stated place, never from wherever the last closing left it.
   return [
     // Lift
     [el.loopFill, { opacity: [1, 0] }, { at: 0, duration: 0.15, ease: EASE }],
     [el.labelFill, { opacity: [1, 0] }, { at: 0, duration: 0.15, ease: EASE }],
     [el.marks, { opacity: [1, 0] }, { at: 0, duration: 0.12, ease: 'linear' }],
     [el.labelLoop, { opacity: [1, 0] }, { at: 0, duration: 0.3, ease: EASE }],
+    [el.loop, { strokeWidth: [BLOT.weight, PEN_WIDTH] }, { at: 0, duration: 0.2, ease: EASE }],
     // Unspool: the line's start runs round to its end, so it reels in rather than being cut back.
-    [el.loop, { pathLength: [1, 0], pathOffset: [0, 1] }, { at: 0.15, duration: 0.27, ease: PEN_EASE }],
-    [el.loop, { opacity: [1, 0] }, { at: 0.42, duration: TICK }],
-    [el.pen, { opacity: [0, 1] }, { at: 0.15, duration: TICK }],
-    [el.pen, out, { at: 0.15, duration: 0.27, ease: 'linear' }],
-    // The flick: a light stroke the pen leaves on its way up, gone again as the outline gets going.
-    [el.trail, { opacity: [0, 1] }, { at: 0.15, duration: TICK }],
-    [el.trail, { pathLength: [0, 1], pathOffset: [0, 0] }, { at: 0.15, duration: 0.27, ease: EASE }],
-    [el.trail, { opacity: 0 }, { at: 0.45, duration: 0.3, ease: EASE }],
-    // Draw. Shown only once it starts: a line of no length with round caps is still a dot.
-    [el.frame, { opacity: [0, 1] }, { at: 0.42, duration: TICK }],
-    [el.frame, { pathLength: [0, 1] }, { at: 0.42, duration: 0.48, ease: PEN_EASE }],
-    [el.pen, rule, { at: 0.42, duration: 0.48, ease: 'linear' }],
-    [el.paper, { opacity: [0, 1] }, { at: 0.55, duration: 0.35, ease: EASE }],
-    // Develop
-    [el.frameSecond, { opacity: [0, 0.32] }, { at: 0.9, duration: 0.2, ease: EASE }],
-    [el.pen, { opacity: 0 }, { at: 0.9, duration: 0.1, ease: EASE }],
-    [el.player, { opacity: [0, 1] }, { at: 0.9, duration: 0.3, ease: EASE }],
-    [el.caption, { opacity: [0, 1] }, { at: 0.95, duration: 0.25, ease: EASE }],
-    [el.underline, { opacity: [0, 1] }, { at: 0.95, duration: TICK }],
-    [el.underline, { pathLength: [0, 1] }, { at: 0.95, duration: 0.25, ease: PEN_EASE }],
-    [el.closeLoop, { opacity: [0, 1] }, { at: 0.95, duration: TICK }],
-    [el.closeLoop, { pathLength: [0, 1] }, { at: 0.95, duration: 0.25, ease: PEN_EASE }],
-    [el.closeFill, { opacity: [0, 1] }, { at: 0.95, duration: 0.25, ease: EASE }],
-    [el.close, { opacity: [0, 1] }, { at: 1.05, duration: 0.1, ease: EASE }],
+    [el.loop, { pathLength: [1, 0], pathOffset: [0, 1] }, { at: 0.15, duration: 0.35, ease: PEN_EASE }],
+    [el.loop, { opacity: 0 }, { at: 0.5, duration: TICK }],
+    // Stroke. Shown only once it starts: a line of no length with round caps is still a dot.
+    [el.stroke, { opacity: [0, 1] }, { at: 0.45, duration: TICK }],
+    [el.stroke, { pathLength: [0, 1], strokeWidth: [PEN_WIDTH, PEN_WIDTH] }, { at: 0.45, duration: 1.05, ease: PEN_EASE }],
+    [el.paper, { opacity: [0, 1] }, { at: 1.1, duration: 0.4, ease: EASE }],
+    // Develop: the frame proper takes over under the stroke, which dries and goes.
+    [el.frame, { opacity: [0, 1], pathLength: [1, 1], pathOffset: [0, 0], strokeWidth: [BLOT.weight, BLOT.weight] }, { at: 1.5, duration: 0.2, ease: EASE }],
+    [el.stroke, { strokeWidth: [PEN_WIDTH, BLOT.weight] }, { at: 1.5, duration: 0.25, ease: EASE }],
+    [el.stroke, { opacity: 0 }, { at: 1.55, duration: 0.3, ease: EASE }],
+    [el.frameSecond, { opacity: [0, 0.32] }, { at: 1.55, duration: 0.2, ease: EASE }],
+    [el.player, { opacity: [0, 1] }, { at: 1.5, duration: 0.3, ease: EASE }],
+    [el.caption, { opacity: [0, 1] }, { at: 1.6, duration: 0.25, ease: EASE }],
+    [el.underline, { opacity: [0, 1] }, { at: 1.6, duration: TICK }],
+    [el.underline, { pathLength: [0, 1] }, { at: 1.6, duration: 0.25, ease: PEN_EASE }],
+    [el.closeLoop, { opacity: [0, 1] }, { at: 1.6, duration: TICK }],
+    [el.closeLoop, { pathLength: [0, 1] }, { at: 1.6, duration: 0.25, ease: PEN_EASE }],
+    [el.closeFill, { opacity: [0, 1] }, { at: 1.6, duration: 0.25, ease: EASE }],
+    [el.close, { opacity: [0, 1] }, { at: 1.75, duration: 0.1, ease: EASE }],
   ];
 }
 
 /**
- * The closing, 750ms, the opening run back. Fade: the video, the caption and
- * the close button go, the close loop un-draws. Retrace: the pen walks the
- * outline back from where it ended, the paper going with it. Return: the pen
- * flies back down its arc. Refill: it rules the circle's loop again, and the
- * ink and the words come back into both blots — the button, as it was.
+ * The closing, ~0.95s, the short way home. Fade: the video, the caption and
+ * the close button go, the close loop un-draws, and the frame loads up to the
+ * pen's weight. Zip: the outline runs off both ways into its bottom-right
+ * corner — the corner nearest the button — the paper going with it. Hop:
+ * from that corner the pen drops to the circle's loop. Refill: it rules the
+ * loop again, the line dries to the blot's weight, and the ink and the words
+ * come back into both blots — the button, as it was.
  *
  * Every value it moves it moves from wherever it is, so a close that cuts an
- * opening short runs back from there.
+ * opening short runs home from there.
  */
 function closing(el: Els): AnimationSequence {
-  const retrace = along(el.frame, pen, true);
-  const home = flight(pointOf(el.loop, 1), pointOf(el.frame, 0), true);
-  const reloop = along(el.loop, pen);
   return [
     // Fade
     [el.player, { opacity: 0 }, { at: 0, duration: 0.15, ease: EASE }],
@@ -276,36 +246,36 @@ function closing(el: Els): AnimationSequence {
     [el.closeLoop, { pathLength: 0 }, { at: 0, duration: 0.15, ease: PEN_EASE }],
     [el.closeFill, { opacity: 0 }, { at: 0, duration: 0.15, ease: EASE }],
     [el.frameSecond, { opacity: 0 }, { at: 0, duration: 0.15, ease: EASE }],
-    // Retrace: the head walks back, the pen on it.
-    [el.pen, { opacity: 1 }, { at: 0.15, duration: TICK }],
-    [el.frame, { pathLength: 0 }, { at: 0.15, duration: 0.25, ease: PEN_EASE }],
-    [el.pen, retrace, { at: 0.15, duration: 0.25, ease: 'linear' }],
-    [el.paper, { opacity: 0 }, { at: 0.15, duration: 0.25, ease: 'linear' }],
-    [el.frame, { opacity: 0 }, { at: 0.4, duration: TICK }],
-    // Return: the flick drawn the other way, from the corner down to the button, and gone as the ink comes back.
-    [el.pen, home, { at: 0.4, duration: 0.15, ease: 'linear' }],
-    [el.trail, { opacity: 1 }, { at: 0.4, duration: TICK }],
-    [el.trail, { pathLength: [0, 1], pathOffset: [1, 0] }, { at: 0.4, duration: 0.15, ease: EASE }],
-    [el.trail, { opacity: 0 }, { at: 0.55, duration: 0.2, ease: EASE }],
-    // Refill: the loop drawn again from its start, the pen riding it and lifting off at its end.
-    [el.loop, { opacity: 1 }, { at: 0.55, duration: TICK }],
-    [el.loop, { pathLength: [0, 1], pathOffset: [0, 0] }, { at: 0.55, duration: 0.15, ease: PEN_EASE }],
-    [el.pen, reloop, { at: 0.55, duration: 0.15, ease: 'linear' }],
-    [el.pen, { opacity: 0 }, { at: 0.7, duration: TICK }],
-    [el.loopFill, { opacity: 1 }, { at: 0.6, duration: 0.15, ease: EASE }],
-    [el.labelFill, { opacity: 1 }, { at: 0.6, duration: 0.15, ease: EASE }],
-    [el.labelLoop, { opacity: 1 }, { at: 0.6, duration: 0.15, ease: EASE }],
-    [el.marks, { opacity: 1 }, { at: 0.65, duration: 0.1, ease: EASE }],
+    [el.stroke, { opacity: 0 }, { at: 0, duration: 0.15, ease: EASE }],
+    [el.frame, { opacity: 1, strokeWidth: [BLOT.weight, PEN_WIDTH] }, { at: 0, duration: 0.15, ease: EASE }],
+    // Zip: the line's start runs on clockwise and its end back, and they meet at the bottom-right corner.
+    [el.frame, { pathLength: [1, 0], pathOffset: [0, 0.5] }, { at: 0.15, duration: 0.4, ease: PEN_EASE }],
+    [el.paper, { opacity: 0 }, { at: 0.15, duration: 0.4, ease: 'linear' }],
+    [el.frame, { opacity: 0 }, { at: 0.55, duration: TICK }],
+    // Hop
+    [el.hop, { opacity: 1 }, { at: 0.55, duration: TICK }],
+    [el.hop, { pathLength: [0, 1], pathOffset: [0, 0] }, { at: 0.55, duration: 0.15, ease: PEN_EASE }],
+    [el.hop, { opacity: 0 }, { at: 0.72, duration: 0.15, ease: EASE }],
+    // Refill: the loop drawn again from its start, the line drying as the ink comes back.
+    [el.loop, { opacity: 1 }, { at: 0.7, duration: TICK }],
+    [el.loop, { pathLength: [0, 1], pathOffset: [0, 0] }, { at: 0.7, duration: 0.15, ease: PEN_EASE }],
+    [el.loop, { strokeWidth: [PEN_WIDTH, BLOT.weight] }, { at: 0.8, duration: 0.15, ease: EASE }],
+    [el.loopFill, { opacity: 1 }, { at: 0.78, duration: 0.15, ease: EASE }],
+    [el.labelFill, { opacity: 1 }, { at: 0.78, duration: 0.15, ease: EASE }],
+    [el.labelLoop, { opacity: 1 }, { at: 0.78, duration: 0.15, ease: EASE }],
+    [el.marks, { opacity: 1 }, { at: 0.83, duration: 0.1, ease: EASE }],
   ];
 }
 
 /**
  * The project's demo video, and the way it arrives: the pen draws the stage.
- * The button's ink drains, its loop unspools into the pen's tip, the tip
- * flies to the popup's corner, a flick of ink behind it, and rules the popup round, paper fills it and
- * the video comes up on the paper. Closing runs it all back into the button.
- * No box grows and nothing scales: everything that moves is a line being
- * drawn or a thing fading, the site's own vocabulary.
+ * The button's ink drains into its loop, the loop unspools into the pen's
+ * line, and the pen writes one heavy stroke up to the popup's corner and
+ * round it, as the hello is written; paper fills it and the video comes up
+ * on the paper, and the line dries to a frame. Closing zips the outline into
+ * the corner nearest the button, hops down and refills it. No box grows and
+ * nothing scales: everything that moves is a line being drawn or a thing
+ * fading, the site's own vocabulary.
  *
  * The panel is the whole viewport, out of the pointer's way except where
  * something takes it; the drawing is one SVG over it in the viewport's
@@ -336,11 +306,11 @@ export default function DemoStage({
   const labelLoop = useRef<SVGPathElement>(null);
   const labelFill = useRef<SVGPathElement>(null);
   const stage = useRef<SVGGElement>(null);
+  const stroke = useRef<SVGPathElement>(null);
   const frame = useRef<SVGPathElement>(null);
   const frameSecond = useRef<SVGPathElement>(null);
   const paper = useRef<SVGPathElement>(null);
-  const penDot = useRef<SVGCircleElement>(null);
-  const trail = useRef<SVGPathElement>(null);
+  const hop = useRef<SVGPathElement>(null);
   const marks = useRef<HTMLDivElement>(null);
   const play = useRef<HTMLSpanElement>(null);
   const words = useRef<HTMLSpanElement>(null);
@@ -354,7 +324,7 @@ export default function DemoStage({
   const pieces = useCallback(
     () =>
       resolve({
-        circleArt, loop, loopFill, labelArt, labelLoop, labelFill, stage, frame, frameSecond, paper, pen: penDot, trail,
+        circleArt, loop, loopFill, labelArt, labelLoop, labelFill, stage, stroke, frame, frameSecond, paper, hop,
         marks, play, words, player, caption, underline, close, closeLoop, closeFill,
       }),
     [],
@@ -402,7 +372,7 @@ export default function DemoStage({
     return () => window.removeEventListener('resize', onResize);
   }, [open, pieces, circleRef, labelRef, seeds]);
 
-  // Every way out — Escape, the backdrop, the close button — runs the pen back into the button first.
+  // Every way out — Escape, the backdrop, the close button — runs the pen home into the button first.
   const requestClose = () => {
     if (leaving.current) return;
     leaving.current = true;
@@ -412,6 +382,8 @@ export default function DemoStage({
       onClose();
       return;
     }
+    // The hop: from the outline's bottom-right corner, halfway round it, down to the loop's end.
+    el.hop.setAttribute('d', arc(pointOf(el.frame, 0.5), pointOf(el.loop, 1)));
     playing.current = animate(closing(el));
     playing.current.then(onClose);
   };
@@ -450,15 +422,15 @@ export default function DemoStage({
           <path ref={labelFill} fill="var(--color-ink)" opacity={rest} style={{ filter: BLOT_SHADOW }} />
           <path ref={labelLoop} {...LINE} strokeWidth={BLOT.weight} strokeOpacity={BLOT.tone} opacity={rest} />
         </g>
-        {/* The popup: paper, the pencil's second pass a little off the line, and the line. */}
+        {/* The popup: paper, the pencil's second pass a little off the line, the line, and over it the pen's stroke. */}
         <g ref={stage}>
           <path ref={paper} fill="var(--color-page)" opacity={shown} />
           <path ref={frameSecond} transform="translate(1.5 2)" {...LINE} strokeWidth={BLOT.weight * 0.7} opacity={still ? 0.32 : 0} />
           <path ref={frame} pathLength={1} {...LINE} strokeWidth={BLOT.weight} opacity={shown} />
+          <path ref={stroke} pathLength={1} {...LINE} strokeWidth={PEN_WIDTH} opacity={0} />
         </g>
-        {/* The pen's tip, and the flick of ink it leaves between the button and the popup. */}
-        <path ref={trail} pathLength={1} {...LINE} strokeWidth={1.2} strokeOpacity={0.8} opacity={0} />
-        <circle ref={penDot} r={2.5} fill="var(--color-ink)" opacity={0} />
+        {/* The short line the pen takes home, from the popup's corner to the button. */}
+        <path ref={hop} pathLength={1} {...LINE} strokeWidth={PEN_WIDTH} opacity={0} />
       </svg>
 
       {/* The button's play mark and words over its stand-in's ink: page-coloured, they drain with it. */}
