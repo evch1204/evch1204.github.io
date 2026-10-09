@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import PillLink from '@/components/PillLink';
 import Sketch from '@/components/sketch/Sketch';
 import { ARROW_RIGHT, UNDERSCORE } from '@/components/sketch/marks';
 import { groupLabel, type Project } from '@/content/projects';
@@ -11,8 +10,8 @@ import { projectAddresses } from './addresses';
 import AddressPill from './components/AddressPill';
 import Caption from './components/Caption';
 import StudySection from './components/CaseStudySection';
-import DemoModal from './components/DemoModal';
-import DemoPlayButton from './components/DemoPlayButton';
+import DemoButton from './components/DemoButton';
+import DemoStage from './components/DemoStage';
 import HeroSlider from './components/HeroSlider';
 import MetaStrip from './components/MetaStrip';
 import NeighbourCard from './components/NeighbourCard';
@@ -57,7 +56,9 @@ export default function ProjectPage({
   const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const heroFrameRef = useRef<HTMLDivElement>(null);
+  // The demo button's two blots: the stage draws its stand-in over them and the pen sets off from them.
+  const demoCircleRef = useRef<HTMLSpanElement>(null);
+  const demoLabelRef = useRef<HTMLSpanElement>(null);
   const [demoOpen, setDemoOpen] = useState(false);
 
   // The page is the new thing on screen: the keyboard starts at its title.
@@ -107,24 +108,11 @@ export default function ProjectPage({
           >
             <ArrowLeft size={17} className="shrink-0 transition-transform duration-300 group-hover:-translate-x-1" /> Back to Projects
           </button>
-          {addresses.length > 0 || project.demoUrl ? (
+          {addresses.length > 0 ? (
             <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
               {addresses.map((address) => (
                 <AddressPill key={address.href} address={address} primary={address === primary} />
               ))}
-              {/* The demo video sits with the addresses: it is the other way to see the project, short of using it. */}
-              {project.demoUrl ? (
-                <PillLink
-                  as="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setDemoOpen(true)}
-                  aria-haspopup="dialog"
-                  className="min-h-11 whitespace-nowrap md:min-h-0"
-                >
-                  <Play size={14} className="shrink-0" fill="currentColor" /> Watch demo
-                </PillLink>
-              ) : null}
             </div>
           ) : null}
         </div>
@@ -155,11 +143,19 @@ export default function ProjectPage({
         layoutId={shared ? heroLayoutId(project.id) : undefined}
         layoutDependency={project.id}
         arrowDelay={arrowDelay}
-        // The demo's play button sits on the picture: the one thing on the page that says "watch".
-        action={project.demoUrl ? <DemoPlayButton delay={arrowDelay} onClick={() => setDemoOpen(true)} /> : undefined}
-        // While the demo is open the frame is off the page, flying as the dialog; with reduced motion it stays put.
-        frameRef={heroFrameRef}
-        lifted={demoOpen && !reduced}
+        // The demo's button is stuck on the frame's edge: the one thing on the page that says "watch". While the
+        // demo is open the stage draws a stand-in in its place for the pen to take apart; with reduced motion it stays.
+        action={
+          project.demoUrl ? (
+            <DemoButton
+              delay={arrowDelay}
+              onClick={() => setDemoOpen(true)}
+              hidden={demoOpen && !reduced}
+              circleRef={demoCircleRef}
+              labelRef={demoLabelRef}
+            />
+          ) : undefined
+        }
         caption={
           // The right slot counts the pictures; the address pill at the top already names the host.
           <Caption
@@ -167,7 +163,8 @@ export default function ProjectPage({
             text={hero.caption}
             right={many ? counter(slides.current, pictures.length) : undefined}
             live={many}
-            className="mt-4 md:mt-5"
+            // The demo's button hangs below the frame; on a phone the counter would sit under it, so the row drops.
+            className={project.demoUrl ? 'mt-9 md:mt-5' : 'mt-4 md:mt-5'}
           />
         }
       />
@@ -211,7 +208,12 @@ export default function ProjectPage({
         </div>
       </motion.div>
 
-      <DemoModal project={project} picture={hero} open={demoOpen} origin={heroFrameRef} onClose={() => setDemoOpen(false)} />
+      <DemoStage
+        project={project}
+        open={demoOpen}
+        origin={{ circle: demoCircleRef, label: demoLabelRef }}
+        onClose={() => setDemoOpen(false)}
+      />
     </article>
   );
 }
