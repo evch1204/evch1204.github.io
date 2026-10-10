@@ -3,8 +3,8 @@
 /* ---- The home: the first sheet of the sketchbook, drawn on in one pen ----
  *
  * Under the site's header, the first screen is the name beside the scene with
- * `Scroll to explore` at its foot; the sheet then scrolls on to the featured
- * projects. Everything in ink is a traced stroke written by the Pen; the drop
+ * `Scroll to explore` at its foot; the sheet then scrolls on to the story so
+ * far. Everything in ink is a traced stroke written by the Pen; the drop
  * of ink that sets the pen off lives on its own layer over it all.
  */
 
@@ -365,7 +365,7 @@
   will-change: transform, opacity;
 }
 
-/* ---- Below the fold: the featured projects, and the footer ---- */
+/* ---- Below the fold: the story so far, and the footer ---- */
 
 .home-screen .home-more {
   position: relative;
@@ -377,10 +377,174 @@
   box-sizing: border-box;
 }
 
+/*
+ * The road down the sheet and the places on it. On a wide sheet the road runs
+ * down the middle column and the places take turns either side of it, their
+ * words turned towards it; on a phone it runs down the left and the words sit
+ * to its right. The pin is placed on the place's line: `--pin-y` is the
+ * middle of that line, from the top of the stop.
+ */
+.home-screen .home-story {
+  --road-col: 7rem;
+  --pin-y: 2.3rem;
+  position: relative;
+}
+
+.home-screen .home-story-road {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.home-screen .home-story-dash {
+  fill: none;
+  stroke: var(--home-fg);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* The flight's dashes on the map, at this size: a short stroke, a slightly longer gap. */
+  stroke-dasharray: 5 7;
+}
+
+.home-screen .home-story-ink {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-screen .home-story-plane path {
+  fill: var(--home-fg);
+  stroke: none;
+}
+
+.home-screen .home-story-plane {
+  transition: opacity 0.3s ease;
+}
+
+.home-screen .home-story-stops {
+  list-style: none;
+  margin: 0;
+  padding: 5rem 0 0;
+  display: grid;
+  row-gap: 3.25rem;
+}
+
+.home-screen .home-story-stop {
+  display: grid;
+  grid-template-columns: 1fr var(--road-col) 1fr;
+  align-items: start;
+}
+
+.home-screen .home-story-pin {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 7px;
+  height: 7px;
+  margin-top: calc(var(--pin-y) - 3.5px);
+}
+
+.home-screen .home-story-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--home-fg);
+}
+
+/* The ring the pin throws as the road reaches it, as the pins on the map do. */
+.home-screen .home-story-ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+}
+
+.home-screen .home-story-ripple circle {
+  fill: none;
+  stroke: var(--home-fg);
+  stroke-width: 1.4;
+}
+
+.home-screen .home-story-words {
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 26rem;
+}
+
+.home-screen .home-story-stop:nth-child(odd) .home-story-words {
+  grid-column: 1;
+  justify-self: end;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.home-screen .home-story-stop:nth-child(even) .home-story-words {
+  grid-column: 3;
+  justify-self: start;
+  align-items: flex-start;
+}
+
+/* When, in the hand, small and tilted, as the experience page dates its years. */
+.home-screen .home-story-when {
+  margin: 0 0 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--color-graphite);
+  rotate: -6deg;
+}
+
+.home-screen .home-story-place {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.8rem;
+  color: var(--color-ink);
+}
+
+.home-screen .home-story-lines {
+  margin: 0.4rem 0 0;
+  max-width: 52ch;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-pencil);
+}
+
+/* The end of the road: the paper plane on the road's side, the notes on the other. */
+.home-screen .home-story-end {
+  display: grid;
+  grid-template-columns: 1fr var(--road-col) 1fr;
+  align-items: center;
+  margin-top: 4.5rem;
+}
+
+.home-screen .home-story-paper {
+  grid-column: 1;
+  justify-self: end;
+  width: 150px;
+}
+
+.home-screen .home-story-notes {
+  grid-column: 3;
+  display: grid;
+  justify-items: start;
+  gap: 1.1rem;
+}
+
 /* ---- Phone shell (the exact complement of Tailwind's `md`) -----------------
  *
  * A phone has neither the width nor the height for the name beside the scene,
- * so they stack: the name, then the scene, then the hint, and the projects
+ * so they stack: the name, then the scene, then the hint, and the story
  * below, all clear of the tab bar along the bottom edge.
  */
 @media (width < 48rem) {
@@ -422,6 +586,69 @@
 
   .home-screen .home-more {
     padding: 4.5rem 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 2rem);
+  }
+
+  /* The road down the left, 18px in; every place to the right of it, with its when after it on the same line. */
+  .home-screen .home-story {
+    --road-col: 36px;
+    --pin-y: 0.9rem;
+  }
+
+  .home-screen .home-story-stops {
+    padding-top: 3.5rem;
+    row-gap: 2.5rem;
+  }
+
+  .home-screen .home-story-stop,
+  .home-screen .home-story-end {
+    grid-template-columns: var(--road-col) 1fr;
+    column-gap: 10px;
+  }
+
+  .home-screen .home-story-pin {
+    grid-column: 1;
+  }
+
+  .home-screen .home-story-stop:nth-child(n) .home-story-words {
+    grid-column: 2;
+    justify-self: start;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    column-gap: 0.6rem;
+    text-align: left;
+  }
+
+  .home-screen .home-story-when {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+    margin: 0;
+  }
+
+  .home-screen .home-story-place {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .home-screen .home-story-lines {
+    grid-column: 1 / -1;
+  }
+
+  .home-screen .home-story-end {
+    margin-top: 3rem;
+    row-gap: 3.5rem;
+  }
+
+  .home-screen .home-story-paper {
+    grid-column: 2;
+    justify-self: start;
+    width: 112px;
+  }
+
+  .home-screen .home-story-notes {
+    grid-column: 2;
+    padding-left: 0.5rem;
   }
 }
 

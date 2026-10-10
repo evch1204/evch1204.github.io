@@ -39,6 +39,32 @@ function smooth(pts: Point[]) {
 }
 
 /**
+ * A long line drawn freehand through the given points, in order: the same
+ * curve `smooth` would draw through them, walked in short steps that each
+ * stray a little, as a line drawn without a ruler does. The given points stay
+ * exactly on it. `wander` is how far the hand strays, in px.
+ */
+export function wanderLine(pts: Point[], seed: number, { wander = 1.2, step = 36 } = {}) {
+  if (pts.length < 2) return '';
+  const rnd = seeded(seed);
+  const at = (i: number) => pts[Math.max(0, Math.min(pts.length - 1, i))];
+  const out: Point[] = [pts[0]];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = at(i - 1), p = at(i), q = at(i + 1), b = at(i + 2);
+    const c1: Point = [p[0] + (q[0] - a[0]) / 6, p[1] + (q[1] - a[1]) / 6];
+    const c2: Point = [q[0] - (b[0] - p[0]) / 6, q[1] - (b[1] - p[1]) / 6];
+    const steps = Math.max(1, Math.round(Math.hypot(q[0] - p[0], q[1] - p[1]) / step));
+    for (let s = 1; s < steps; s++) {
+      const t = s / steps, u = 1 - t;
+      const bez = (k: 0 | 1) => u * u * u * p[k] + 3 * u * u * t * c1[k] + 3 * u * t * t * c2[k] + t * t * t * q[k];
+      out.push([bez(0) + (rnd() - 0.5) * 2 * wander, bez(1) + (rnd() - 0.5) * 2 * wander]);
+    }
+    out.push(q);
+  }
+  return smooth(out);
+}
+
+/**
  * The outline of a `w` × `h` box with rounded corners, drawn clockwise from
  * the top-left. `wander` is how far the line strays, in px. Closed with `Z`
  * for a shape to be filled; left open, with the pen's overshoot, for a line.

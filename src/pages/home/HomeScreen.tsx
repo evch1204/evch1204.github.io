@@ -9,7 +9,7 @@ import type { Tab } from '@/layout/nav';
 import { EASE, PEN_EASE } from '@/lib/motion';
 import DoodlePad from './components/DoodlePad';
 import HelloIntro from './components/HelloIntro';
-import HomeFeatured from './components/HomeFeatured';
+import HomeStory from './components/HomeStory';
 import ScrollHint from './components/ScrollHint';
 import SketchScene from './components/SketchScene';
 import { ROLE_LINE, TOOL_CLOUD, TOOL_CODE, TOOL_NODE, TOOL_REACT, TOOL_TYPESCRIPT } from './sketch';
@@ -24,7 +24,7 @@ type HomeScreenProps = {
   intro: boolean;
   /** The hello has left the screen to the page: the chrome can come in. Must be stable. */
   onIntroDone: () => void;
-  /** Where the project cards send the reader. */
+  /** Where the links on the sheet below send the reader. */
   onNavigate: (to: Destination) => void;
 };
 
@@ -64,7 +64,7 @@ function Tool({ name, drawing, drawn, delay }: { name: string; drawing: Drawing;
 /**
  * The home, the first sheet of the sketchbook: a map of the world with the
  * flight here drawn across it, a person at a desk under it, the name beside
- * them, and the featured projects on the spread below.
+ * them, and on the sheet below, the story so far.
  *
  * On the first visit of a load the hello writes itself. Its ink then drains
  * out through the tail of the o and gathers into one drop, which arcs across
@@ -87,6 +87,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
   const heroRef = useRef<HTMLDivElement>(null);
   const helloPathRef = useRef<SVGPathElement>(null);
   const dropRef = useRef<HTMLSpanElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLElement>(null);
   const refs = useMemo(() => ({ hero: heroRef, helloPath: helloPathRef, drop: dropRef }), []);
 
@@ -125,7 +126,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
   const [role, company] = ROLE.split(' at ');
 
   return (
-    <div className={`home-screen${settled ? '' : ' is-intro'}`}>
+    <div ref={sheetRef} className={`home-screen${settled ? '' : ' is-intro'}`}>
       <div className="grain" aria-hidden />
 
       <AnimatePresence>
@@ -206,7 +207,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
 
       {/* Below the fold: what `Scroll to explore` scrolls to. Out of reach until the sheet above is the reader's. */}
       <div inert={!settled}>
-        <HomeFeatured ref={moreRef} onOpen={(project) => onNavigate({ tab: 'projects', project })} />
+        <HomeStory ref={moreRef} container={sheetRef} onNavigate={onNavigate} />
       </div>
     </div>
   );
