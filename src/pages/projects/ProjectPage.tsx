@@ -56,7 +56,7 @@ export default function ProjectPage({
   const hero = pictures[slides.current];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  // The demo button's two blots: the stage draws its stand-in over them and the pen sets off from them.
+  // The demo button's two blots: the stage draws its stand-in over them and the ink sets off from them.
   const demoCircleRef = useRef<HTMLSpanElement>(null);
   const demoLabelRef = useRef<HTMLSpanElement>(null);
   const [demoOpen, setDemoOpen] = useState(false);
@@ -144,7 +144,7 @@ export default function ProjectPage({
         layoutDependency={project.id}
         arrowDelay={arrowDelay}
         // The demo's button is stuck on the frame's edge: the one thing on the page that says "watch". While the
-        // demo is open the stage draws a stand-in in its place for the pen to take apart; with reduced motion it stays.
+        // demo is open the stage draws a stand-in in its place for the ink to be taken out of; with reduced motion it stays.
         action={
           project.demoUrl ? (
             <DemoButton
