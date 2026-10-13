@@ -17,22 +17,17 @@ type DropRefs = {
 /** ms the drop gathers at the tail: as long as the word takes to drain into it. */
 const GATHER = HELLO.drain * 1000;
 /** px per ms of flight, and the shortest and longest the flight may take. */
-const SPEED = 0.45;
-const FLIGHT_MIN = 650;
-const FLIGHT_MAX = 850;
+const SPEED = 1.05;
+const FLIGHT_MIN = 720;
+const FLIGHT_MAX = 1050;
 /** The drop's size against its box: as big as the stroke when it starts to form, a full bead when the word has gone, the pin's size once down. */
 const BEAD = { start: 0.75, full: 1.25, down: 0.6 };
-/** The share of the flight over which the drop picks up speed; after that it flies at one pace and lands at it. */
-const WIND_UP = 0.4;
 
 /** How much of the word has drained: slow to let go of the first stroke, then gone, as the drain itself is. */
 const drained = (x: number) => Math.pow(Math.min(1, Math.max(0, x)), 1.6);
 
-/** Thrown: speed builds over the wind-up and holds to the ground. No slowing before the landing: the ring takes the impact. */
-const thrown = (x: number) => {
-  const k = 1 / (1 - WIND_UP / 2);
-  return x < WIND_UP ? (k * x * x) / (2 * WIND_UP) : k * (x - WIND_UP / 2);
-};
+/** Thrown: the drop picks up speed as it leaves the word and slows again as it comes down on the pin — the pace the hello always had. */
+const thrown = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 /** A point on a quadratic curve from `a` to `b` that bows out through `c`. */
 const bend = (a: Point, c: Point, b: Point, t: number): Point => {

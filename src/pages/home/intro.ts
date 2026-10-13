@@ -5,4 +5,4 @@
  * tail for exactly as long as the drain, and leaves the moment the word has
  * gone.
  */
-export const HELLO = { start: 0.2, draw: 2, hold: 0.35, drain: 1 } as const;
+export const HELLO = { start: 0.2, draw: 2, hold: 0.42, drain: 1.1 } as const;

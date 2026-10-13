@@ -110,7 +110,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
   const settled = ink === 'done';
   const written = settled;
   /* After the drop, the first line waits for the flight to set off; without one, everything starts at once. */
-  const base = withIntro ? 0.35 : 0.15;
+  const base = withIntro ? 0.45 : 0.15;
   const at = (t: number) => base + t;
 
   /* A line written out from its left edge, the way the hello was. With reduced motion it only fades. */
