@@ -343,28 +343,6 @@
   }
 }
 
-/* ---- The drop: the hello's ink, placed, sized and faded every frame by its flight ---- */
-
-.home-screen .home-drops {
-  position: absolute;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-}
-
-.home-screen .home-drop {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 10px;
-  height: 10px;
-  margin: -5px 0 0 -5px;
-  border-radius: 50%;
-  background: var(--home-fg);
-  opacity: 0;
-  will-change: transform, opacity;
-}
-
 /* ---- Below the fold: the story so far, and the footer ---- */
 
 .home-screen .home-more {

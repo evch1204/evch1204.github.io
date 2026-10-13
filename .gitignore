@@ -26,7 +26,9 @@ pnpm-debug.log*
 
 # Tooling caches
 *.tsbuildinfo
-.claude/
+# Claude Code's local state, except the project's skills
+.claude/*
+!.claude/skills/
 
 # Certificates / keys (if ever created locally)
 *.pem
@@ -42,3 +44,6 @@ pnpm-debug.log*
 
 # Local layout screenshots (headless-Chrome verification)
 .shots/
+
+# Rendered reels (scripts/reel)
+out/

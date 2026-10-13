@@ -1,6 +1,7 @@
 import { useEffect, type RefObject } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { PEN_EASE } from '@/lib/motion';
+import { HELLO } from '@/pages/home/intro';
 
 /**
  * One continuous monoline stroke, the Mac's own hello: its points read off
@@ -87,17 +88,16 @@ const HELLO_PATH =
   'C 401.9 54, 404.2 52.7, 406.4 51.4 C 408.6 50.2, 410.6 48.3, 412.7 47.1 ' +
   'C 414.8 45.9, 417.9 44.5, 419 44';
 
-/** Seconds: the pause before the pen starts, the writing itself, and the hold after. */
-const START = 0.2;
-const DRAW = 2;
-const HOLD = 0.42;
+/** The clock is shared with the drop: see `intro.ts`. */
+const { start: START, draw: DRAW, hold: HOLD, drain: DRAIN } = HELLO;
 /** The drain: slow to let go of the first stroke, then gone. */
-const DRAIN = 1.1;
 const DRAIN_EASE = [0.5, 0, 0.75, 0.4] as const;
 
 type HelloIntroProps = {
-  /** The stroke, for the burst to read where its tail is. */
+  /** The stroke, for the drop to read where its tail is. */
   pathRef: RefObject<SVGPathElement | null>;
+  /** The drop the ink gathers into: it lives over the word, and is placed each frame by its flight (see `useInkDrop`). */
+  dropRef: RefObject<HTMLSpanElement | null>;
   /** True once the word should drain out through its tail. */
   draining: boolean;
   /** The word has been written and held: time for the ink to leave. Must be stable. */
@@ -108,12 +108,12 @@ type HelloIntroProps = {
 
 /**
  * The Mac's first-boot hello: one stroke written in real time, held a beat,
- * then drained out through the tail of the o, where the burst picks the ink
- * up as drops. The sheet behind it lifts as the drain starts, so the page is
- * there for the drops to draw on. Nothing here takes the pointer; the page's own
+ * then drained out through the tail of the o into one drop, which is thrown
+ * at the map. The sheet behind it lifts as the drain starts, so the page is
+ * there for the drop to land on. Nothing here takes the pointer; the page's own
  * controls are kept inert until they are shown.
  */
-export default function HelloIntro({ pathRef, draining, onWritten, onSkip }: HelloIntroProps) {
+export default function HelloIntro({ pathRef, dropRef, draining, onWritten, onSkip }: HelloIntroProps) {
   const reduced = useReducedMotion();
 
   useEffect(() => {
@@ -156,6 +156,10 @@ export default function HelloIntro({ pathRef, draining, onWritten, onSkip }: Hel
           />
         </g>
       </svg>
+      {/* The hello's ink, gathered into one drop and thrown at Taiwan; over the word, so it is seen gathering at the tail. */}
+      <div className="hello-drops" aria-hidden>
+        <span ref={dropRef} className="hello-drop" />
+      </div>
     </motion.div>
   );
 }

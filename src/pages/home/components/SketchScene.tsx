@@ -3,7 +3,7 @@ import { animate } from 'motion';
 import { motion, useReducedMotion } from 'motion/react';
 import Pen from '@/components/sketch/Pen';
 import type { Drawing } from '@/components/sketch/drawing';
-import { EASE } from '@/lib/motion';
+import { EASE, POP } from '@/lib/motion';
 import { BOOK, FLIGHT, LAPTOP, MAP, MUG, PERSON, PLANE, SCREEN, STEAM, SURFACE } from '@/pages/home/sketch';
 
 /** The two ends of the route on the sheet, and the arc between them, fitted to the sketch's dashes. */
@@ -88,7 +88,7 @@ function Ripple({ at, beat, delay = 0 }: { at: { x: number; y: number }; beat: n
       cy={at.y}
       initial={{ r: 5, opacity: 0 }}
       animate={{ r: 30, opacity: [0, 0.55, 0] }}
-      transition={{ duration: 0.9, ease: 'easeOut', delay }}
+      transition={{ duration: 0.9, ease: EASE, delay }}
       aria-hidden
     />
   );
@@ -218,10 +218,11 @@ export default function SketchScene({ drawn, lead }: SketchSceneProps) {
     // `lead` is read once with the first draw; nothing re-flies.
   }, [drawn, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* A pin lands: it springs up where the drop came down, a hair past its size, and settles. */
   const pin = (delay: number) => ({
-    initial: { scale: 0, opacity: 0 },
-    animate: drawn ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 },
-    transition: { duration: reduced ? 0 : 0.45, ease: EASE, delay: drawn ? delay : 0 },
+    initial: { scale: 0.4, opacity: 0 },
+    animate: drawn ? { scale: 1, opacity: 1 } : { scale: 0.4, opacity: 0 },
+    transition: reduced ? { duration: 0 } : { ...POP, opacity: { duration: 0.08 }, delay: drawn ? delay : 0 },
   });
   const fade = (delay: number) => ({
     initial: { opacity: 0 },

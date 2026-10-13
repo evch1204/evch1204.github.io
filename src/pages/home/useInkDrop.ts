@@ -1,6 +1,7 @@
 import { useEffect, type RefObject } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { useLatest } from '@/hooks/useLatest';
+import { HELLO } from './intro';
 
 type Point = [number, number];
 
@@ -13,15 +14,25 @@ type DropRefs = {
   drop: RefObject<HTMLSpanElement | null>;
 };
 
-/** ms after the drain starts before the drop leaves, so the ink is seen gathering at the tail. */
-const DEPART = 320;
+/** ms the drop gathers at the tail: as long as the word takes to drain into it. */
+const GATHER = HELLO.drain * 1000;
 /** px per ms of flight, and the shortest and longest the flight may take. */
-const SPEED = 1.05;
-const FLIGHT_MIN = 720;
-const FLIGHT_MAX = 1050;
+const SPEED = 0.45;
+const FLIGHT_MIN = 650;
+const FLIGHT_MAX = 850;
+/** The drop's size against its box: as big as the stroke when it starts to form, a full bead when the word has gone, the pin's size once down. */
+const BEAD = { start: 0.75, full: 1.25, down: 0.6 };
+/** The share of the flight over which the drop picks up speed; after that it flies at one pace and lands at it. */
+const WIND_UP = 0.4;
 
-/** Slow off the tail, quick through the air, slow onto the page. */
-const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+/** How much of the word has drained: slow to let go of the first stroke, then gone, as the drain itself is. */
+const drained = (x: number) => Math.pow(Math.min(1, Math.max(0, x)), 1.6);
+
+/** Thrown: speed builds over the wind-up and holds to the ground. No slowing before the landing: the ring takes the impact. */
+const thrown = (x: number) => {
+  const k = 1 / (1 - WIND_UP / 2);
+  return x < WIND_UP ? (k * x * x) / (2 * WIND_UP) : k * (x - WIND_UP / 2);
+};
 
 /** A point on a quadratic curve from `a` to `b` that bows out through `c`. */
 const bend = (a: Point, c: Point, b: Point, t: number): Point => {
@@ -30,13 +41,15 @@ const bend = (a: Point, c: Point, b: Point, t: number): Point => {
 };
 
 /**
- * The drop. While `active`, the ink that drained out of the hello gathers at
- * its tail into one drop, which arcs across the sheet and lands on the spot
- * marked `data-ink-target` (the pin at Santa Clara, where the map is drawn
- * from). `onLanded` is called the moment it touches down. A tap, Enter,
- * Space or Escape lands it at once, and so does a change of window width,
- * since the flight was measured for the old one. The drop is moved on the DOM
- * directly each frame; nothing React needs to re-render for.
+ * The drop. While `active`, the ink draining out of the hello gathers at its
+ * tail into one drop, swelling for as long as the word takes to go; the
+ * moment the word has gone the drop is thrown across the sheet, in an arc,
+ * and lands on the spot marked `data-ink-target` (the pin at Taiwan, where
+ * the map is drawn from). `onLanded` is called the moment it touches down,
+ * and the drop fades as the pin takes its place. A tap, Enter, Space or
+ * Escape lands it at once, and so does a change of window width, since the
+ * flight was measured for the old one. The drop is moved on the DOM directly
+ * each frame; nothing React needs to re-render for.
  */
 export function useInkDrop(active: boolean, refs: DropRefs, onLanded: () => void) {
   const reduced = useReducedMotion();
@@ -67,14 +80,17 @@ export function useInkDrop(active: boolean, refs: DropRefs, onLanded: () => void
     const dist = Math.hypot(dx, dy) || 1;
     // Thrown, not slid: the path bows upwards, whichever way the drop is headed.
     const side = dx > 0 ? -1 : 1;
-    const via: Point = [from[0] + dx / 2 - (dy / dist) * dist * 0.24 * side, from[1] + dy / 2 + (dx / dist) * dist * 0.24 * side];
+    const via: Point = [from[0] + dx / 2 - (dy / dist) * dist * 0.22 * side, from[1] + dy / 2 + (dx / dist) * dist * 0.22 * side];
     const flight = Math.min(FLIGHT_MAX, Math.max(FLIGHT_MIN, dist / SPEED));
 
-    const place = ([x, y]: Point, scale: number, opacity: number) => {
-      drop.style.setProperty('transform', `translate(${x}px, ${y}px) scale(${scale.toFixed(3)})`);
+    /** The drop at a point, at a size, stretched a little along the way it is going. */
+    const place = ([x, y]: Point, scale: number, opacity: number, heading?: Point) => {
+      const stretch = heading ? ` rotate(${Math.atan2(heading[1], heading[0]).toFixed(3)}rad) scale(1.3, 0.85)` : '';
+      drop.style.setProperty('transform', `translate(${x}px, ${y}px) scale(${scale.toFixed(3)})${stretch}`);
       drop.style.setProperty('opacity', opacity.toFixed(2));
     };
-    place(from, 0.4, 0);
+    drop.style.removeProperty('transition');
+    place(from, BEAD.start, 0);
 
     const start = performance.now();
     const width = window.innerWidth;
@@ -84,18 +100,23 @@ export function useInkDrop(active: boolean, refs: DropRefs, onLanded: () => void
       if (finished) return;
       finished = true;
       cancelAnimationFrame(raf);
-      place(to, 1, 0);
+      // Down, and handed over: the ink spreads into the ring, the pin springs up where the drop is, and the drop goes.
+      place(to, BEAD.down, 1);
+      drop.style.setProperty('transition', 'opacity 0.14s ease 0.08s');
+      drop.style.setProperty('opacity', '0');
       landedRef.current();
     };
     const frame = (now: number) => {
       const el = now - start;
-      if (el < DEPART) {
+      if (el < GATHER) {
         // Gathering at the tail: the drop swells as the word drains into it.
-        place(from, 0.4 + 0.75 * (el / DEPART), el / DEPART);
+        const x = drained(el / GATHER);
+        place(from, BEAD.start + (BEAD.full - BEAD.start) * x, 1);
       } else {
-        const p = Math.min(1, (el - DEPART) / flight);
-        // A little stretched mid-flight, back to the pin's size as it lands.
-        place(bend(from, via, to, ease(p)), 1.15 - 0.15 * Math.abs(2 * p - 1), 1);
+        const p = Math.min(1, (el - GATHER) / flight);
+        const at = bend(from, via, to, thrown(p));
+        const ahead = bend(from, via, to, thrown(Math.min(1, p + 0.02)));
+        place(at, BEAD.full, 1, p < 0.96 ? [ahead[0] - at[0], ahead[1] - at[1]] : undefined);
         if (p >= 1) {
           finish();
           return;

@@ -20,7 +20,8 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 ```
 ├── .github/workflows/   # CI: build + deploy Pages
 ├── public/              # Static assets served as-is (resume.pdf, favicons)
-├── scripts/             # Node scripts: contributions snapshot, favicon set
+├── scripts/             # Node scripts: contributions snapshot, favicon set, sketch tracer,
+│   └── reel/            # and the motion studio: films the site from code into an MP4
 ├── src/
 │   ├── App.tsx          # Shell: tab state and history, header, page switch, footer
 │   ├── main.tsx
@@ -45,12 +46,14 @@ Personal portfolio site built with **React**, **TypeScript**, **Vite**, and **Ta
 │   ├── lib/             # Leaf utilities: clock, download, format, links, motion, url
 │   └── pages/           # One folder per tab; the page component at the root,
 │       │                # its parts in components/, single-use hooks beside it
-│       ├── home/        # HomeScreen: the hello is written, its ink bursts into drops
-│       │   │                # that draw the doodles all at once, then the name
-│       │   ├── components/   # HelloIntro (the written word), Doodles (the ring and the drops)
-│       │   ├── doodles.ts    # One entry per doodle: paths, centre, where a tap goes; in tour order
-│       │   ├── useInkBurst.ts # The burst: every drop's flight, each frame, and when each doodle draws
-│       │   └── styles/       # home-screen.css (entry) + home-intro.css + home-doodles.css
+│       ├── home/        # HomeScreen: the hello is written, its ink drains into one drop,
+│       │   │                # the drop lands as the pin on the map, and the sheet is drawn from it
+│       │   ├── components/   # HelloIntro (the word and the drop), SketchScene (map, flight, desk),
+│       │   │                # HomeStory (the road below), ScrollHint, DoodlePad (the pencil)
+│       │   ├── intro.ts      # The hello's clock, shared by the word and the drop
+│       │   ├── useInkDrop.ts # The drop: gathers at the tail, is thrown, lands
+│       │   ├── sketch.ts     # Traced drawings of the home sheet (generated)
+│       │   └── styles/       # home-screen.css (entry) + home-intro.css
 │       ├── about/       # Profile, tech, GitHub activity, resume
 │       ├── experience/  # Journey and education lists (OrgGroup, RoleRow)
 │       ├── projects/    # Grid and the project page it opens into;
@@ -80,6 +83,7 @@ npm run lint        # ESLint (typescript-eslint, react-hooks, import rule)
 npm run deploy      # manual fallback: build + push dist/ with gh-pages
 npm run contributions  # refresh src/content/contributions.json from GitHub
 npm run favicon     # regenerate favicon.ico / .svg / apple-touch-icon.png
+npm run reel        # film the home reel from dist/ → out/home/final.mp4 (add -- --draft to look first)
 ```
 
 The GitHub Actions workflow is the canonical deploy; `npm run deploy` is only
@@ -88,6 +92,14 @@ the manual fallback for when Actions is unavailable.
 There is no test suite. Layout changes are checked by building, then driving
 headless Chrome over the DevTools protocol at phone and desktop sizes and
 comparing screenshots against the previous build.
+
+Motion is checked, and shown off, with the studio in `scripts/reel/`: the
+built site is filmed one frame at a time under a clock the renderer controls
+(`clock.js`), so every frame is a pure function of time; a reel script
+(`home.reel.mjs`) directs the camera, the pointer and the sound cues, the
+music is synthesized in code, and ffmpeg encodes the film with its contact
+sheets. The Claude Code skill in `.claude/skills/motion-reel` holds the
+house rules and the pipeline.
 
 ## Local development
 

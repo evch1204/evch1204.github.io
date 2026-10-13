@@ -12,7 +12,8 @@
     "deploy": "npm run build && gh-pages -d dist",
     "contributions": "node scripts/fetch-contributions.mjs",
     "favicon": "node scripts/make-favicon.mjs",
-    "sketch": "node scripts/trace-sketch.mjs"
+    "sketch": "node scripts/trace-sketch.mjs",
+    "reel": "node scripts/reel/render.mjs scripts/reel/home.reel.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",

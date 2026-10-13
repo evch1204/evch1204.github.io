@@ -27,6 +27,26 @@
   overflow: visible;
 }
 
+/* The drop: the hello's ink, placed, sized and faded every frame by its flight. A little fuller than the stroke, so it is seen gathering at the tail. */
+.hello-drops {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hello-drop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: var(--home-fg);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
 .hello-intro-mark path {
   fill: none;
   stroke: var(--home-fg);

@@ -6,7 +6,7 @@ import type { Drawing } from '@/components/sketch/drawing';
 import { ARROW_LONG } from '@/components/sketch/marks';
 import { NAME, ROLE } from '@/content/site';
 import type { Tab } from '@/layout/nav';
-import { EASE, PEN_EASE } from '@/lib/motion';
+import { PEN_EASE } from '@/lib/motion';
 import DoodlePad from './components/DoodlePad';
 import HelloIntro from './components/HelloIntro';
 import HomeStory from './components/HomeStory';
@@ -42,9 +42,9 @@ const BLURB = 'I build full-stack applications, solve real-world problems, and t
 /**
  * The left column's clock, in seconds from the moment the page starts to be
  * written: each line is written out after the one above it, the stroke goes
- * under the role, the blurb comes up and the tools are drawn.
+ * under the role, then the blurb, the tools and the notes at the foot.
  */
-const T = { hi: 0, name: 0.25, role: 0.8, line: 1.25, blurb: 1.4, tools: 1.65, foot: 2.5 } as const;
+const T = { hi: 0, name: 0.25, role: 0.8, line: 1.25, blurb: 1.4, tools: 1.7, foot: 2.4 } as const;
 
 /** One of the tools: drawn in its turn, and drawn again, with its name, whenever the pencil passes over it. */
 function Tool({ name, drawing, drawn, delay }: { name: string; drawing: Drawing; drawn: boolean; delay: number }) {
@@ -67,11 +67,12 @@ function Tool({ name, drawing, drawn, delay }: { name: string; drawing: Drawing;
  * them, and on the sheet below, the story so far.
  *
  * On the first visit of a load the hello writes itself. Its ink then drains
- * out through the tail of the o and gathers into one drop, which arcs across
- * the sheet and lands as the pin at Taiwan. While it is in the air the name
- * is written out on the left, a line at a time; when it lands the map
- * spreads out from the pin, the flight runs across it to Santa Clara with
- * the plane at its head, and the desk is drawn. Coming back from another tab
+ * out through the tail of the o into one drop, which is thrown across the
+ * clean sheet and lands as the pin at Taiwan. One thing at a time: nothing
+ * else moves while the drop is in the air. When it lands the map spreads out
+ * from the pin, the flight sets off westwards with the plane at its head, and
+ * as it heads for Santa Clara the name is written out on the left, a line at
+ * a time, with the desk drawn under the map. Coming back from another tab
  * there is no hello and no drop: the same sequence simply runs.
  *
  * Then the sheet is the reader's. Their pointer is a pencil: the drawings
@@ -105,21 +106,17 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
 
   useInkDrop(ink === 'drop', refs, settle);
 
-  /** The left column starts to be written as the hello lets go of its ink; the scene waits for the drop. */
-  const written = ink !== 'hello';
+  /** The ink has landed: the scene is drawn from the pin, and the left column is written as the flight heads its way. */
   const settled = ink === 'done';
-  /* After the hello, the first line waits for the sheet to clear; without one, everything starts at once. */
-  const base = withIntro ? 0.45 : 0.15;
+  const written = settled;
+  /* After the drop, the first line waits for the flight to set off; without one, everything starts at once. */
+  const base = withIntro ? 0.35 : 0.15;
   const at = (t: number) => base + t;
 
   /* A line written out from its left edge, the way the hello was. With reduced motion it only fades. */
   const write = (delay: number, duration: number): Variants => ({
     hidden: reduced ? { opacity: 0 } : { clipPath: 'inset(-20% 100% -20% -4%)' },
     shown: { opacity: 1, clipPath: 'inset(-20% -4% -20% -4%)', transition: { duration, ease: PEN_EASE, delay } },
-  });
-  const rise = (delay: number): Variants => ({
-    hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 10 },
-    shown: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay } },
   });
   const state = written ? 'shown' : 'hidden';
 
@@ -131,7 +128,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
 
       <AnimatePresence>
         {ink !== 'done' && (
-          <HelloIntro pathRef={helloPathRef} draining={ink === 'drop'} onWritten={release} onSkip={settle} />
+          <HelloIntro pathRef={helloPathRef} dropRef={dropRef} draining={ink === 'drop'} onWritten={release} onSkip={settle} />
         )}
       </AnimatePresence>
 
@@ -152,7 +149,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
             <svg className="home-underline sk-art" viewBox={ROLE_LINE.box.join(' ')} preserveAspectRatio="none" aria-hidden>
               <Pen drawing={ROLE_LINE} drawn={written} duration={0.45} delay={at(T.line)} />
             </svg>
-            <motion.p className="home-blurb" initial="hidden" animate={state} variants={rise(at(T.blurb))}>
+            <motion.p className="home-blurb" initial="hidden" animate={state} variants={write(at(T.blurb), 0.9)}>
               {BLURB}
             </motion.p>
             <ul className="home-tools" aria-label="Tools">
@@ -172,7 +169,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
         />
 
         {/* The note in the sheet's bottom corner, as the sketch has it: the three things the work comes down to. */}
-        <motion.p className="home-note sk-note" initial="hidden" animate={state} variants={rise(at(T.foot))} aria-hidden>
+        <motion.p className="home-note sk-note" initial="hidden" animate={state} variants={write(at(T.foot), 0.5)} aria-hidden>
           Code
           <br />
           Build
@@ -189,7 +186,7 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
             <Eraser size={18} strokeWidth={1.8} aria-hidden /> Rub it out
           </button>
         ) : (
-          <motion.p className="home-pencil-note sk-note" initial="hidden" animate={settled ? 'shown' : 'hidden'} variants={rise(at(T.foot) + 0.3)}>
+          <motion.p className="home-pencil-note sk-note" initial="hidden" animate={state} variants={write(at(T.foot) + 0.3, 0.6)}>
             Psst, the pencil works.
             <br />
             Draw on the page <Pencil size={17} strokeWidth={1.8} aria-hidden />
@@ -199,10 +196,6 @@ export default function HomeScreen({ intro, onIntroDone, onNavigate }: HomeScree
         {/* What the reader has drawn, and the stroke in hand. */}
         <DoodlePad sheet={heroRef} enabled={settled} strokes={doodles} onStroke={(d) => setDoodles((all) => [...all, d])} />
 
-        {/* The hello's ink, gathered into one drop and thrown at Taiwan; placed each frame by the flight. */}
-        <div className="home-drops" aria-hidden>
-          <span ref={dropRef} className="home-drop" />
-        </div>
       </div>
 
       {/* Below the fold: what `Scroll to explore` scrolls to. Out of reach until the sheet above is the reader's. */}
